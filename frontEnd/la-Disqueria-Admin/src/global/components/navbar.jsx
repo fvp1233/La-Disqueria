@@ -7,7 +7,7 @@ export default function Navbar() {
   const inactive = "text-[#54555A]";
 
   return (
-    <div className="w-full flex justify-center mt-4">
+    <div className="w-full flex justify-center mt-4 sticky top-0 z-50">
       <nav className="bg-[#F9FAF4] shadow-md rounded-xl px-6 py-3 flex gap-6 items-center">
 
         <NavLink to="/" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
