@@ -15,7 +15,7 @@ export default function Navbar() {
         </NavLink>
 
         <NavLink to="/orders" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
-          Ordenes
+          Órdenes
         </NavLink>
 
         <NavLink to="/inventory" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
