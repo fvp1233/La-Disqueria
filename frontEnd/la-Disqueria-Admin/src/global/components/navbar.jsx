@@ -14,15 +14,15 @@ export default function Navbar() {
           Inicio
         </NavLink>
 
-        <NavLink to="/ordenes" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+        <NavLink to="/orders" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
           Ordenes
         </NavLink>
 
-        <NavLink to="/inventario" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+        <NavLink to="/inventory" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
           Inventario
         </NavLink>
 
-        <NavLink to="/discos" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+        <NavLink to="/discs" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
           Discos
         </NavLink>
 
