@@ -7,11 +7,11 @@ function Table({ className, ...props }) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full overflow-hidden rounded-2xl bg-[#F5F5F2] p-4"
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-sm", className)}
+        className={cn("w-full text-sm text-gray-700", className)}
         {...props}
       />
     </div>
@@ -22,7 +22,10 @@ function TableHeader({ className, ...props }) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
+      className={cn(
+        "bg-[#D9D9D9] text-[#888888] [&_tr]:border-b border-[#E6E6E6]",
+        className
+      )}
       {...props}
     />
   )
@@ -43,7 +46,7 @@ function TableFooter({ className, ...props }) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
+        "border-t border-[#E6E6E6] bg-gray-100 font-medium",
         className
       )}
       {...props}
@@ -56,7 +59,7 @@ function TableRow({ className, ...props }) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b border-[#E6E6E6] transition hover:bg-white/60",
         className
       )}
       {...props}
@@ -69,7 +72,7 @@ function TableHead({ className, ...props }) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-10 px-2 text-left align-middle font-medium whitespace-nowrap",
+        "h-12 px-4 text-left text-xs font-semibold text-[#888888] uppercase tracking-wide first:rounded-tl-2xl last:rounded-tr-2xl",
         className
       )}
       {...props}
@@ -82,7 +85,7 @@ function TableCell({ className, ...props }) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap",
+        "px-4 py-3 align-middle text-sm bg-[#F9FAF4]",
         className
       )}
       {...props}
