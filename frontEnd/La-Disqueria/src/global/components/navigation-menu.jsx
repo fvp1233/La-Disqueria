@@ -77,7 +77,7 @@ function NavigationMenuContent({ className, ...props }) {
 function NavigationMenuPositioner({
   className,
   side = "bottom",
-  sideOffset = 10,
+  sideOffset = 0,
   align = "start",
   ...props
 }) {
@@ -91,10 +91,11 @@ function NavigationMenuPositioner({
         {...props}>
         <NavigationMenuPrimitive.Popup
           className={cn(
-            "relative mt-1.5 overflow-hidden rounded-md  bg-popover text-popover-foreground ",
-            "h-(--popup-height) w-(--popup-width) transition-[width,height] duration-300 ease-in-out"
+            "relative mt-1.5 overflow-hidden rounded-md bg-popover text-popover-foreground",
+            "h-(--popup-height) w-(--popup-width) transition-[width,height] duration-300 ease-in-out",
+            "data-starting-style:h-0 data-ending-style:h-0"
           )}
-          
+
         >
           {/* El Viewport es esencial para que el contenido cambie de tamaño suavemente */}
           <NavigationMenuPrimitive.Viewport className="size-full" />
