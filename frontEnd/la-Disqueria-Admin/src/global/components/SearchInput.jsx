@@ -1,24 +1,25 @@
 import { SearchIcon } from "lucide-react"
-import { Input } from "@/components/ui/input"
 
-export function SearchInput({
-  value,
-  onChange,
-  placeholder = "Buscar...",
-  className = "",
-}) {
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from "@/global/components/Field"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/global/components/input-group"
+
+export function InputGroupInlineStart() {
   return (
-    <div className={`relative w-full max-w-sm ${className}`}>
-      
-      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-      
-      <Input
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="pl-10"
-      />
-
-    </div>
+    <Field className="max-w-sm mt-4">
+      <InputGroup>
+        <InputGroupInput id="inline-start-input" placeholder="Buscar" />
+        <InputGroupAddon align="inline-start">
+          <SearchIcon className="text-muted-foreground" />
+        </InputGroupAddon>
+      </InputGroup>
+    </Field>
   )
 }

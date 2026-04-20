@@ -8,6 +8,10 @@ import {
   TableCell,
 } from "@/global/components/Table"
 import { StatusBadge } from "@/global/components/StatusBadge"
+import { InputGroupInlineStart } from "@/global/components/SearchInput"
+import { Button, buttonVariants } from "@/global/components/button"
+import { SlidersHorizontal } from "lucide-react"
+import { Plus } from "lucide-react"
 
 const ordenes = [
   {
@@ -96,8 +100,20 @@ export default function DiscosPage() {
         />
       </div>
 
+      <div className="mt-8 flex justify-between items-center">
+        <InputGroupInlineStart />
+        <Button variant="filter" className="h-auto flex gap-2">
+          Filtrar
+          <SlidersHorizontal className="w-5 h-5" />
+        </Button>
+        <Button variant="cd" className="h-auto">
+          <Plus className="w-5 h-5" />
+          Agregar
+        </Button>
+      </div>
+
       {/* TABLA */}
-      <div className="mt-8">
+      <div className="mt-5">
         <Table>
           <TableHeader>
             <TableRow>

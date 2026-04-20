@@ -18,6 +18,11 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        cd: "h-auto bg-gray-300 text-white rounded-full px-8 py-6 text-lg shadow-md hover:bg-gray-400",
+
+        filter: "h-auto bg-[#E5E5E5] text-gray-500 rounded-full px-8 py-5 text-lg shadow-[0_4px_10px_rgba(0,0,0,0.15),inset_0_2px_4px_rgba(255,255,255,0.6)] hover:bg-[#DCDCDC]",
+
+        cancel: "h-auto bg-[#E5E5E5] text-gray-500 rounded-full px-10 py-5 text-lg shadow-[0_4px_10px_rgba(0,0,0,0.15),inset_0_2px_4px_rgba(255,255,255,0.6)] hover:bg-[#DCDCDC]",
       },
       size: {
         default:
@@ -49,7 +54,7 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props} />
   );
 }
