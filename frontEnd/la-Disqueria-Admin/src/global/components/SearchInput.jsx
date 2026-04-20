@@ -14,7 +14,7 @@ import {
 export function InputGroupInlineStart() {
   return (
     <Field className="max-w-sm mt-4">
-      <InputGroup>
+      <InputGroup className=" bg-[#F5F6F1]">
         <InputGroupInput id="inline-start-input" placeholder="Buscar" />
         <InputGroupAddon align="inline-start">
           <SearchIcon className="text-muted-foreground" />

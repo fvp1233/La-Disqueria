@@ -101,16 +101,22 @@ export default function DiscosPage() {
       </div>
 
       <div className="mt-8 flex justify-between items-center">
-        <InputGroupInlineStart />
-        <Button variant="filter" className="h-auto flex gap-2">
-          Filtrar
-          <SlidersHorizontal className="w-5 h-5" />
-        </Button>
-        <Button variant="cd" className="h-auto">
-          <Plus className="w-5 h-5" />
-          Agregar
+        {/* Izquierda: búsqueda + filtrar */}
+        <div className="flex gap-4 items-center">
+          <InputGroupInlineStart />
+          <Button variant="filter">
+            <p className="text-base">Filtrar</p>
+            <SlidersHorizontal className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Derecha: agregar */}
+        <Button variant="cd">
+          <Plus className="w-4 h-4" />
+          <p className="text-base">Agregar</p>
         </Button>
       </div>
+
 
       {/* TABLA */}
       <div className="mt-5">
