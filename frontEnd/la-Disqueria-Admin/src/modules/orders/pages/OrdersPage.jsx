@@ -1,3 +1,8 @@
+import { useState } from "react"
+
+import { SlidersHorizontal } from "lucide-react"
+import { Plus } from "lucide-react"
+
 import Card from "@/global/components/Card"
 import {
   Table,
@@ -9,9 +14,9 @@ import {
 } from "@/global/components/Table"
 import { StatusBadge } from "@/global/components/StatusBadge"
 import { InputGroupInlineStart } from "@/global/components/SearchInput"
-import { Button, buttonVariants } from "@/global/components/button"
-import { SlidersHorizontal } from "lucide-react"
-import { Plus } from "lucide-react"
+import { Button } from "@/global/components/button"
+import { Modal } from "@/global/components/Modal"
+import { OrderForm } from "@/modules/orders/components/OrderForm"
 
 const ordenes = [
   {
@@ -62,6 +67,9 @@ const ordenes = [
 ];
 
 export default function DiscosPage() {
+
+  const [open, setOpen] = useState(false)
+
   return (
     <div>
 
@@ -105,15 +113,15 @@ export default function DiscosPage() {
         <div className="flex gap-4 items-center">
           <InputGroupInlineStart />
           <Button variant="filter">
-            <p className="text-base">Filtrar</p>
+            <p className="text-sm py-1 px-2">Filtrar</p>
             <SlidersHorizontal className="w-4 h-4" />
           </Button>
         </div>
 
         {/* Derecha: agregar */}
-        <Button variant="cd">
-          <Plus className="w-4 h-4" />
-          <p className="text-base">Agregar</p>
+        <Button variant="cd" onClick={() => setOpen(true)}>
+          <Plus className="w-5 h-5" />
+          <p className="text-sm py-1 px-2">Agregar</p>
         </Button>
       </div>
 
@@ -148,6 +156,15 @@ export default function DiscosPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Agregar nueva orden"
+        size="full"
+      >
+        <OrderForm onClose={() => setOpen(false)} />
+      </Modal>
     </div>
   )
 }

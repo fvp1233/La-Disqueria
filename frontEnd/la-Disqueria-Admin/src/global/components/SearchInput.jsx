@@ -9,7 +9,7 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/global/components/input-group"
+} from "@/global/components/InputGroup"
 
 export function InputGroupInlineStart() {
   return (
