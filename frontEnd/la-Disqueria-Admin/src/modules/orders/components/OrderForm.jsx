@@ -1,5 +1,7 @@
 "use client"
 
+import { useState } from "react"
+
 import { Input } from "@/global/components/Input"
 import { Label } from "@/global/components/Label"
 import { Textarea } from "@/global/components/Textarea"
@@ -10,9 +12,19 @@ import {
 } from "@/global/components/InputGroup"
 import { Button } from "@/global/components/button"
 import { MoneyInput } from "@/global/components/MoneyInput"
+import { FormDropdown } from "@/global/components/FormDropdown"
 import { Search } from "lucide-react"
 
 export function OrderForm({ onClose }) {
+
+    const [status, setStatus] = useState("pending")
+
+    const statusOptions = [
+        { label: "Pendiente", value: "pending" },
+        { label: "En progreso", value: "in_progress" },
+        { label: "Completado", value: "completed" },
+    ]
+
     return (
         <form className="flex flex-col gap-4">
 
@@ -29,9 +41,14 @@ export function OrderForm({ onClose }) {
                     </InputGroup>
                 </div>
 
-                <div>
+                <div className="w-full">
                     <Label>Estado</Label>
-                    <Input defaultValue="Pendiente" />
+                    <FormDropdown
+                        options={statusOptions}
+                        value={status}
+                        onChange={setStatus}
+                    />
+
                 </div>
             </div>
 
