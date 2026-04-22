@@ -18,11 +18,26 @@ import { Search } from "lucide-react"
 export function OrderForm({ onClose }) {
 
     const [status, setStatus] = useState("pending")
+    const [paymentMethod, setPaymentMethod] = useState("cash")
+    const [paymentStatus, setPaymentStatus] = useState("unpaid")
 
     const statusOptions = [
         { label: "Pendiente", value: "pending" },
         { label: "En progreso", value: "in_progress" },
         { label: "Completado", value: "completed" },
+    ]
+
+    const paymentMethodOptions = [
+        { label: "Efectivo", value: "cash" },
+        { label: "Tarjeta de crédito", value: "credit_card" },
+        { label: "Tarjeta de débito", value: "debit_card" },
+        { label: "Transferencia", value: "transfer" },
+    ]
+
+    const paymentStatusOptions = [
+        { label: "No pagado", value: "unpaid" },
+        { label: "Pagado", value: "paid" },
+        { label: "Reembolsado", value: "refunded" },
     ]
 
     return (
@@ -41,14 +56,14 @@ export function OrderForm({ onClose }) {
                     </InputGroup>
                 </div>
 
-                <div className="w-full">
+                <div>
                     <Label>Estado</Label>
+
                     <FormDropdown
                         options={statusOptions}
                         value={status}
                         onChange={setStatus}
                     />
-
                 </div>
             </div>
 
@@ -104,11 +119,22 @@ export function OrderForm({ onClose }) {
             <div className="grid grid-cols-2 gap-4">
                 <div>
                     <Label>Método de pago</Label>
-                    <Input defaultValue="Efectivo" />
+                    <FormDropdown
+                        options={paymentMethodOptions}
+                        value={paymentMethod}
+                        onChange={setPaymentMethod}
+                        placeholder="Seleccionar método"
+                    />
                 </div>
+
                 <div>
                     <Label>Estado de pago</Label>
-                    <Input defaultValue="No pagado" />
+                    <FormDropdown
+                        options={paymentStatusOptions}
+                        value={paymentStatus}
+                        onChange={setPaymentStatus}
+                        placeholder="Seleccionar estado"
+                    />
                 </div>
             </div>
 

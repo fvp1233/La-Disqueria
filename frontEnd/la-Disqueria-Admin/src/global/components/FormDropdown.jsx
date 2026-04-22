@@ -18,20 +18,14 @@ export function FormDropdown({
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    variant="outline"
-                    className={`h-8 px-3 text-sm rounded-md bg-background border border-input w-full flex items-center justify-between gap-2 ${className}`}
-                >
+            <DropdownMenuTrigger>
+                <div className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm flex items-center justify-between">
                     {selected?.label || placeholder}
                     <ChevronDownIcon className="w-4 h-4 opacity-50" />
-                </Button>
+                </div>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent
-                align="start"
-                className="min-w-[var(--radix-dropdown-menu-trigger-width)]"
-            >
+            <DropdownMenuContent>
                 {options.map((opt) => (
                     <DropdownMenuItem
                         key={opt.value}

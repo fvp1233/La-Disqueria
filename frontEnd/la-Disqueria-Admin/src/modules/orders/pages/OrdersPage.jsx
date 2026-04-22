@@ -17,6 +17,7 @@ import { InputGroupInlineStart } from "@/global/components/SearchInput"
 import { Button } from "@/global/components/button"
 import { Modal } from "@/global/components/Modal"
 import { OrderForm } from "@/modules/orders/components/OrderForm"
+import { FilterDropdown } from "@/global/components/FilterDropdown"
 
 const ordenes = [
   {
@@ -69,6 +70,12 @@ const ordenes = [
 export default function DiscosPage() {
 
   const [open, setOpen] = useState(false)
+  const [statusFilter, setStatusFilter] = useState("all")
+
+  const filteredOrders = ordenes.filter((orden) => {
+  if (statusFilter === "all") return true
+  return orden.estado === statusFilter
+})
 
   return (
     <div>
@@ -112,10 +119,15 @@ export default function DiscosPage() {
         {/* Izquierda: búsqueda + filtrar */}
         <div className="flex gap-4 items-center">
           <InputGroupInlineStart />
-          <Button variant="filter">
-            <p className="text-sm py-1 px-2">Filtrar</p>
-            <SlidersHorizontal className="w-4 h-4" />
-          </Button>
+          <FilterDropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { label: "Todos", value: "all" },
+              { label: "Entregado", value: "Entregado" },
+              { label: "En camino", value: "En camino" },
+            ]}
+          />
         </div>
 
         {/* Derecha: agregar */}
@@ -142,7 +154,7 @@ export default function DiscosPage() {
           </TableHeader>
 
           <TableBody>
-            {ordenes.map((p, index) => (
+            {filteredOrders.map((p, index) => (
               <TableRow key={index}>
                 <TableCell>{p.orderid}</TableCell>
                 <TableCell>{p.cliente}</TableCell>
