@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react"; // ✅ FIXED
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput"
 import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react"
-import { useSearchParams } from "react-router-dom";
 import { Button } from "@/global/components/button"
 import {
   Table,
@@ -21,7 +20,7 @@ export default function DiscosPage() {
   const navigate = useNavigate();
 
   const [searchParams] = useSearchParams();
-const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
+  const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
   const [search, setSearch] = useState("");
   const [extraDiscs, setExtraDiscs] = useState([]);
   const [openRow, setOpenRow] = useState(null);
@@ -31,9 +30,9 @@ const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
     setExtraDiscs(guardados);
   }, []);
 
-  // 🔥 DELETE (FIXED INDEX)
+  // DELETE
   const handleDelete = (index, isExtra) => {
-    if (!isExtra) return; // don't delete base data
+    if (!isExtra) return;
 
     const updated = [...extraDiscs];
     updated.splice(index, 1);
@@ -42,7 +41,7 @@ const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
     localStorage.setItem("discos", JSON.stringify(updated));
   };
 
-  // 🔥 EDIT
+  // EDIT
   const handleEdit = (index, isExtra) => {
     if (!isExtra) return;
 
@@ -56,7 +55,7 @@ const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
     navigate(`/discs/add?tipo=${disc.tipo}`);
   };
 
-  //datos base
+  // DATA
   const cdsData = [
     { album: "SOUR", artista: "Olivia Rodrigo", stock: 10, año: "2021", duracion: "nose", formato: "nose" },
     { album: "After Hours", artista: "The Weeknd", stock: 2, año: "2021", duracion: "nose", formato: "nose" },
@@ -70,16 +69,18 @@ const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
   ];
 
   const baseData = tipo === "cds" ? cdsData : vinilosData;
-  const nuevosFiltrados = extraDiscs.filter(d => d.tipo === tipo);
 
-  // 🔥 important: track origin
+  // ✅ FIXED NULL CRASH
+  const nuevosFiltrados = extraDiscs.filter(d => d && d.tipo === tipo);
+
   const data = [
     ...baseData.map(d => ({ ...d, isExtra: false })),
     ...nuevosFiltrados.map((d, i) => ({ ...d, isExtra: true, extraIndex: i }))
   ];
 
+  // ✅ SAFE FILTER
   const filtered = data.filter((item) =>
-    item.album.toLowerCase().includes(search.toLowerCase())
+    item?.album?.toLowerCase().includes(search.toLowerCase())
   );
 
   const getEstado = (stock) => {
@@ -165,9 +166,8 @@ const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
                   const isOpen = openRow === i;
 
                   return (
-                    <>
+                    <React.Fragment key={i}> {/* ✅ FIXED KEY */}
                       <TableRow
-                        key={i}
                         onClick={() => setOpenRow(isOpen ? null : i)}
                         className="cursor-pointer hover:bg-gray-50 transition"
                       >
@@ -224,7 +224,7 @@ const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </TableBody>
