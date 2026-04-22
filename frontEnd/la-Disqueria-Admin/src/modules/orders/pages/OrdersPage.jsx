@@ -111,7 +111,7 @@ export default function DiscosPage() {
         </div>
 
         {/* Derecha: agregar */}
-        <Button variant="cd">
+        <Button variant="cd"   onClick={() => router.push(`/discs/pages/AddDiscPage?tipo=${tipo}`)}>
           <Plus className="w-4 h-4" />
           <p className="text-base">Agregar</p>
         </Button>

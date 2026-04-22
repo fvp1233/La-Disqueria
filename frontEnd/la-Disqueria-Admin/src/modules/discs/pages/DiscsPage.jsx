@@ -1,5 +1,13 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import Card from "@/global/components/Card";
+import { InputGroupInlineStart } from "@/global/components/SearchInput"
+import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react"
+import { useSearchParams } from "react-router-dom";
+import { Button } from "@/global/components/button"
 import {
   Table,
   TableHeader,
@@ -10,30 +18,70 @@ import {
 } from "@/global/components/Table";
 
 export default function DiscosPage() {
-  const [tipo, setTipo] = useState("cds");
-  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
-  //datos
+  const [searchParams] = useSearchParams();
+const [tipo, setTipo] = useState(searchParams.get("tipo") || "cds");
+  const [search, setSearch] = useState("");
+  const [extraDiscs, setExtraDiscs] = useState([]);
+  const [openRow, setOpenRow] = useState(null);
+
+  useEffect(() => {
+    const guardados = JSON.parse(localStorage.getItem("discos")) || [];
+    setExtraDiscs(guardados);
+  }, []);
+
+  // 🔥 DELETE (FIXED INDEX)
+  const handleDelete = (index, isExtra) => {
+    if (!isExtra) return; // don't delete base data
+
+    const updated = [...extraDiscs];
+    updated.splice(index, 1);
+
+    setExtraDiscs(updated);
+    localStorage.setItem("discos", JSON.stringify(updated));
+  };
+
+  // 🔥 EDIT
+  const handleEdit = (index, isExtra) => {
+    if (!isExtra) return;
+
+    const disc = extraDiscs[index];
+
+    localStorage.setItem(
+      "editDisc",
+      JSON.stringify({ disc, index })
+    );
+
+    navigate(`/discs/add?tipo=${disc.tipo}`);
+  };
+
+  //datos base
   const cdsData = [
     { album: "SOUR", artista: "Olivia Rodrigo", stock: 10, año: "2021", duracion: "nose", formato: "nose" },
     { album: "After Hours", artista: "The Weeknd", stock: 2, año: "2021", duracion: "nose", formato: "nose" },
-    { album: "Future Nostalgia", artista: "Dua Lipa", stock: 0, año: "2021", duracion: "nose", formato: "nose"},
+    { album: "Future Nostalgia", artista: "Dua Lipa", stock: 0, año: "2021", duracion: "nose", formato: "nose" },
   ];
 
   const vinilosData = [
     { album: "AM", artista: "Arctic Monkeys", stock: 12, año: "2021", duracion: "nose", formato: "nose" },
-    { album: "RAM", artista: "Daft Punk", stock: 3, año: "2021", duracion: "nose", formato: "nose"},
+    { album: "RAM", artista: "Daft Punk", stock: 3, año: "2021", duracion: "nose", formato: "nose" },
     { album: "Back to Black", artista: "Amy Winehouse", stock: 0, año: "2021", duracion: "nose", formato: "nose" },
   ];
 
-  const data = tipo === "cds" ? cdsData : vinilosData;
+  const baseData = tipo === "cds" ? cdsData : vinilosData;
+  const nuevosFiltrados = extraDiscs.filter(d => d.tipo === tipo);
 
-  // FILTRO
+  // 🔥 important: track origin
+  const data = [
+    ...baseData.map(d => ({ ...d, isExtra: false })),
+    ...nuevosFiltrados.map((d, i) => ({ ...d, isExtra: true, extraIndex: i }))
+  ];
+
   const filtered = data.filter((item) =>
     item.album.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ESTADO
   const getEstado = (stock) => {
     if (stock === 0) return { text: "Agotado", color: "bg-red-400 text-white" };
     if (stock <= 5) return { text: "Bajo", color: "bg-yellow-300 text-black" };
@@ -58,7 +106,7 @@ export default function DiscosPage() {
 
         <div className="mt-6">
 
-          {/* CARDS (igual que ya tienes) */}
+          {/* CARDS */}
           <div className="flex gap-6 flex-wrap">
             {tipo === "cds" ? (
               <>
@@ -77,65 +125,110 @@ export default function DiscosPage() {
             )}
           </div>
 
-          {/* TABLA */}
-          <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
-
-            {/* TOP BAR */}
-            <div className="flex justify-between mb-4">
-              <input
-                placeholder="Buscar"
-                className="px-4 py-2 rounded-full bg-[#F5F6F1] border border-[#D9D9D9] text-sm"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-
-              <button className="px-5 py-2 bg-[#B3B3B3] rounded-full text-sm text-[#FFFFFF]">
-                Agregar +
-              </button>
+          <div className="mt-8 flex justify-between items-center">
+            <div className="flex gap-4 items-center">
+              <InputGroupInlineStart />
+              <Button variant="filter">
+                <p className="text-base">Filtrar</p>
+                <SlidersHorizontal className="w-4 h-4" />
+              </Button>
             </div>
 
+            <Button
+              variant="cd"
+              onClick={() => navigate(`/discs/add?tipo=${tipo}`)}
+            >
+              <Plus className="w-4 h-4" />
+              <p className="text-base">Agregar</p>
+            </Button>
+          </div>
+
+          {/* TABLA */}
+          <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
             <Table>
-           <TableHeader>
-  <TableRow>
-    <TableHead>Album</TableHead>
-    <TableHead>Artista</TableHead>
-    <TableHead>Año</TableHead>
-    <TableHead>Duración</TableHead>
-    <TableHead>Formato</TableHead>
-    <TableHead>Stock</TableHead>
-    <TableHead>Estado</TableHead>
-  </TableRow>
-</TableHeader>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cover</TableHead>
+                  <TableHead>Album</TableHead>
+                  <TableHead>Artista</TableHead>
+                  <TableHead>Año</TableHead>
+                  <TableHead>Formato</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead></TableHead>
+                </TableRow>
+              </TableHeader>
 
               <TableBody>
                 {filtered.map((item, i) => {
                   const estado = getEstado(item.stock);
+                  const isOpen = openRow === i;
 
                   return (
-                    <TableRow key={i}>
-  <TableCell>{item.album}</TableCell>
-  <TableCell>{item.artista}</TableCell>
-  <TableCell>{item.año}</TableCell>
-  <TableCell>{item.duracion}</TableCell>
-  <TableCell>{item.formato}</TableCell>
+                    <>
+                      <TableRow
+                        key={i}
+                        onClick={() => setOpenRow(isOpen ? null : i)}
+                        className="cursor-pointer hover:bg-gray-50 transition"
+                      >
+                        <TableCell>
+                          {item.imagen ? (
+                            <img src={item.imagen} className="w-12 h-12 object-cover rounded-lg" />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 rounded-lg" />
+                          )}
+                        </TableCell>
 
-  <TableCell>
-    {item.stock}
-    {item.stock <= 2 && item.stock !== 0}
-    {item.stock === 0 }
-  </TableCell>
+                        <TableCell>{item.album}</TableCell>
+                        <TableCell>{item.artista}</TableCell>
+                        <TableCell>{item.año}</TableCell>
+                        <TableCell>{item.formato}</TableCell>
+                        <TableCell>{item.stock}</TableCell>
 
-  <TableCell>
-    <span className={`px-3 py-1 rounded-full text-xs ${estado.color}`}>
-      {estado.text}
-    </span>
-  </TableCell>
-</TableRow>
+                        <TableCell>
+                          <span className={`px-3 py-1 rounded-full text-xs ${estado.color}`}>
+                            {estado.text}
+                          </span>
+                        </TableCell>
+
+                        <TableCell className="flex gap-2">
+                          <Pencil
+                            className="w-4 h-4 cursor-pointer text-gray-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(item.extraIndex, item.isExtra);
+                            }}
+                          />
+
+                          <Trash2
+                            className="w-4 h-4 cursor-pointer text-red-400"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(item.extraIndex, item.isExtra);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+
+                      {isOpen && (
+                        <TableRow>
+                          <TableCell colSpan={8}>
+                            <div className="bg-white rounded-xl p-4 shadow-inner grid grid-cols-2 gap-4 text-sm">
+                              <div><b>Precio:</b> {item.precio || "-"}</div>
+                              <div><b>Género:</b> {item.genero || "-"}</div>
+                              <div><b>Edición:</b> {item.edicion || "-"}</div>
+                              <div><b>Sello:</b> {item.selloDisco || "-"}</div>
+                              <div><b>Tags:</b> {item.tags || "-"}</div>
+                              <div><b>Pista:</b> {item.pista || "-"}</div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
                   );
                 })}
               </TableBody>
             </Table>
-
           </div>
 
         </div>
