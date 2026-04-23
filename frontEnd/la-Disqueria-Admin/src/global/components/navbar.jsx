@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 export default function Navbar() {
-    //Hacemos constantes que definen el estado si esta seleccionado o no
+  //Hacemos constantes que definen el estado si esta seleccionado o no
   const base = "px-4 py-1 rounded-full cursor-pointer";
   const active = "bg-[#FA9598] text-white";
   const inactive = "text-[#54555A]";
@@ -32,6 +32,14 @@ export default function Navbar() {
 
         <NavLink to="/providers" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
           Proveedores
+        </NavLink>
+
+        <NavLink to="/employees" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+          Empleados
+        </NavLink>
+
+         <NavLink to="/customers" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+          Clientes
         </NavLink>
 
       </nav>

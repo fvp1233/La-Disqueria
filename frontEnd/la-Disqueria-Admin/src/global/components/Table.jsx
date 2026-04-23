@@ -67,9 +67,8 @@ function TableRow({ className, ...props }) {
 function TableHead({ className, ...props }) {
   return (
     <th
-      data-slot="table-head"
       className={cn(
-        "h-12 px-4 text-center font-semibold text-gray-600 whitespace-nowrap",
+        "h-12 px-4 text-center font-semibold text-gray-600 whitespace-normal break-words",
         className
       )}
       {...props}
@@ -80,9 +79,8 @@ function TableHead({ className, ...props }) {
 function TableCell({ className, ...props }) {
   return (
     <td
-      data-slot="table-cell"
       className={cn(
-        "py-3 px-4 text-center text-gray-700 whitespace-nowrap",
+        "py-3 px-4 text-center text-gray-700 whitespace-normal break-words",
         className
       )}
       {...props}

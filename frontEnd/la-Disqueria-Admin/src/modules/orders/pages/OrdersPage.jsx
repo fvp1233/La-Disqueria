@@ -180,7 +180,7 @@ export default function OrdersPage() {
       </div>
 
       {/* TABLA */}
-      <div className="mt-5">
+      <div className="mt-5 mb-5">
         <Table>
           <TableHeader>
             <TableRow>

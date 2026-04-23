@@ -9,6 +9,9 @@ import AddDiscPage from "@/modules/discs/pages/AddDiscPage";
 import AccesoriesPage from "@/modules/accesories/pages/AccesoriesPage"
 import AddAccesoryPage from "@/modules/accesories/pages/AddAccesoryPage";
 import ProvidersPage from "./modules/providers/ProvidersPage"
+import EmployeesPage from "./modules/employees/pages/EmployeesPage"
+import CustomersPage from "./modules/customers/pages/CustomersPage"
+
 function App() {
   return (
     <MainLayout>
@@ -20,6 +23,8 @@ function App() {
         <Route path="/accesories" element={<AccesoriesPage />} />
         <Route path="/accessories/add" element={<AddAccesoryPage />} />
         <Route path="/providers" element={<ProvidersPage />} />
+        <Route path="/employees" element={<EmployeesPage />} />
+        <Route path="/customers" element={<CustomersPage />} />
       </Routes>
     </MainLayout>
   )
