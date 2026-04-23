@@ -5,9 +5,9 @@ export function MainLayout() {
   return (
     <>
       <Navbar />
-      <main className="container mx-auto p-4">
+      <main className="flex-1 w-full">
         {/* El Outlet es donde se renderizarán las páginas de los módulos */}
-        <Outlet /> 
+        <Outlet />
       </main>
     </>
   );

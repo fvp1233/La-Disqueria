@@ -52,14 +52,17 @@ const NavDropdown = ({ label, items }) => (
 export function Navbar() {
     return (
         <>
-
+        <div className="sticky top-0 z-50">
             <style>{`
-                 [data-slot="navigation-menu-content"],
+                 [data-slot="navigation-menu-viewport-wrapper"] {
+        position: absolute !important;
+    }
+    [data-slot="navigation-menu-content"],
     [data-slot="navigation-menu-content"] ~ *,
     .navigation-menu-popup,
     [data-popup-open] {
         background-color: #4A5D5E !important;
-                }
+    }
             `}</style>
             <nav className="flex items-center justify-between p-4 border-b bg-[#F9FAF4] px-18 font-['Plus_Jakarta_Sans']">
 
@@ -268,6 +271,8 @@ export function Navbar() {
                     </Link>
                 </div>
             </nav>
+        </div>
+            
         </>
     );
 
