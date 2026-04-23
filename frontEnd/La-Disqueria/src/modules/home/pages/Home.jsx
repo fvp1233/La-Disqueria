@@ -7,6 +7,10 @@ import { VINYLS_DATA } from '@/global/data/vinyls';
 import banner1 from '@/assets/bannerfondo1.png'
 import { CategoryFavorite } from '../components/CategoryFavorite';
 import { MusicPlayer } from '../components/MusicPlayer';
+import { FansSection } from '../components/FansSection';
+import { CtaSection } from "../components/CtaSection";
+import { Footer } from "../../../global/components/Footer";
+
 const Home = () => {
     const featuredDiscos = VINYLS_DATA.filter(disco => disco.featured);
     return (
@@ -65,6 +69,16 @@ const Home = () => {
             <CategoryFavorite />
 
             <MusicPlayer/>
+
+            <section>
+                <FansSection />
+            </section>
+            <section>
+                <CtaSection />
+            </section>
+            <footer>
+                <Footer/>
+            </footer>
         </>
     );
 };
