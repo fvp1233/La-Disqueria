@@ -1,6 +1,6 @@
 import { Button } from "@/global/components/button";
 import {Link} from "react-router-dom";
-export function FansHeroSection() {
+export function FansSection() {
     return (
         <section className="w-full bg-[#f6f7f1] min-h-[520px] flex items-stretch">
             {/* Lado izquierdo — Texto + CTA */}
