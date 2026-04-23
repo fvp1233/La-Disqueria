@@ -1,4 +1,7 @@
-// src/modules/products/components/vinyl-card.jsx
+//Si cuando guardemos las imagenes de los discos en la db solo va la portada, cambiar el metodo de animacion al de Album.jsx porque ahi esta para que salga el vinilo
+//Con la imagen de la portada, ahorita queda asi por que son imagenes quemadas
+
+
 import { Link } from 'react-router-dom';
 
 export function VinylCard({ product }) {
@@ -13,7 +16,7 @@ export function VinylCard({ product }) {
     <Link to={`/products/${product.slug}`} className="group block w-full">
       <div className="flex flex-col items-center">
   
-        {/* Usamos relative para que el disco (absolute) se mueva dentro */}
+        {/*relative para que el disco se mueva dentro */}
         <div className="relative w-full aspect-3/2 mb-6 flex items-center justify-center overflow-hidden">
           
           {/* Imagen del Disco de Vinilo (Detrás) */}

@@ -3,6 +3,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import Autoplay from "embla-carousel-autoplay" //Para que se mueva solito
 import nuevosIngresoSImg from '@/assets/Nuevos_ingresoS.jpg'
 
+
 //Lo que lleva el banner
 
 const bannerItems = [

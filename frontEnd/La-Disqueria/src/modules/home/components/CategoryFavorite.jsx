@@ -31,16 +31,13 @@ const CATEGORIES = [
 
 export function CategoryFavorite() {
   return (
-    <section className="w-full mt-20 mb-10">
-      {/* Contenedor Flex principal - Altura fija para el efecto */}
+    <section className="w-full mt-20 mb-0">
       <div className="flex flex-col md:flex-row h-150 md:h-125">
         
         {CATEGORIES.map((category) => (
           <Link 
             key={category.id} 
             to={category.link}
-            // CLAVE DEL EFECTO: flex-1 por defecto, flex-[2] en hover
-            // transition-all para animar el cambio de flex-grow
             className="relative flex-1 group overflow-hidden  bg-slate-100 transition-all duration-700 ease-in-out hover:flex-2 shadow-xl hover:shadow-2xl"
           >
             {/* Imagen de fondo con efecto de zoom */}

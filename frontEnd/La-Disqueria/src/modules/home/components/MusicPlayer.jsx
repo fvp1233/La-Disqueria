@@ -40,7 +40,7 @@ export const MusicPlayer = () => {
   return (
     <div className="relative w-full h-[650px] flex items-center justify-center bg-[#050505] overflow-hidden font-sans">
       
-      {/* Texto de Fondo: Más pequeño pero con más nitidez */}
+      {/* Texto de Fondo*/}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.06] pointer-events-none select-none z-0">
         <h2 className="text-[12vw] font-black italic uppercase tracking-[0.1em]"
             style={{ WebkitTextStroke: '1px white', color: 'transparent' }}>
@@ -61,7 +61,6 @@ export const MusicPlayer = () => {
 
       <div className="z-10 w-full flex flex-col items-center">
         
-        {/* TÍTULO DE SECCIÓN: Pequeño, espaciado y elegante */}
         <div className="text-center mb-10 px-4">
           <h2 className="text-xs md:text-sm font-light text-white uppercase tracking-[0.8em] opacity-80 mb-2">
             Selección Exclusiva
@@ -114,7 +113,7 @@ export const MusicPlayer = () => {
           ))}
         </Swiper>
 
-        {/* Player UI */}
+        {/* informarcion de la cancion */}
         <div className="w-full max-w-sm mt-12 text-white text-center px-6">
           <div className="mb-8">
             <h1 className="text-xl font-bold uppercase tracking-[0.3em]">

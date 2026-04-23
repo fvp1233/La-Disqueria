@@ -10,6 +10,8 @@ import { MusicPlayer } from '../components/MusicPlayer';
 import { FansSection } from '../components/FansSection';
 import { CtaSection } from "../components/CtaSection";
 import { Footer } from "../../../global/components/Footer";
+import { BestSellersCarousel } from '../components/BestSellersCarousel';
+import { Albums } from '../components/Albums';
 
 const Home = () => {
     const featuredDiscos = VINYLS_DATA.filter(disco => disco.featured);
@@ -18,7 +20,7 @@ const Home = () => {
 
             <HomeCarousel />
             <section className="w-full mx-auto px-4 md:px-18 mt-16">
-                {/* Contenedor centralizado */}
+
                 <div className="flex flex-col items-center text-center gap-6 border-b border-slate-200 pb-10 mb-10">
 
                     <div>
@@ -35,15 +37,11 @@ const Home = () => {
                     </Button>
 
                 </div>
-                  <div>
-                        <h2 className="text-sm md:text-lg font-bold text-slate-900 leading-[0.85] ml-15">
-                           Nuevos Lanzamientos
-                        </h2>
-                    </div>
 
-                {/* Grid de productos (donde pondremos los vinilos) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {/* Espacio para las tarjetas */}
+                <div>
+                    <h2 className="text-sm md:text-lg font-bold text-slate-900 leading-[0.85] ml-15">
+                        Nuevos Lanzamientos
+                    </h2>
                 </div>
 
                 {/* Grid de productos */}
@@ -53,7 +51,6 @@ const Home = () => {
                     ))}
                 </div>
 
-                {/* Opcional: Un botón para ver más al final del grid */}
                 <div className="flex justify-center mt-12 mb-20">
                     <Link to="/products" className="text-xs font-bold tracking-widest uppercase border-b border-black pb-1 hover:text-slate-500 hover:border-slate-500 transition-colors">
                         Ver todo el catálogo
@@ -66,18 +63,24 @@ const Home = () => {
                 <img src={banner1} alt="banner" className='w-full h-auto object-cover max-h-100 mb-10' />
             </div>
 
+            <BestSellersCarousel vinyls={VINYLS_DATA} />
+
             <CategoryFavorite />
 
-            <MusicPlayer/>
+            <Albums />
+
+            <MusicPlayer />
 
             <section>
                 <FansSection />
             </section>
+
             <section>
                 <CtaSection />
             </section>
+            
             <footer>
-                <Footer/>
+                <Footer />
             </footer>
         </>
     );
