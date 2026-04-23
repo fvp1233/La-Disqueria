@@ -18,11 +18,12 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
-        filter: "h-auto flex items-center gap-2 bg-[#E5E5E5] text-gray-500 rounded-full px-3 py-1.5 shadow-[0_4px_10px_rgba(0,0,0,0.15),inset_0_2px_4px_rgba(255,255,255,0.6)] hover:bg-[#DCDCDC]",
+        
+        filter: "h-auto flex items-center gap-2 bg-[#F5F6F1] text-gray-500 rounded-full px-3 py-1.5 shadow-[0_4px_5px_rgba(0,0,0,0.15),inset_0_2px_4px_rgba(255,255,255,0.6)] hover:bg-[#DCDCDC]",
 
-cd: "h-auto flex items-center gap-2 bg-gray-300 text-white rounded-full px-3 py-1.5 shadow-md hover:bg-gray-400",
+        cd: "h-auto flex items-center gap-2 bg-[#B3B3B3] text-white rounded-full px-3 py-1.5 shadow-md hover:bg-gray-400",
 
-cancel: "h-auto bg-[#B3B3B3] text-gray-500 rounded-full px-6 py-2 text-sm shadow-[0_4px_10px_rgba(0,0,0,0.15),inset_0_2px_4px_rgba(255,255,255,0.6)] hover:bg-[#DCDCDC]",
+        cancel: "h-auto bg-[#FEFFF9] text-gray-500 rounded-full px-6 py-2 text-sm shadow-[0_4px_5px_rgba(0,0,0,0.15),inset_0_2px_4px_rgba(255,255,255,0.6)] hover:bg-[#DCDCDC]",
 
       },
       size: {
