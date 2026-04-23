@@ -3,8 +3,9 @@ import { Footer } from "@/global/components/Footer";
 export function Contact() {
   return (
     <>
+    <div className="flex flex-col min-h-screen">
       {/* Banner */}
-      <div className="w-full bg-[#F2C4BC] py-12 px-6 text-center">
+      <div className="w-full bg-[#F2C4BC] py-12 px-6 text-center ">
         <h1 className="text-3xl font-light text-[#1a1a1a] mb-3">
           Hablemos de música
         </h1>
@@ -15,7 +16,7 @@ export function Contact() {
       </div>
 
       {/* Contenido */}
-      <div className="w-full max-w-4xl mx-auto px-8 py-14 grid grid-cols-1 md:grid-cols-2 gap-14 items-start">
+      <div className="flex-1 w-full max-w-4xl mx-auto px-8 py-14 grid grid-cols-1 md:grid-cols-2 gap-14 items-start ">
 
         {/* Info */}
         <div className="flex flex-col gap-7">
@@ -47,7 +48,7 @@ export function Contact() {
         </div>
 
         {/* Formulario */}
-        <form className="flex flex-col gap-4">
+        <form className="flex flex-col gap-4 ">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-[#999]">Nombre Completo</label>
             <input type="text" placeholder="John Doe"
@@ -70,7 +71,7 @@ export function Contact() {
         </form>
 
       </div>
-
+</div>
       <Footer />
     </>
   );
