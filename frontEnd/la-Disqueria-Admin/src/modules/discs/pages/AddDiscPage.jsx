@@ -26,7 +26,6 @@ export default function AgregarDisco() {
     estado: "Disponible",
   });
 
-  // ✅ LOAD EDIT DATA
   useEffect(() => {
     const editData = JSON.parse(localStorage.getItem("editDisc"));
 
@@ -68,7 +67,7 @@ export default function AgregarDisco() {
     reader.readAsDataURL(file);
   };
 
-  // ✅ SAVE (CREATE OR UPDATE)
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -77,7 +76,7 @@ export default function AgregarDisco() {
       album: form.titulo,
       año: form.ano,
       tipo,
-      stock: Number(form.stock), // 🔥 FIX (important)
+      stock: Number(form.stock),
     };
 
     const discos = JSON.parse(localStorage.getItem("discos")) || [];
@@ -92,7 +91,6 @@ export default function AgregarDisco() {
 
     localStorage.setItem("discos", JSON.stringify(discos));
 
-    // 🔥 FIX (keep tab)
     navigate(`/discs?tipo=${tipo}`);
   };
 
@@ -107,10 +105,8 @@ export default function AgregarDisco() {
 
         <div className="bg-white rounded-2xl shadow-md p-8 space-y-6">
 
-          {/* IMAGE */}
           <input type="file" onChange={handleImageChange} />
 
-          {/* BASIC */}
           <div className="grid grid-cols-2 gap-4">
             <input name="titulo" value={form.titulo} placeholder="Título" onChange={handleChange} className="input" />
             <input name="artista" value={form.artista} placeholder="Artista" onChange={handleChange} className="input" />
@@ -118,7 +114,6 @@ export default function AgregarDisco() {
             <input name="ano" value={form.ano} placeholder="Año" onChange={handleChange} className="input" />
           </div>
 
-          {/* DETAILS */}
           <div className="grid grid-cols-2 gap-4">
             <input name="formato" value={form.formato} placeholder="Formato" onChange={handleChange} className="input" />
             <input name="duracion" value={form.duracion} placeholder="Duración" onChange={handleChange} className="input" />
@@ -126,7 +121,6 @@ export default function AgregarDisco() {
             <input name="edicion" value={form.edicion} placeholder="Edición" onChange={handleChange} className="input" />
           </div>
 
-          {/* EXTRA */}
           <div className="grid grid-cols-2 gap-4">
             <input name="selloDisco" value={form.selloDisco} placeholder="Sello Discográfico" onChange={handleChange} className="input" />
             <input name="stock" value={form.stock} placeholder="Stock" type="number" onChange={handleChange} className="input" />
@@ -134,7 +128,6 @@ export default function AgregarDisco() {
             <input name="pista" value={form.pista} placeholder="Pista" onChange={handleChange} className="input col-span-2" />
           </div>
 
-          {/* BUTTONS */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button
               onClick={() => {

@@ -26,6 +26,10 @@ export default function Navbar() {
           Discos
         </NavLink>
 
+        <NavLink to="/accesories" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+          Accesorios
+        </NavLink>
+
       </nav>
     </div>
   );

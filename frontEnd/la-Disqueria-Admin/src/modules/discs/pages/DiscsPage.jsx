@@ -30,7 +30,6 @@ export default function DiscosPage() {
     setExtraDiscs(guardados);
   }, []);
 
-  // DELETE
   const handleDelete = (index, isExtra) => {
     if (!isExtra) return;
 
@@ -41,7 +40,6 @@ export default function DiscosPage() {
     localStorage.setItem("discos", JSON.stringify(updated));
   };
 
-  // EDIT
   const handleEdit = (index, isExtra) => {
     if (!isExtra) return;
 
@@ -55,7 +53,6 @@ export default function DiscosPage() {
     navigate(`/discs/add?tipo=${disc.tipo}`);
   };
 
-  // DATA
   const cdsData = [
     { album: "SOUR", artista: "Olivia Rodrigo", stock: 10, año: "2021", duracion: "nose", formato: "nose" },
     { album: "After Hours", artista: "The Weeknd", stock: 2, año: "2021", duracion: "nose", formato: "nose" },
@@ -70,7 +67,7 @@ export default function DiscosPage() {
 
   const baseData = tipo === "cds" ? cdsData : vinilosData;
 
-  // ✅ FIXED NULL CRASH
+
   const nuevosFiltrados = extraDiscs.filter(d => d && d.tipo === tipo);
 
   const data = [
@@ -78,7 +75,6 @@ export default function DiscosPage() {
     ...nuevosFiltrados.map((d, i) => ({ ...d, isExtra: true, extraIndex: i }))
   ];
 
-  // ✅ SAFE FILTER
   const filtered = data.filter((item) =>
     item?.album?.toLowerCase().includes(search.toLowerCase())
   );
@@ -95,7 +91,6 @@ export default function DiscosPage() {
 
       <div className="bg-white p-6 rounded-2xl shadow-md relative">
 
-        {/* BOTONES */}
         <div className="absolute -top-4 left-6 flex gap-2">
           <button onClick={() => setTipo("cds")} className={`px-4 py-1 rounded ${tipo === "cds" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4]"}`}>
             CDs
@@ -107,7 +102,6 @@ export default function DiscosPage() {
 
         <div className="mt-6">
 
-          {/* CARDS */}
           <div className="flex gap-6 flex-wrap">
             {tipo === "cds" ? (
               <>
@@ -144,7 +138,6 @@ export default function DiscosPage() {
             </Button>
           </div>
 
-          {/* TABLA */}
           <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
             <Table>
               <TableHeader>
@@ -230,7 +223,6 @@ export default function DiscosPage() {
               </TableBody>
             </Table>
           </div>
-
         </div>
       </div>
     </div>
