@@ -5,14 +5,23 @@ import {
   InputGroupText,
 } from "@/global/components/InputGroup"
 
-export function MoneyInput() {
+export function MoneyInput({ value, onChange, disabled }) {
   return (
-    <div className="grid w-full max-w-sm gap-6">
+    <div className="w-full">
       <InputGroup>
         <InputGroupAddon>
           <InputGroupText>$</InputGroupText>
         </InputGroupAddon>
-        <InputGroupInput placeholder="0.00" />
+
+        <InputGroupInput
+          value={value}
+          disabled={disabled}
+          onChange={(e) => {
+            const val = e.target.value.replace(/[^0-9.]/g, "")
+            onChange(val)
+          }}
+          placeholder="0.00"
+        />
       </InputGroup>
     </div>
   )

@@ -8,6 +8,7 @@ import DiscsPage from "@/modules/discs/pages/DiscsPage"
 import AddDiscPage from "@/modules/discs/pages/AddDiscPage";
 import AccesoriesPage from "@/modules/accesories/pages/AccesoriesPage"
 import AddAccesoryPage from "@/modules/accesories/pages/AddAccesoryPage";
+import ProvidersPage from "./modules/providers/ProvidersPage"
 function App() {
   return (
     <MainLayout>
@@ -15,9 +16,10 @@ function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/discs" element={<DiscsPage />} />
-        <Route path="/discs/add" element={<AddDiscPage />} /> 
-<Route path="/accesories" element={<AccesoriesPage />} />
-<Route path="/accessories/add" element={<AddAccesoryPage />} />
+        <Route path="/discs/add" element={<AddDiscPage />} />
+        <Route path="/accesories" element={<AccesoriesPage />} />
+        <Route path="/accessories/add" element={<AddAccesoryPage />} />
+        <Route path="/providers" element={<ProvidersPage />} />
       </Routes>
     </MainLayout>
   )

@@ -30,6 +30,10 @@ export default function Navbar() {
           Accesorios
         </NavLink>
 
+        <NavLink to="/providers" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+          Proveedores
+        </NavLink>
+
       </nav>
     </div>
   );
