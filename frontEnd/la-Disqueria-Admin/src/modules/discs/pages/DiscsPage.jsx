@@ -87,7 +87,6 @@ export default function DiscosPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold mb-4">Discos</h1>
 
       <div className="bg-white p-6 rounded-2xl shadow-md relative">
 
