@@ -6,6 +6,11 @@ import { VinylCard } from '../components/VinylCard';
 import { VINYLS_DATA } from '@/global/data/vinyls';
 import banner1 from '@/assets/bannerfondo1.png'
 import { CategoryFavorite } from '../components/CategoryFavorite';
+import { MusicPlayer } from '../components/MusicPlayer';
+import { FansSection } from '../components/FansSection';
+import { CtaSection } from "../components/CtaSection";
+import { Footer } from "../../../global/components/Footer";
+
 const Home = () => {
     const featuredDiscos = VINYLS_DATA.filter(disco => disco.featured);
     return (
@@ -17,7 +22,7 @@ const Home = () => {
                 <div className="flex flex-col items-center text-center gap-6 border-b border-slate-200 pb-10 mb-10">
 
                     <div>
-                        <h2 className="text-2xl md:text-3xl font-light uppercase  text-slate-900 leading-[0.85]">
+                        <h2 className="text-sm md:text-3xl font-light uppercase  text-slate-900 leading-[0.85]">
                             Discos para  entrega inmediata
                         </h2>
                     </div>
@@ -30,6 +35,11 @@ const Home = () => {
                     </Button>
 
                 </div>
+                  <div>
+                        <h2 className="text-sm md:text-lg font-bold text-slate-900 leading-[0.85] ml-15">
+                           Nuevos Lanzamientos
+                        </h2>
+                    </div>
 
                 {/* Grid de productos (donde pondremos los vinilos) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -57,6 +67,18 @@ const Home = () => {
             </div>
 
             <CategoryFavorite />
+
+            <MusicPlayer/>
+
+            <section>
+                <FansSection />
+            </section>
+            <section>
+                <CtaSection />
+            </section>
+            <footer>
+                <Footer/>
+            </footer>
         </>
     );
 };
