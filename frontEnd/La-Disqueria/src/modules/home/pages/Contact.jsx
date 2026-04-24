@@ -11,7 +11,7 @@ export function Contact() {
     <div className="flex flex-col min-h-screen">
 
       {/* CONTENIDO */}
-      <main className="flex-grow flex flex-col justify-center md:justify-start">
+      <main className="grow flex flex-col justify-center md:justify-start">
 
         {/* HERO */}
         <div className="w-full bg-[#F2C4BC] py-10 md:py-12 px-6 text-center">

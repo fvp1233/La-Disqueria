@@ -57,10 +57,13 @@ export function Navbar() {
                  [data-slot="navigation-menu-viewport-wrapper"] {
         position: absolute !important;
     }
+    [data-slot="navigation-menu-viewport-wrapper"] {
+        position: absolute !important;
+    }
     [data-slot="navigation-menu-content"],
     [data-slot="navigation-menu-content"] ~ *,
     .navigation-menu-popup,
-    [data-popup-open] {
+    [data-slot="navigation-menu-trigger"][data-popup-open] {
         background-color: #4A5D5E !important;
     }
             `}</style>
