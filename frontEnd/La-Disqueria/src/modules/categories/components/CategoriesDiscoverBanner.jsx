@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import discoverBannerImg from "@/assets/bannerfondo1.png";
+
 
 export function CategoriesDiscoverBanner() {
   return (
@@ -22,32 +24,13 @@ export function CategoriesDiscoverBanner() {
         </Link>
       </div>
 
-      {/* Imagen derecha - vinilos de colores */}
-      <div className="bg-[#e8d5c0] flex items-center justify-center p-6 relative overflow-hidden">
-        {/* Vinilos decorativos de colores */}
-        {[
-          { color: "#c41e3a", x: "10%", y: "20%", size: 80 },
-          { color: "#2d2d2d", x: "35%", y: "5%", size: 70 },
-          { color: "#F47E6A", x: "60%", y: "15%", size: 90 },
-          { color: "#f5c842", x: "80%", y: "30%", size: 65 },
-          { color: "#2d2d2d", x: "20%", y: "55%", size: 75 },
-          { color: "#4a8c6a", x: "50%", y: "55%", size: 85 },
-          { color: "#2d2d2d", x: "75%", y: "60%", size: 70 },
-        ].map(({ color, x, y, size }, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full flex items-center justify-center"
-            style={{
-              left: x,
-              top: y,
-              width: size,
-              height: size,
-              background: `conic-gradient(from 0deg, ${color} 0%, ${color}cc 5%, ${color} 10%, ${color}cc 15%, ${color} 20%, ${color}cc 25%, ${color} 30%, ${color}cc 35%, ${color} 40%, ${color}cc 45%, ${color} 50%, ${color}cc 55%, ${color} 60%, ${color}cc 65%, ${color} 70%, ${color}cc 75%, ${color} 80%, ${color}cc 85%, ${color} 90%, ${color}cc 95%, ${color} 100%)`,
-            }}
-          >
-            <div className="w-[28%] h-[28%] rounded-full bg-[#e8d5c0]" />
-          </div>
-        ))}
+      {/* Imagen derecha */}
+      <div className="overflow-hidden">
+        <img
+          src={discoverBannerImg}
+          alt="Descubre nuevas sonoridades"
+          className="w-full h-full object-cover"
+        />
       </div>
     </section>
   );
