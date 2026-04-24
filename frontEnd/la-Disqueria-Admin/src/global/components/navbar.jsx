@@ -14,7 +14,7 @@ export default function Navbar() {
 
         {/* NAVBAR CENTRADO */}
         <nav className="bg-[#F9FAF4] shadow-md rounded-xl px-6 py-3 flex gap-6 items-center">
-          <NavLink to="/" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
+          <NavLink to="/dashboard" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
             Inicio
           </NavLink>
 
