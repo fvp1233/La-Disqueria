@@ -132,7 +132,7 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [contextMenu, setContextMenu] = useState(null)
-  const [mode, setMode] = useState("view") // 🔥 importante
+  const [mode, setMode] = useState("view")
 
   const filteredOrders = ordenes.filter((orden) => {
     if (statusFilter === "all") return true
@@ -295,7 +295,7 @@ export default function OrdersPage() {
         <OrderForm
           onClose={() => setOpen(false)}
           order={selectedOrder}
-          mode={mode} // 🔥 CLAVE
+          mode={mode}
         />
       </Modal>
     </div>

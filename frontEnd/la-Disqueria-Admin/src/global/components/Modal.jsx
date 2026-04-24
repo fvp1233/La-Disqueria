@@ -13,7 +13,7 @@ export function Modal({
   const sizes = {
     md: "max-w-lg",
     lg: "max-w-3xl",
-    full: "w-[95vw] h-[90vh]", // 👈 para tu caso de orden
+    full: "w-[95vw] h-[90vh]", 
   }
 
   return (
