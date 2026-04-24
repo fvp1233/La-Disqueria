@@ -30,7 +30,7 @@ export function DropdownMenuAvatar() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button variant="ghost" size="lg" className="rounded-full">
           <Avatar>
             <AvatarImage src="https://img.freepik.com/free-photo/view-adorable-3d-cat_23-2150473714.jpg?semt=ais_rp_progressive&w=740&q=80" />
             <AvatarFallback>US</AvatarFallback>

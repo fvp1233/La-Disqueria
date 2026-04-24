@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { DropdownMenuAvatar } from "@/components/DropdownMenuAvatar";
+import { DropdownMenuAvatar } from "@/global/components/ProfileDropdown";
 
 export default function Navbar() {
   const base = "px-4 py-1 rounded-full cursor-pointer";
@@ -9,12 +9,10 @@ export default function Navbar() {
   return (
     <div className="w-full mt-4 sticky top-0 z-50">
 
-      <div className="flex justify-between items-center px-8">
+      {/* CONTENEDOR GENERAL */}
+      <div className="relative flex items-center justify-center">
 
-        {/* espacio vacío izquierda */}
-        <div />
-
-        {/* navbar centrado */}
+        {/* NAVBAR CENTRADO */}
         <nav className="bg-[#F9FAF4] shadow-md rounded-xl px-6 py-3 flex gap-6 items-center">
           <NavLink to="/" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
             Inicio
@@ -49,8 +47,10 @@ export default function Navbar() {
           </NavLink>
         </nav>
 
-        {/* avatar derecha */}
-        <DropdownMenuAvatar />
+        {/* AVATAR A LA DERECHA (FUERA DEL NAVBAR) */}
+        <div className="absolute right-4">
+          <DropdownMenuAvatar />
+        </div>
 
       </div>
     </div>
