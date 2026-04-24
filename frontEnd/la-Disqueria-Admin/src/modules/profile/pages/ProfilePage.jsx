@@ -13,7 +13,7 @@ export default function PerfilUsuario() {
     password: "",
     posicion: "Administrador",
     fechaContratacion: "2024-01-15",
-    foto: "https://github.com/shadcn.png"
+    foto: "https://img.freepik.com/free-photo/view-adorable-3d-cat_23-2150473714.jpg?semt=ais_rp_progressive&w=740&q=80"
   })
 
   const handleChange = (e) => {

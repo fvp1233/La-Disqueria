@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { DropdownMenuAvatar } from "@/global/components/ProfileDropdown";
+import { DropdownMenuAvatar } from "@/components/DropdownMenuAvatar";
 
 export default function Navbar() {
   const base = "px-4 py-1 rounded-full cursor-pointer";
@@ -7,11 +7,15 @@ export default function Navbar() {
   const inactive = "text-[#54555A]";
 
   return (
-    <div className="w-full flex justify-center mt-4 sticky top-0 z-50">
-      <nav className="w-full max-w-6xl bg-[#F9FAF4] shadow-md rounded-xl px-6 py-3 flex justify-between items-center">
+    <div className="w-full mt-4 sticky top-0 z-50">
 
-        {/* 🔹 LINKS */}
-        <div className="flex gap-4 items-center flex-wrap">
+      <div className="flex justify-between items-center px-8">
+
+        {/* espacio vacío izquierda */}
+        <div />
+
+        {/* navbar centrado */}
+        <nav className="bg-[#F9FAF4] shadow-md rounded-xl px-6 py-3 flex gap-6 items-center">
           <NavLink to="/" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
             Inicio
           </NavLink>
@@ -43,14 +47,12 @@ export default function Navbar() {
           <NavLink to="/customers" className={({ isActive }) => `${base} ${isActive ? active : inactive}`}>
             Clientes
           </NavLink>
-        </div>
+        </nav>
 
-        {/* 🔥 AVATAR */}
-        <div className="flex items-center gap-3">
-          <DropdownMenuAvatar />
-        </div>
+        {/* avatar derecha */}
+        <DropdownMenuAvatar />
 
-      </nav>
+      </div>
     </div>
   );
 }
