@@ -137,7 +137,7 @@ export function Navbar() {
                                     navigationMenuTriggerStyle(),
                                     "data-popup-open:text-white data-popup-open:bg-[#4A5D5E]"
                                 )}>
-                                    <Link to="/artistas">Artistas</Link>
+                                    <Link to="/artists">Artistas</Link>
                                 </NavigationMenuTrigger>
 
                                 <NavigationMenuContent className="bg-[#4A5D5E]">
