@@ -8,7 +8,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="w-full bg-[#3a3f3f] px-10 py-5 flex items-center justify-between">
+    <footer className="w-full bg-[#3a3f3f] px-6 md:px-10 py-5 flex flex-col md:flex-row items-center gap-4 md:gap-0 md:justify-between">
 
       {/* Logo */}
       <div className="flex items-center gap-3">
@@ -24,12 +24,12 @@ export function Footer() {
       </div>
 
       {/* Copyright */}
-      <span className="text-[#a0a8a8] text-xs tracking-wide">
+      <span className="text-[#a0a8a8] text-xs tracking-wide text-center">
         © 2023 La disquería. Todos los derechos reservados.
       </span>
 
       {/* Links */}
-      <div className="flex gap-7">
+      <div className="flex gap-5 md:gap-7">
         {links.map(({ label, to }) => (
           <Link
             key={label}

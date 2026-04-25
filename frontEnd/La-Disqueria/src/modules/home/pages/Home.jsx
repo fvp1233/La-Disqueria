@@ -70,7 +70,8 @@ const Home = () => {
             <Albums />
 
             <MusicPlayer />
-
+            <br />
+                
             <section>
                 <FansSection />
             </section>
