@@ -4,7 +4,7 @@ import cors from "cors";
 import registerCustomerRoutes from "./src/routes/customers/registerCustomer.js"
 import customersRoutes from "./src/routes/customers/customer.js"
 import accessoriesRoutes from "./src/routes/accessories/accessories.js"
-
+import supplierRoues from './src/routes/suppliers/suppliers.js'
 const app = express();
 
 app.use(cors({
@@ -19,5 +19,5 @@ app.use(express.json());
 app.use("/api/registerCustomer" , registerCustomerRoutes);
 app.use("/api/customers", customersRoutes)
 app.use("/api/accessories", accessoriesRoutes)
-
+app.use("/api/suppliers", supplierRoues)
 export default app;
