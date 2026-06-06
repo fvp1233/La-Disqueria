@@ -24,6 +24,9 @@ export function EmployeeForm({ onClose, employee, mode = "edit" }) {
     const [fecha, setFecha] = useState("")
     const [estado, setEstado] = useState("Activo")
 
+    const [logo, setLogo] = useState(null)
+    const [preview, setPreview] = useState(null)
+
     useEffect(() => {
         if (!employee) return
 
@@ -45,10 +48,44 @@ export function EmployeeForm({ onClose, employee, mode = "edit" }) {
 
             <div>
                 <Label>Imagen</Label>
-                <div className={`border rounded-md p-4 h-8 flex items-center justify-center ${isReadOnly ? "text-gray-400" : "text-red-400 cursor-pointer"
-                    }`}>
-                    + Subir imagen
+
+                <div
+                    onClick={() => {
+                        if (!isReadOnly) {
+                            document.getElementById("logoInput").click()
+                        }
+                    }}
+                    className={`border rounded-md p-4 h-8 flex items-center justify-center ${isReadOnly ? "text-gray-400" : "text-red-400 cursor-pointer hover:bg-red-50"
+                        }`}
+                >
+                    {preview ? (
+                        <img
+                            src={preview}
+                            alt="preview"
+                            className="h-full object-contain"
+                        />
+                    ) : (
+                        "+ Subir imagen"
+                    )}
                 </div>
+
+                {/* INPUT OCULTO */}
+                <input
+                    id="logoInput"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                        const file = e.target.files[0]
+                        if (!file) return
+
+                        setLogo(file)
+
+                        // preview
+                        const url = URL.createObjectURL(file)
+                        setPreview(url)
+                    }}
+                />
             </div>
             <div className="grid grid-cols-2 gap-4">
 

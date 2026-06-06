@@ -14,6 +14,7 @@ import ProvidersPage from "./modules/providers/ProvidersPage"
 import EmployeesPage from "./modules/employees/pages/EmployeesPage"
 import CustomersPage from "./modules/customers/pages/CustomersPage"
 import LoginPage from "./modules/login/pages/LoginPage"
+import ProfilePage from "./modules/profile/pages/ProfilePage"
 
 function App() {
   return (
@@ -120,6 +121,14 @@ function App() {
         }
       />
 
+      <Route
+        path="/profile"
+        element={
+          <MainLayout>
+            <ProfilePage />
+          </MainLayout>
+        }
+      />
     </Routes>
   );
 }
