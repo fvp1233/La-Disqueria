@@ -1,13 +1,13 @@
-import accessoriesModel from "../../models/accessories/accessories";
+import accessoriesModel from "../../models/accessories/accessories.js";
 
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary} from "cloudinary";
 
-const accessoriesrController = {};
+const accessoriesController = {};
 
 // OBTENER TODOS
-accessorieController.getAllaccessories = async (req, res) => {
+accessoriesController.getAllaccessories = async (req, res) => {
   try {
-    const accessories = await accessorieModel.find();
+    const accessories = await accessoriesModel.find();
     return res.status(200).json(accessories);
   } catch (error) {
     console.log(error);
@@ -16,7 +16,7 @@ accessorieController.getAllaccessories = async (req, res) => {
 };
 
 // INSERTAR
-accessorieController.insertaccessorie = async (req, res) => {
+accessoriesController.insertaccessorie = async (req, res) => {
   try {
     const {
       name,
@@ -40,7 +40,7 @@ accessorieController.insertaccessorie = async (req, res) => {
       });
     }
 
-    const newAccessorie = new accessorieModel({
+    const newAccessorie = new accessoriesModel({
       name,
       brand,
       subtype,
@@ -68,9 +68,9 @@ accessorieController.insertaccessorie = async (req, res) => {
 };
 
 // ACTUALIZAR
-accessorieController.updateaccessorie = async (req, res) => {
+accessoriesController.updateaccessorie = async (req, res) => {
   try {
-    const accessorieFound = await accessorieModel.findById(req.params.id);
+    const accessorieFound = await accessoriesModel.findById(req.params.id);
 
     if (!accessorieFound) {
       return res.status(404).json({
@@ -123,7 +123,7 @@ accessorieController.updateaccessorie = async (req, res) => {
       updatedData.public_ids = publicIds;
     }
 
-    await accessorieModel.findByIdAndUpdate(
+    await accessoriesModel.findByIdAndUpdate(
       req.params.id,
       updatedData,
       { new: true }
@@ -141,9 +141,9 @@ accessorieController.updateaccessorie = async (req, res) => {
 };
 
 // ELIMINAR
-accessorieController.deleteaccessorie = async (req, res) => {
+accessoriesController.deleteaccessorie = async (req, res) => {
   try {
-    const accessorieFound = await accessorieModel.findById(req.params.id);
+    const accessorieFound = await accessoriesModel.findById(req.params.id);
 
     if (!accessorieFound) {
       return res.status(404).json({
@@ -158,7 +158,7 @@ accessorieController.deleteaccessorie = async (req, res) => {
       }
     }
 
-    await accessorieModel.findByIdAndDelete(req.params.id);
+    await accessoriesModel.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({
       message: "accessorie deleted",
@@ -171,4 +171,4 @@ accessorieController.deleteaccessorie = async (req, res) => {
   }
 };
 
-export default accessorieController;
+export default accessoriesController;

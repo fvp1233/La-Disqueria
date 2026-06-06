@@ -1,21 +1,21 @@
 import express from "express";
-import productController from "../controllers/productController.js";
-import upload from "../utils/CloudinaryConfig.js";
+import accessoriesController from "../../controllers/accessories/accessoriesController.js";
+import upload from "../../utils/CloudinaryConfig.js";
 
 const router = express.Router();
 
 router.route("/")
-  .get(productController.getAllProducts)
+  .get(accessoriesController.getAllaccessories)
   .post(
     upload.array("images", 10),
-    productController.insertProduct
+    accessoriesController.insertaccessorie
   );
 
 router.route("/:id")
   .put(
     upload.array("images", 10),
-    productController.updateProduct
+    accessoriesController.updateaccessorie
   )
-  .delete(productController.deleteProduct);
+  .delete(accessoriesController.deleteaccessorie);
 
 export default router;
