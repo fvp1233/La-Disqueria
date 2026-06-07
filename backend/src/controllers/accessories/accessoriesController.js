@@ -1,6 +1,5 @@
 import accessoriesModel from "../../models/accessories/accessories.js";
-
-import { v2 as cloudinary} from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
 const accessoriesController = {};
 
@@ -33,7 +32,7 @@ accessoriesController.insertaccessorie = async (req, res) => {
     const imageUrls = [];
     const publicIds = [];
 
-    if (req.files) {
+    if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
         imageUrls.push(file.path);
         publicIds.push(file.filename);
@@ -67,6 +66,7 @@ accessoriesController.insertaccessorie = async (req, res) => {
   }
 };
 
+// GET BY ID
 accessoriesController.getAccessorieById = async (req, res) => {
   try {
     const accessorie = await accessoriesModel.findById(req.params.id);
@@ -86,7 +86,7 @@ accessoriesController.getAccessorieById = async (req, res) => {
   }
 };
 
-// ACTUALIZAR
+// ACTUALIZAR (FIXED + SAFE + CLOUDINARY SAFE)
 accessoriesController.updateaccessorie = async (req, res) => {
   try {
     const accessorieFound = await accessoriesModel.findById(req.params.id);
@@ -114,20 +114,26 @@ accessoriesController.updateaccessorie = async (req, res) => {
       brand,
       subtype,
       description,
+      material,
+      price,
+      isAvailable,
       compatibleWith: compatibleWith
         ? JSON.parse(compatibleWith)
         : accessorieFound.compatibleWith,
-      material,
-      price,
-      tags: tags ? JSON.parse(tags) : accessorieFound.tags,
-      isAvailable,
+      tags: tags
+        ? JSON.parse(tags)
+        : accessorieFound.tags,
     };
 
-    // Si llegan nuevas imágenes
+    // SI HAY NUEVAS IMÁGENES
     if (req.files && req.files.length > 0) {
-      // Eliminar imágenes anteriores
-      for (const publicId of accessorieFound.public_ids) {
-        await cloudinary.uploader.destroy(publicId);
+      // borrar viejas imágenes (SAFE CHECK)
+      if (Array.isArray(accessorieFound.public_ids)) {
+        for (const publicId of accessorieFound.public_ids) {
+          if (publicId) {
+            await cloudinary.uploader.destroy(publicId);
+          }
+        }
       }
 
       const imageUrls = [];
@@ -140,6 +146,10 @@ accessoriesController.updateaccessorie = async (req, res) => {
 
       updatedData.images = imageUrls;
       updatedData.public_ids = publicIds;
+    } else {
+      // mantener imágenes existentes
+      updatedData.images = accessorieFound.images;
+      updatedData.public_ids = accessorieFound.public_ids;
     }
 
     await accessoriesModel.findByIdAndUpdate(
@@ -151,6 +161,7 @@ accessoriesController.updateaccessorie = async (req, res) => {
     return res.status(200).json({
       message: "accessorie updated",
     });
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({
@@ -159,7 +170,7 @@ accessoriesController.updateaccessorie = async (req, res) => {
   }
 };
 
-// ELIMINAR
+// DELETE (SAFE)
 accessoriesController.deleteaccessorie = async (req, res) => {
   try {
     const accessorieFound = await accessoriesModel.findById(req.params.id);
@@ -170,10 +181,11 @@ accessoriesController.deleteaccessorie = async (req, res) => {
       });
     }
 
-    // Eliminar imágenes de Cloudinary
-    if (accessorieFound.public_ids?.length > 0) {
+    if (Array.isArray(accessorieFound.public_ids)) {
       for (const publicId of accessorieFound.public_ids) {
-        await cloudinary.uploader.destroy(publicId);
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+        }
       }
     }
 
@@ -182,6 +194,7 @@ accessoriesController.deleteaccessorie = async (req, res) => {
     return res.status(200).json({
       message: "accessorie deleted",
     });
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { accessoriesService } from "../../../service/accessoriesService.jsx";
 
-export default function AgregarAccessory() {
+export default function AddAccesoryPage() {
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -18,10 +18,12 @@ export default function AgregarAccessory() {
     price: "",
     tags: "",
     isAvailable: true,
+    images: [], // array de URLs existentes
   });
 
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null); // archivo nuevo que subas
 
+  // Cargar accesorio si viene un ID (editar)
   useEffect(() => {
     if (id) {
       loadAccessory();
@@ -42,9 +44,11 @@ export default function AgregarAccessory() {
         price: data.price || "",
         tags: data.tags?.join(", ") || "",
         isAvailable: data.isAvailable ?? true,
+        images: data.images || [],
       });
     } catch (error) {
       console.error(error);
+      alert("Error al cargar accesorio");
     }
   };
 
@@ -58,7 +62,9 @@ export default function AgregarAccessory() {
   };
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]);
+    const file = e.target.files[0];
+    if (!file) return;
+    setImage(file);
   };
 
   const handleSubmit = async (e) => {
@@ -95,8 +101,12 @@ export default function AgregarAccessory() {
         )
       );
 
+      // Subir nueva imagen si hay
       if (image) {
         formData.append("images", image);
+      } else if (form.images.length > 0) {
+        // Mantener la imagen existente
+        formData.append("images", form.images[0]);
       }
 
       if (id) {
@@ -107,7 +117,8 @@ export default function AgregarAccessory() {
         alert("Accesorio agregado");
       }
 
-      navigate("/accessories");
+      // Redirección a la página de accesorios (revisa tu ruta exacta)
+      navigate("/accesories");
     } catch (error) {
       console.error(error);
       alert("Error al guardar accesorio");
@@ -125,11 +136,24 @@ export default function AgregarAccessory() {
           onSubmit={handleSubmit}
           className="bg-white rounded-2xl shadow-md p-8 space-y-6"
         >
-          <input
-            type="file"
-            onChange={handleImageChange}
-          />
+          {/* Imagen */}
+          {image ? (
+            <img
+              src={URL.createObjectURL(image)}
+              alt="preview"
+              className="w-32 h-32 object-cover mb-2 rounded-lg"
+            />
+          ) : form.images?.[0] ? (
+            <img
+              src={form.images[0]}
+              alt="actual"
+              className="w-32 h-32 object-cover mb-2 rounded-lg"
+            />
+          ) : null}
 
+          <input type="file" onChange={handleImageChange} />
+
+          {/* Inputs */}
           <div className="grid grid-cols-2 gap-4">
             <input
               name="name"
@@ -138,7 +162,6 @@ export default function AgregarAccessory() {
               onChange={handleChange}
               className="input"
             />
-
             <input
               name="brand"
               value={form.brand}
@@ -146,7 +169,6 @@ export default function AgregarAccessory() {
               onChange={handleChange}
               className="input"
             />
-
             <input
               name="subtype"
               value={form.subtype}
@@ -154,7 +176,6 @@ export default function AgregarAccessory() {
               onChange={handleChange}
               className="input"
             />
-
             <input
               name="price"
               value={form.price}
@@ -173,19 +194,17 @@ export default function AgregarAccessory() {
               onChange={handleChange}
               className="input"
             />
-
             <input
               name="compatibleWith"
               value={form.compatibleWith}
-              placeholder="Compatible con (separado por comas)"
+              placeholder="Compatible con (coma separadas)"
               onChange={handleChange}
               className="input"
             />
-
             <input
               name="tags"
               value={form.tags}
-              placeholder="Tags (separadas por comas)"
+              placeholder="Tags (coma separadas)"
               onChange={handleChange}
               className="input col-span-2"
             />
@@ -199,7 +218,6 @@ export default function AgregarAccessory() {
               onChange={handleChange}
               className="input col-span-2"
             />
-
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -211,10 +229,11 @@ export default function AgregarAccessory() {
             </label>
           </div>
 
+          {/* Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button
               type="button"
-              onClick={() => navigate("/accessories")}
+              onClick={() => navigate("/accesories")}
               className="px-4 py-2 bg-gray-200 rounded-lg"
             >
               Cancelar
