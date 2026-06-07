@@ -67,6 +67,25 @@ accessoriesController.insertaccessorie = async (req, res) => {
   }
 };
 
+accessoriesController.getAccessorieById = async (req, res) => {
+  try {
+    const accessorie = await accessoriesModel.findById(req.params.id);
+
+    if (!accessorie) {
+      return res.status(404).json({
+        message: "accessorie not found",
+      });
+    }
+
+    return res.status(200).json(accessorie);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
 // ACTUALIZAR
 accessoriesController.updateaccessorie = async (req, res) => {
   try {

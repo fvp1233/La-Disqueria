@@ -17,6 +17,8 @@ import {
   TableCell,
 } from "@/global/components/Table";
 
+import { accessoriesService } from "../../../service/accessoriesService.jsx";
+
 export default function AccessoriesPage() {
   const navigate = useNavigate();
 
@@ -25,53 +27,38 @@ export default function AccessoriesPage() {
   const [openRow, setOpenRow] = useState(null);
 
   useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem("accessories")) || [];
-    setExtraItems(guardados);
+    loadAccessories();
   }, []);
 
+  const loadAccessories = async () => {
+    try {
+      const data = await accessoriesService.getAll();
+      setExtraItems(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   // DELETE
-  const handleDelete = (index, isExtra) => {
-    if (!isExtra) return;
+  const handleDelete = async (id) => {
+    try {
+      await accessoriesService.delete(id);
 
-    const updated = [...extraItems];
-    updated.splice(index, 1);
-
-    setExtraItems(updated);
-    localStorage.setItem("accessories", JSON.stringify(updated));
+      setExtraItems((prev) =>
+        prev.filter((item) => item._id !== id)
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // EDIT
-  const handleEdit = (index, isExtra) => {
-    if (!isExtra) return;
+const handleEdit = (item) => {
+  navigate(`/accessories/edit/${item._id}`);
+};
 
-    const item = extraItems[index];
 
-    localStorage.setItem(
-      "editAccessory",
-      JSON.stringify({ item, index })
-    );
-
-    navigate(`/accessories/add`);
-  };
-
-  // BASE DATA
-  const baseData = [
-    { name: "Cable AUX", brand: "Sony", subtype: "Audio", price: 10, isAvailable: true },
-    { name: "Funda Vinilo", brand: "Generic", subtype: "Protección", price: 5, isAvailable: false },
-  ];
-
-  const nuevosFiltrados = extraItems
-    .map((d, index) => ({ ...d, originalIndex: index }))
-    .filter(d => d);
-
-  const data = [
-    ...baseData.map(d => ({ ...d, isExtra: false })),
-    ...nuevosFiltrados.map(d => ({
-      ...d,
-      isExtra: true,
-      extraIndex: d.originalIndex
-    }))
-  ];
+  const data = extraItems;
 
   const filtered = data.filter((item) =>
     item?.name?.toLowerCase().includes(search.toLowerCase())
@@ -85,10 +72,7 @@ export default function AccessoriesPage() {
 
   return (
     <div>
-
-
       <div className="bg-white p-6 rounded-2xl shadow-md relative">
-
         <div className="absolute -top-4 left-6">
           <button className="px-4 py-1 rounded bg-[#4A6163] text-[#F9FAF4]">
             Accesorios
@@ -96,45 +80,46 @@ export default function AccessoriesPage() {
         </div>
 
         <div className="mt-6">
+          <div className="flex gap-6 flex-wrap">
+            <Card
+              title="Total de accesorios"
+              value={data.length}
+              change="+5%"
+              changeText="Que el mes pasado"
+              color="#FFB6C1"
+            />
 
-         <div className="flex gap-6 flex-wrap">
+            <Card
+              title="Ingresos de accesorios"
+              value="$70,540"
+              change="+18%"
+              changeText="Que el mes pasado"
+              color="#B8D4FF"
+            />
 
-  <Card
-    title="Total de accesorios"
-    value={data.length}
-    change="+5%"
-    changeText="Que el mes pasado"
-    color="#FFB6C1"
-  />
+            <Card
+              title="Con bajo stock"
+              value="8"
+              change="+33%"
+              changeText="Que el mes pasado"
+              color="#F3E2B3"
+            />
 
-  <Card
-    title="Ingresos de accesorios"
-    value="$70,540"
-    change="+18%"
-    changeText="Que el mes pasado"
-    color="#B8D4FF"
-  />
+            <Card
+              title="Accesorios agotados"
+              value="5"
+              change="-29%"
+              changeText="Que el mes pasado"
+              color="#F28B8B"
+            />
+          </div>
 
-  <Card
-    title="Con bajo stock"
-    value="8"
-    change="+33%"
-    changeText="Que el mes pasado"
-    color="#F3E2B3"
-  />
-
-  <Card
-    title="Accesorios agotados"
-    value="5"
-    change="-29%"
-    changeText="Que el mes pasado"
-    color="#F28B8B"
-  />
-
-</div>
           <div className="mt-8 flex justify-between items-center">
             <div className="flex gap-4 items-center">
-              <InputGroupInlineStart onChange={(e) => setSearch(e.target.value)} />
+              <InputGroupInlineStart
+                onChange={(e) => setSearch(e.target.value)}
+              />
+
               <Button variant="filter">
                 <p className="text-base">Filtrar</p>
                 <SlidersHorizontal className="w-4 h-4" />
@@ -143,14 +128,13 @@ export default function AccessoriesPage() {
 
             <Button
               variant="cd"
-              onClick={() => navigate(`/accessories/add`)}
+              onClick={() => navigate("/accessories/add")}
             >
               <Plus className="w-4 h-4" />
               <p className="text-base">Agregar</p>
             </Button>
           </div>
 
-          {/* TABLE */}
           <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
             <Table>
               <TableHeader>
@@ -171,14 +155,20 @@ export default function AccessoriesPage() {
                   const isOpen = openRow === i;
 
                   return (
-                    <React.Fragment key={i}>
+                    <React.Fragment key={item._id || i}>
                       <TableRow
-                        onClick={() => setOpenRow(isOpen ? null : i)}
+                        onClick={() =>
+                          setOpenRow(isOpen ? null : i)
+                        }
                         className="cursor-pointer hover:bg-gray-50 transition"
                       >
                         <TableCell>
                           {item.images?.[0] ? (
-                            <img src={item.images[0]} className="w-12 h-12 object-cover rounded-lg" />
+                            <img
+                              src={item.images[0]}
+                              alt={item.name}
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
                           ) : (
                             <div className="w-12 h-12 bg-gray-200 rounded-lg" />
                           )}
@@ -187,28 +177,30 @@ export default function AccessoriesPage() {
                         <TableCell>{item.name}</TableCell>
                         <TableCell>{item.brand}</TableCell>
                         <TableCell>{item.subtype}</TableCell>
-                        <TableCell>{item.price}</TableCell>
+                        <TableCell>${item.price}</TableCell>
 
                         <TableCell>
-                          <span className={`px-3 py-1 rounded-full text-xs ${estado.color}`}>
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs ${estado.color}`}
+                          >
                             {estado.text}
                           </span>
                         </TableCell>
 
                         <TableCell className="flex gap-2">
-                          <Pencil
-                            className="w-4 h-4 cursor-pointer text-gray-500"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(item.extraIndex, item.isExtra);
-                            }}
-                          />
+                     <Pencil
+  className="w-4 h-4 cursor-pointer text-gray-500"
+  onClick={(e) => {
+    e.stopPropagation();
+    handleEdit(item);
+  }}
+/>
 
                           <Trash2
                             className="w-4 h-4 cursor-pointer text-red-400"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(item.extraIndex, item.isExtra);
+                              handleDelete(item._id);
                             }}
                           />
                         </TableCell>
@@ -218,10 +210,26 @@ export default function AccessoriesPage() {
                         <TableRow>
                           <TableCell colSpan={7}>
                             <div className="bg-white rounded-xl p-4 shadow-inner grid grid-cols-2 gap-4 text-sm">
-                              <div><b>Descripción:</b> {item.description || "-"}</div>
-                              <div><b>Material:</b> {item.material || "-"}</div>
-                              <div><b>Compatible con:</b> {item.compatible_with || "-"}</div>
-                              <div><b>Tags:</b> {item.tags?.join(", ") || "-"}</div>
+                              <div>
+                                <b>Descripción:</b>{" "}
+                                {item.description || "-"}
+                              </div>
+
+                              <div>
+                                <b>Material:</b>{" "}
+                                {item.material || "-"}
+                              </div>
+
+                              <div>
+                                <b>Compatible con:</b>{" "}
+                                {item.compatibleWith?.join(", ") ||
+                                  "-"}
+                              </div>
+
+                              <div>
+                                <b>Tags:</b>{" "}
+                                {item.tags?.join(", ") || "-"}
+                              </div>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -232,7 +240,6 @@ export default function AccessoriesPage() {
               </TableBody>
             </Table>
           </div>
-
         </div>
       </div>
     </div>

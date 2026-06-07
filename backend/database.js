@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import { config } from "../backend/config.js";
 
-mongoose.connect("mongodb://localhost:27017/laDisqueriaDB");
+mongoose.connect(config.DB_URI);
 
 const connection = mongoose.connection;
 connection.once("open", () =>{

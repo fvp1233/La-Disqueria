@@ -12,6 +12,7 @@ router.route("/")
   );
 
 router.route("/:id")
+  .get(accessoriesController.getAccessorieById)
   .put(
     upload.array("images", 10),
     accessoriesController.updateaccessorie
