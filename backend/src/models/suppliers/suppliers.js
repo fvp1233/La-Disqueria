@@ -17,27 +17,6 @@
 
 import mongoose,{Schema, model} from 'mongoose'
 
-
-const catalogItemSchema = new mongoose.Schema({
-  type: {
-    type: String,
-    enum: ['vinyl', 'turntable'], //enum valida que solamente entren esos dos valores
-    required: true
-  },
-  title: {
-    type: String,
-    required: true
-  },
-  price: {
-    type: Number,
-    required: true
-  },
-  isAvailable: {
-    type: Boolean,
-    default: true
-  }
-});
-
 const supplierSchema = new Schema ({
     companny: {
         type: String

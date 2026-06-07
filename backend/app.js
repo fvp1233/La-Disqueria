@@ -6,6 +6,7 @@ import customersRoutes from "./src/routes/customers/customer.js"
 import accessoriesRoutes from "./src/routes/accessories/accessories.js"
 import supplierRoues from './src/routes/suppliers/suppliers.js'
 import vinylsRoutes from "./src/routes/vinyls/vinyl.js"
+import inventoryRoutes from "./src/routes/inventory/inventory.js"
 const app = express();
 
 app.use(cors({
@@ -22,5 +23,6 @@ app.use("/api/customers", customersRoutes)
 app.use("/api/accessories", accessoriesRoutes)
 app.use("/api/suppliers", supplierRoues)
 app.use("/api/vinyls", vinylsRoutes)
+app.use("/api/inventory", inventoryRoutes)
 
 export default app;

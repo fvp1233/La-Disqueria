@@ -48,8 +48,8 @@ supplierController.insertSuppliers = async(req,res) => {
 
         if(catalog && catalog.length > 0){
             for(const item of catalog){
-                if(!['vinyl', 'turntable'].includes(item.type)){ //Includes valida si lo que se escriba, dentro del array exista
-                    return res.status(400).json({message: `Invalid product type: ${item.type}. Must be 'vinyl' or 'turntable'`})
+                if(!['vinyls', 'turntables', 'accessories', 'cds'].includes(item.type)){ //Includes valida si lo que se escriba, dentro del array exista
+                    return res.status(400).json({message: `Invalid product type: ${item.type}. Must be 'vinyls', 'turntables', 'accessories' or 'cds'`})
                 }
             }
         }
@@ -117,8 +117,8 @@ supplierController.updateSupplier = async(req,res) => {
 
         if(catalog && catalog.length > 0){ //Si los objetos del catalogo no son 0
             for(const item of catalog){ //Por cada item dentro del catalogo
-                if(!['vinyl', 'turntable'].includes(item.type)){ //Includes valida si lo que se escriba, dentro del array exista
-                    return res.status(400).json({message: `Invalid product type: ${item.type}. Must be 'vinyl' or 'turntable'`})
+                if(!['vinyls', 'turntables', 'accessories', 'cds'].includes(item.type)){ //Includes valida si lo que se escriba, dentro del array exista
+                    return res.status(400).json({message: `Invalid product type: ${item.type}. Must be 'vinyls', 'turntables', 'accessories' or 'cds'`})
                 }
             }
         }
