@@ -4,28 +4,23 @@ const inventorySchema = new Schema({
   
   productId: {
     type: Schema.Types.ObjectId,
-    refPath: 'productType',
-    required: true
+    refPath: 'productType'
   },
 
   productType: {
-    type: String,
-    required: true
+    type: String
   },
 
   sku: {
-    type: String,
-    required: true
+    type: String
   },
 
   stock: {
-    type: Number,
-    required: true
+    type: Number
   },
 
   location: {
-    type: String,
-    required: true
+    type: String
   },
 
   supplierId: [
@@ -33,7 +28,6 @@ const inventorySchema = new Schema({
       supplierId: {
         type: Schema.Types.ObjectId,
         ref: 'supplier',
-        required: true
       }
     }
   ]
