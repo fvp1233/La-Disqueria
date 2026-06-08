@@ -18,12 +18,12 @@ export default function AddAccesoryPage() {
     price: "",
     tags: "",
     isAvailable: true,
-    images: [], // array de URLs existentes
+    images: [], //array de URL existentes
   });
 
-  const [image, setImage] = useState(null); // archivo nuevo que subas
+  const [image, setImage] = useState(null); //archivo nuevo que se sube
 
-  // Cargar accesorio si viene un ID (editar)
+  //carga accesorio si viene un ID (para editar)
   useEffect(() => {
     if (id) {
       loadAccessory();
@@ -101,11 +101,11 @@ export default function AddAccesoryPage() {
         )
       );
 
-      // Subir nueva imagen si hay
+      //Sube una nueva imagen si hay
       if (image) {
         formData.append("images", image);
       } else if (form.images.length > 0) {
-        // Mantener la imagen existente
+        //o mantiene la imagen existente
         formData.append("images", form.images[0]);
       }
 
@@ -117,7 +117,7 @@ export default function AddAccesoryPage() {
         alert("Accesorio agregado");
       }
 
-      // Redirección a la página de accesorios (revisa tu ruta exacta)
+      //Redirige a la pagina de accesorios
       navigate("/accesories");
     } catch (error) {
       console.error(error);
