@@ -29,7 +29,7 @@ const customerSchema = new Schema(
     phone: {
       type: String,
     },
-    adreesses: [
+    addresses: [
       {
         street: {
           type: String,
@@ -39,7 +39,7 @@ const customerSchema = new Schema(
         },
       },
     ],
-    isActive: {
+    is_active: {
       type: Boolean,
     },
     isVerified: {
