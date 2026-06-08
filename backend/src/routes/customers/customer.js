@@ -3,7 +3,7 @@ import customersController from "../../controllers/customers/customerController.
 
 const router = express.Router();
 
-router.route("/").get(customersController.getCustomers);
-router.route("/:id").put(customersController.deleteCustomer).delete(customersController.deleteCustomer);
+router.route("/").get(customersController.getCustomers).post(customersController.createCustomer);
+router.route("/:id").put(customersController.updateCustomers).delete(customersController.deleteCustomer);
 
 export default router
