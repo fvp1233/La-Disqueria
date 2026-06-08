@@ -1,6 +1,6 @@
 const API_URL = "http://localhost:4000/api/customers";
 
-// Obtener todos los clientes
+// Obtiene todos los clientes registrados
 export const getCustomers = async () => {
   try {
     const response = await fetch(API_URL);
@@ -15,6 +15,7 @@ export const getCustomers = async () => {
   }
 };
 
+// Crea un nuevo cliente
 export const createCustomer = async (customerData) => {
   try {
     const response = await fetch(API_URL, {
@@ -37,7 +38,7 @@ export const createCustomer = async (customerData) => {
   }
 };
 
-// Actualizar un cliente
+// Actualiza la información de un cliente
 export const updateCustomer = async (id, customerData) => {
   try {
     const response = await fetch(`${API_URL}/${id}`, {
@@ -58,7 +59,7 @@ export const updateCustomer = async (id, customerData) => {
   }
 };
 
-// Eliminar un cliente
+// Elimina un cliente por su id
 export const deleteCustomer = async (id) => {
   try {
     const response = await fetch(`${API_URL}/${id}`, {

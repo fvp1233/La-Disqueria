@@ -1,12 +1,15 @@
 "use client";
 
+// Hooks de React
 import { useState, useEffect } from "react";
 
+// Componentes reutilizables
 import { Input } from "@/global/components/Input";
 import { Label } from "@/global/components/Label";
 import { Button } from "@/global/components/button";
 import { FormDropdown } from "@/global/components/FormDropdown";
 
+// Servicios para consumir la API
 import {
   createCustomer,
   updateCustomer,
@@ -17,27 +20,38 @@ export function CustomerForm({
   customer,
   mode = "edit",
 }) {
+
+  // Controla si el formulario está en modo vista o edición
   const [internalMode, setInternalMode] = useState(mode);
 
+  // Sincroniza el modo interno cuando cambia la prop mode
   useEffect(() => {
     setInternalMode(mode);
   }, [mode]);
 
+  // Determina si los campos deben estar bloqueados
   const isReadOnly = internalMode === "view";
 
+  // Estados para los campos del formulario
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Dirección
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
 
+  // Contraseña
   const [password, setPassword] = useState("");
 
+  // Estado del cliente (Activo/Inactivo)
   const [status, setStatus] = useState("Activo");
 
+  // Carga los datos cuando se selecciona un cliente para editar/ver
   useEffect(() => {
+
+    // Si no hay cliente seleccionado, limpia el formulario
     if (!customer) {
       setName("");
       setLastName("");
@@ -50,17 +64,22 @@ export function CustomerForm({
       return;
     }
 
+    // Carga la información del cliente en los inputs
     setName(customer.name || "");
     setLastName(customer.last_name || "");
     setEmail(customer.email || "");
     setPhone(customer.phone || "");
 
+    // Obtiene la primera dirección registrada
     setStreet(customer.addresses?.[0]?.street || "");
     setCity(customer.addresses?.[0]?.city || "");
 
+    // Convierte boolean a texto para el dropdown
     setStatus(customer.is_active ? "Activo" : "Inactivo");
+
   }, [customer]);
 
+  // Opciones del dropdown de estado
   const statusOptions = [
     {
       label: "Activo",
@@ -72,46 +91,60 @@ export function CustomerForm({
     },
   ];
 
+  // Guardar formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+
+      // Objeto base que se enviará al backend
       const customerData = {
         name,
         last_name: lastName,
         email,
         phone,
+
         addresses: [
           {
             street,
             city,
           },
         ],
+
         is_active: status === "Activo",
       };
 
+      // Solo agrega contraseña si el usuario escribió una
       if (password.trim()) {
         customerData.password = password;
       }
 
-      // Crear
+      // Crear cliente nuevo
       if (!customer) {
+
         customerData.password = password;
 
         await createCustomer(customerData);
+
       }
 
-      // Editar
+      // Actualizar cliente existente
       else {
+
         await updateCustomer(
           customer._id,
           customerData
         );
+
       }
 
+      // Cierra el modal al finalizar
       onClose();
+
     } catch (error) {
+
       console.error(error);
+
     }
   };
 
@@ -121,6 +154,8 @@ export function CustomerForm({
       onSubmit={handleSubmit}
     >
       <div className="grid grid-cols-2 gap-4">
+
+        {/* Nombre */}
         <div>
           <Label>Nombre</Label>
 
@@ -131,6 +166,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Apellido */}
         <div>
           <Label>Apellido</Label>
 
@@ -143,6 +179,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Correo */}
         <div>
           <Label>Correo</Label>
 
@@ -156,6 +193,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Teléfono */}
         <div>
           <Label>Teléfono</Label>
 
@@ -168,6 +206,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Calle */}
         <div>
           <Label>Calle</Label>
 
@@ -180,6 +219,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Ciudad */}
         <div>
           <Label>Ciudad</Label>
 
@@ -192,6 +232,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Contraseña */}
         <div className="col-span-2">
           <Label>Contraseña</Label>
 
@@ -203,6 +244,7 @@ export function CustomerForm({
           />
         </div>
 
+        {/* Estado */}
         <div className="col-span-2">
           <Label>Estado</Label>
 
@@ -213,9 +255,13 @@ export function CustomerForm({
             disabled={isReadOnly}
           />
         </div>
+
       </div>
 
+      {/* Botones */}
       <div className="flex justify-end gap-3 mt-4 mb-2">
+
+        {/* Cancelar / Cerrar */}
         <Button
           type="button"
           variant="cancel"
@@ -224,6 +270,7 @@ export function CustomerForm({
           {isReadOnly ? "Cerrar" : "Cancelar"}
         </Button>
 
+        {/* Botón para pasar de vista a edición */}
         {isReadOnly && (
           <Button
             type="button"
@@ -236,11 +283,13 @@ export function CustomerForm({
           </Button>
         )}
 
+        {/* Guardar cambios */}
         {!isReadOnly && (
           <Button type="submit" variant="cd">
             Guardar
           </Button>
         )}
+
       </div>
     </form>
   );
