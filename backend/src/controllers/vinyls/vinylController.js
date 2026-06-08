@@ -27,7 +27,7 @@ vinylController.inserVinyl = async (req, res) => {
             size,
             color,
             condition,
-            tracklist,
+            trackList,
             price,
             tags,
             isAvailable
@@ -57,7 +57,7 @@ vinylController.inserVinyl = async (req, res) => {
             size,
             color,
             condition,
-            tracklist,
+            trackList,
             price,
             tags,
             isAvailable: true,
@@ -90,7 +90,7 @@ vinylController.updateVinyl = async (req, res) => {
             size,
             color,
             condition,
-            tracklist,
+            trackList,
             price,
             tags,
             isAvailable

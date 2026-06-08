@@ -1,264 +1,265 @@
-import { useState } from "react"
-import { Plus } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
-import Card from "@/global/components/Card"
+import Card from "@/global/components/Card";
 import {
-    Table,
-    TableHeader,
-    TableBody,
-    TableHead,
-    TableRow,
-    TableCell,
-} from "@/global/components/Table"
-import { InputGroupInlineStart } from "@/global/components/SearchInput"
-import { Button } from "@/global/components/button"
-import { Modal } from "@/global/components/Modal"
-import { ProviderForm } from "@/modules/providers/components/ProviderForm"
-import { FilterDropdown } from "@/global/components/FilterDropdown"
-
-const proveedores = [
-    {
-        id: "#01542d415s",
-        logo: "/logos/sonidos.png",
-        compania: "Sonidos del Pacífico",
-        contacto: "Carlos Hernández",
-        correo: "ventas@sonidospacifico.com",
-        telefono: "+503 7123-4567",
-        pais: "El Salvador",
-        ciudad: "San Salvador",
-    },
-    {
-        id: "#01542d415s", // Nota: Este ID estaba duplicado en tu original
-        logo: "/logos/groove.png",
-        compania: "Groove Supply Co.",
-        contacto: "Andrea Martínez",
-        correo: "contacto@groovesupply.co",
-        telefono: "+503 7234-5678",
-        pais: "El Salvador",
-        ciudad: "Santa Tecla",
-    },
-    {
-        id: "#01242e415s",
-        logo: "/logos/retro.png",
-        compania: "RetroVinyl SV",
-        contacto: "Luis Ramírez",
-        correo: "pedidos@retrovinylsv.com",
-        telefono: "+503 7345-6789",
-        pais: "México",
-        ciudad: "CDMX",
-    },
-    // --- Nuevos registros ---
-    {
-        id: "#01852f926k",
-        logo: "/logos/audiotech.png",
-        compania: "AudioTech Solutions",
-        contacto: "Mariana Torres",
-        correo: "soporte@audiotech.com.sv",
-        telefono: "+503 7456-1234",
-        pais: "El Salvador",
-        ciudad: "Antiguo Cuscatlán",
-    },
-    {
-        id: "#02231b744m",
-        logo: "/logos/ritmo.png",
-        compania: "Ritmo Global",
-        contacto: "Roberto Gómez",
-        correo: "rgomez@ritmoglobal.net",
-        telefono: "+502 2345-6789",
-        pais: "Guatemala",
-        ciudad: "Ciudad de Guatemala",
-    },
-    {
-        id: "#03994a112p",
-        logo: "/logos/estudio.png",
-        compania: "Estudio Pro Latam",
-        contacto: "Elena Rivas",
-        correo: "info@estudioprolatam.com",
-        telefono: "+503 7567-8901",
-        pais: "El Salvador",
-        ciudad: "San Miguel",
-    }
-];
-
+  Table, TableHeader, TableBody,
+  TableHead, TableRow, TableCell,
+} from "@/global/components/Table";
+import { InputGroupInlineStart } from "@/global/components/SearchInput";
+import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { ProviderForm } from "@/modules/providers/components/ProviderForm";
+import { FilterDropdown } from "@/global/components/FilterDropdown";
+import { suppliersService } from "../../service/supplierService";
 
 export default function ProvidersPage() {
-    const [open, setOpen] = useState(false)
-    const [selectedProvider, setSelectedProvider] = useState(null)
-    const [contextMenu, setContextMenu] = useState(null)
-    const [mode, setMode] = useState("view")
-    const [countryFilter, setCountryFilter] = useState("all")
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const countries = [...new Set(proveedores.map(p => p.pais))]
+  const [open, setOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [mode, setMode] = useState("view");
+  const [countryFilter, setCountryFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
-    const options = [
-        { label: "Todos", value: "all" },
-        ...countries.map(c => ({ label: c, value: c }))
-    ]
+  // GET
+  useEffect(() => {
+    const fetchSuppliers = async () => {
+      try {
+        const data = await suppliersService.getAll();
+        setSuppliers(data);
+      } catch (err) {
+        setError("Error al cargar los proveedores");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSuppliers();
+  }, []);
 
-    // 🔥 filtro
-    const filteredProviders = proveedores.filter((p) => {
-        if (countryFilter === "all") return true
-        return p.pais === countryFilter
-    })
+  // DELETE
+  const handleDelete = async (id) => {
+    if (!window.confirm("¿Estás seguro de eliminar este proveedor?")) return;
+    try {
+      await suppliersService.delete(id);
+      setSuppliers(prev => prev.filter(s => s._id !== id));
+      setContextMenu(null);
+    } catch (err) {
+      alert("Error al eliminar proveedor");
+    }
+  };
 
-    return (
-        <div onClick={() => setContextMenu(null)}>
+  // Refresca lista tras crear/editar
+  const handleSuccess = async () => {
+    try {
+      const data = await suppliersService.getAll();
+      setSuppliers(data);
+    } catch (err) {
+      console.error(err);
+    }
+    setOpen(false);
+    setSelectedProvider(null);
+  };
 
-            {/* TARJETAS */}
-            <div className="flex gap-6 flex-wrap justify-evenly">
-                <Card title="Total de proveedores" value="6" change="+5%" changeText="Que el mes pasado" color="#EFA4B1" />
-                <Card title="Nuevos proveedores" value="1" change="+18%" changeText="Que el mes pasado" color="#A9BDE5" />
-                <Card title="Proveedor más cotizado" value="Groove Supply Co." color="#E8D6A7" />
-            </div>
+  const countries = [...new Set(suppliers.map(s => s.country).filter(Boolean))];
+  const options = [
+    { label: "Todos", value: "all" },
+    ...countries.map(c => ({ label: c, value: c })),
+  ];
 
-            {/* HEADER */}
-            <div className="mt-8 flex justify-between items-center">
-                <div className="flex gap-4 items-center">
-                    <InputGroupInlineStart />
+  const filtered = suppliers
+    .filter(s => countryFilter === "all" || s.country === countryFilter)
+    .filter(s =>
+      (s.companny || s.company || "").toLowerCase().includes(search.toLowerCase()) ||
+      (s.contact_name || "").toLowerCase().includes(search.toLowerCase())
+    );
 
-                    <FilterDropdown
-                        value={countryFilter}
-                        onChange={setCountryFilter}
-                        options={options} // 👈 dinámico
-                    />
-                </div>
+  if (loading) return <p className="p-6">Cargando proveedores...</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
-                <Button
-                    variant="cd"
-                    onClick={() => {
-                        setMode("edit")
-                        setSelectedProvider(null)
-                        setOpen(true)
-                    }}
-                >
-                    <Plus className="w-5 h-5" />
-                    <p className="text-sm py-1 px-2">Agregar</p>
-                </Button>
-            </div>
+  return (
+    <div onClick={() => setContextMenu(null)}>
 
-            {/* TABLA */}
-            <div className="mt-5 w-full mb-5">
-                <Table className="min-w-[1000px]">
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Imagen</TableHead>
-                            <TableHead>Id</TableHead>
-                            <TableHead>Compañía</TableHead>
-                            <TableHead>Nombre de contacto</TableHead>
-                            <TableHead>Correo</TableHead>
-                            <TableHead>Teléfono</TableHead>
-                            <TableHead>País</TableHead>
-                            <TableHead>Ciudad</TableHead>
-                        </TableRow>
-                    </TableHeader>
+      {/* Cards */}
+      <div className="flex gap-6 flex-wrap justify-evenly">
+        <Card
+          title="Total de proveedores"
+          value={suppliers.length}
+          change="+5%"
+          changeText="Que el mes pasado"
+          color="#EFA4B1"
+        />
+        <Card
+          title="Países"
+          value={countries.length}
+          change="+2%"
+          changeText="Que el mes pasado"
+          color="#A9BDE5"
+        />
+        <Card
+          title="Con catálogo"
+          value={suppliers.filter(s => s.catalog?.length > 0).length}
+          color="#E8D6A7"
+        />
+      </div>
 
-                    <TableBody>
-                        {filteredProviders.map((p, index) => (
-                            <TableRow
-                                key={index}
-                                className="cursor-pointer"
-                                onDoubleClick={() => {
-                                    setSelectedProvider(p)
-                                    setMode("view")
-                                    setOpen(true)
-                                }}
-                                onContextMenu={(e) => {
-                                    e.preventDefault()
-                                    setContextMenu({
-                                        x: e.clientX,
-                                        y: e.clientY,
-                                        provider: p,
-                                    })
-                                }}
-                            >
-                                <TableCell>
-                                    <img
-                                        src={p.logo}
-                                        className="w-10 h-10 rounded-full object-cover"
-                                    />
-                                </TableCell>
-                                <TableCell>{p.id}</TableCell>
-                                <TableCell>{p.compania}</TableCell>
-                                <TableCell>{p.contacto}</TableCell>
-                                <TableCell>{p.correo}</TableCell>
-                                <TableCell className="whitespace-nowrap">
-                                    {p.telefono}
-                                </TableCell>
-                                <TableCell>{p.pais}</TableCell>
-                                <TableCell>{p.ciudad}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-
-            {/* MENU CONTEXTUAL */}
-            {contextMenu && (
-                <div
-                    className="fixed z-50 bg-white rounded-xl shadow-lg border w-40"
-                    style={{
-                        top: contextMenu.y,
-                        left: contextMenu.x,
-                    }}
-                >
-                    <div
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                            setSelectedProvider(contextMenu.provider)
-                            setMode("view")
-                            setOpen(true)
-                            setContextMenu(null)
-                        }}
-                    >
-                        Ver
-                    </div>
-
-                    <div
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => {
-                            setSelectedProvider(contextMenu.provider)
-                            setMode("edit")
-                            setOpen(true)
-                            setContextMenu(null)
-                        }}
-                    >
-                        Editar
-                    </div>
-
-                    <div
-                        className="px-4 py-2 hover:bg-red-100 text-red-500 cursor-pointer"
-                        onClick={() => {
-                            console.log("Eliminar:", contextMenu.provider)
-                            setContextMenu(null)
-                        }}
-                    >
-                        Eliminar
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL */}
-            <Modal
-                open={open}
-                onClose={() => {
-                    setOpen(false)
-                    setSelectedProvider(null)
-                }}
-                title={
-                    !selectedProvider
-                        ? "Agregar proveedor"
-                        : mode === "view"
-                            ? "Detalle de proveedor"
-                            : "Editar proveedor"
-                }
-                size="lg"
-            >
-                <ProviderForm
-                    onClose={() => setOpen(false)}
-                    provider={selectedProvider}
-                    mode={mode}
-                />
-            </Modal>
+      {/* Header */}
+      <div className="mt-8 flex justify-between items-center">
+        <div className="flex gap-4 items-center">
+          <InputGroupInlineStart
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <FilterDropdown
+            value={countryFilter}
+            onChange={setCountryFilter}
+            options={options}
+          />
         </div>
-    )
+        <Button
+          variant="cd"
+          onClick={() => {
+            setMode("edit");
+            setSelectedProvider(null);
+            setOpen(true);
+          }}
+        >
+          <Plus className="w-5 h-5" />
+          <p className="text-sm py-1 px-2">Agregar</p>
+        </Button>
+      </div>
+
+      {/* Tabla */}
+      <div className="mt-5 w-full mb-5">
+        <Table className="min-w-[1000px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Compañía</TableHead>
+              <TableHead>Contacto</TableHead>
+              <TableHead>Correo</TableHead>
+              <TableHead>Teléfono</TableHead>
+              <TableHead>País</TableHead>
+              <TableHead>Ciudad</TableHead>
+              <TableHead>Catálogo</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {filtered.map((s) => (
+              <TableRow
+                key={s._id}
+                className="cursor-pointer hover:bg-gray-50 transition"
+                onDoubleClick={() => {
+                  setSelectedProvider(s);
+                  setMode("view");
+                  setOpen(true);
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setContextMenu({ x: e.clientX, y: e.clientY, provider: s });
+                }}
+              >
+                <TableCell>{s.companny || s.company}</TableCell>
+                <TableCell>{s.contact_name}</TableCell>
+                <TableCell>{s.email}</TableCell>
+                <TableCell className="whitespace-nowrap">{s.phone}</TableCell>
+                <TableCell>{s.country}</TableCell>
+                <TableCell>{s.city}</TableCell>
+                <TableCell>{s.catalog?.length || 0} items</TableCell>
+
+                {/* ← Botones editar y eliminar directos en la tabla */}
+                <TableCell className="flex gap-2">
+                  <Pencil
+                    className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedProvider(s);
+                      setMode("edit");
+                      setOpen(true);
+                    }}
+                  />
+                  <Trash2
+                    className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(s._id);
+                    }}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Menú contextual */}
+      {contextMenu && (
+        <div
+          className="fixed z-50 bg-white rounded-xl shadow-lg border w-40"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+            onClick={() => {
+              setSelectedProvider(contextMenu.provider);
+              setMode("view");
+              setOpen(true);
+              setContextMenu(null);
+            }}
+          >
+            Ver
+          </div>
+          <div
+            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+            onClick={() => {
+              setSelectedProvider(contextMenu.provider);
+              setMode("edit");
+              setOpen(true);
+              setContextMenu(null);
+            }}
+          >
+            Editar
+          </div>
+          <div
+            className="px-4 py-2 hover:bg-red-100 text-red-500 cursor-pointer text-sm"
+            onClick={() => handleDelete(contextMenu.provider._id)}
+          >
+            Eliminar
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedProvider(null);
+        }}
+        title={
+          !selectedProvider
+            ? "Agregar proveedor"
+            : mode === "view"
+              ? "Detalle de proveedor"
+              : "Editar proveedor"
+        }
+        size="lg"
+      >
+        <ProviderForm
+          onClose={() => {
+            setOpen(false);
+            setSelectedProvider(null);
+          }}
+          onSuccess={handleSuccess}
+          provider={selectedProvider}
+          mode={mode}
+        />
+      </Modal>
+    </div>
+  );
 }

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const config = {
-  DB_URI: process.env.DB_URI,
+  DB_URI: process.env.DB_URL,
 
   JWT: {
     secret: process.env.JWT_Secret_key,

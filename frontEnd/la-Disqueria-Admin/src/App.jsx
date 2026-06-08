@@ -20,7 +20,7 @@ function App() {
   return (
     <Routes>
 
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<DiscsPage />} />
 
       <Route
         path="/dashboard"
@@ -75,14 +75,14 @@ function App() {
           </MainLayout>
         }
       />
-<Route
-  path="/accessories/edit/:id"
-  element={
-    <MainLayout>
-      <AddAccesoryPage />
-    </MainLayout>
-  }
-/>
+      <Route
+        path="/accessories/edit/:id"
+        element={
+          <MainLayout>
+            <AddAccesoryPage />
+          </MainLayout>
+        }
+      />
       <Route
         path="/inventory"
         element={

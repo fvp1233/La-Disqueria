@@ -7,6 +7,10 @@ import accessoriesRoutes from "./src/routes/accessories/accessories.js"
 import supplierRoues from './src/routes/suppliers/suppliers.js'
 import vinylsRoutes from "./src/routes/vinyls/vinyl.js"
 import inventoryRoutes from "./src/routes/inventory/inventory.js"
+import cdsRoutes from './src/routes/cds/cds.js'
+import turntablesRoutes from './src/routes/turntables/turntables.js '
+import ordersRoutes from "./src/routes/orders/orders.js"
+
 const app = express();
 
 app.use(cors({
@@ -16,7 +20,8 @@ app.use(cors({
 
 app.use(cookieParser());
 
-app.use(express.json());
+app.use(express.json({limit: "50mb"}));
+app.use(express.urlencoded({limit: "50mb" , extended: true}))
 
 app.use("/api/registerCustomer", registerCustomerRoutes);
 app.use("/api/customers", customersRoutes)
@@ -24,5 +29,8 @@ app.use("/api/accessories", accessoriesRoutes)
 app.use("/api/suppliers", supplierRoues)
 app.use("/api/vinyls", vinylsRoutes)
 app.use("/api/inventory", inventoryRoutes)
+app.use("/api/cds", cdsRoutes)
+app.use("/api/turntables", turntablesRoutes)
+app.use("/api/orders", ordersRoutes)
 
 export default app;
