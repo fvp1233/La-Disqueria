@@ -3,8 +3,9 @@ import inventoryModel from '../../models/inventory/inventory.js'
 const inventoryController = {}
 inventoryController.getInventory = async (req, res) => {
     try {
-        // Sin populate por ahora
-        const response = await inventoryModel.find()
+        const response = await inventoryModel
+        .find()
+        .populate('supplierId.supplierId', 'company') 
 
         if (!response) {
             return res.status(404).json({ message: 'Inventory not found' })

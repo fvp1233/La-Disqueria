@@ -27,7 +27,7 @@ const inventorySchema = new Schema({
     {
       supplierId: {
         type: Schema.Types.ObjectId,
-        ref: 'supplier',
+        ref: 'suppliers',
       }
     }
   ]

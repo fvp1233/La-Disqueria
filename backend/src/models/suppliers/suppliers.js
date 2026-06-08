@@ -18,7 +18,7 @@
 import mongoose,{Schema, model} from 'mongoose'
 
 const supplierSchema = new Schema ({
-    companny: {
+    company: {
         type: String
     },
     contact_name: {
