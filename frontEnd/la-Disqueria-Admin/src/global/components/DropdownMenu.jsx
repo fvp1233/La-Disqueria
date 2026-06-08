@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 
@@ -18,12 +20,13 @@ function DropdownMenuPortal({
 
 function DropdownMenuTrigger({
   className,
+  asChild,
   ...props
 }) {
   return (
     <MenuPrimitive.Trigger
       data-slot="dropdown-menu-trigger"
-      className={cn("w-full", className)}
+      className={cn(asChild ? "" : "w-full", className)}
       {...props}
     />
   );
