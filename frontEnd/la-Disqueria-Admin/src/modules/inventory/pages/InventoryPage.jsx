@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { inventoryService } from "@/service/inventoryService";
+import React, { useState } from "react";
+import { Pencil, Trash2, Plus, SlidersHorizontal } from "lucide-react";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
-import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { InventoryForm } from "@/modules/inventory/components/InventoryForm";
+import useInventory from "@/modules/inventory/hooks/useInventory";
 
 import {
   Table, TableHeader, TableBody,
@@ -13,40 +14,25 @@ import {
 } from "@/global/components/Table";
 
 export default function InventoryPage() {
-  const navigate = useNavigate();
+  const {
+    inventory,
+    loading,
+    error,
+    message,
+    handleDelete,
+    fetchInventory,
+  } = useInventory();
 
   const [search, setSearch] = useState("");
-  const [inventory, setInventory] = useState([]);
   const [openRow, setOpenRow] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [mode, setMode] = useState("edit");
 
-  useEffect(() => {
-    const fetchInventory = async () => {
-      try {
-        const data = await inventoryService.getAll();
-        setInventory(data);
-      } catch (err) {
-        setError("Error al cargar el inventario");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchInventory();
-  }, []);
-
-  const handleDelete = async (id) => {
-    try {
-      await inventoryService.delete(id);
-      setInventory(prev => prev.filter(item => item._id !== id));
-    } catch (err) {
-      alert("Error al eliminar el item");
-    }
-  };
-
-  const handleEdit = (item) => {
-    localStorage.setItem("editInventory", JSON.stringify(item));
-    navigate("/inventory/add");
+  const handleSuccess = async () => {
+    await fetchInventory();
+    setOpen(false);
+    setSelectedItem(null);
   };
 
   const getEstado = (stock) => {
@@ -68,12 +54,15 @@ export default function InventoryPage() {
   );
 
   if (loading) return <p className="p-6">Cargando inventario...</p>;
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
     <div>
       <div className="bg-white p-6 rounded-2xl shadow-md">
         <div className="mt-6">
+
+          {/* Mensajes */}
+          {error && <p className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">{error}</p>}
+          {message && <p className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">{message}</p>}
 
           {/* Cards */}
           <div className="flex gap-6 flex-wrap">
@@ -122,8 +111,9 @@ export default function InventoryPage() {
             <Button
               variant="cd"
               onClick={() => {
-                localStorage.removeItem("editInventory");
-                navigate("/inventory/add");
+                setSelectedItem(null);
+                setMode("edit");
+                setOpen(true);
               }}
             >
               <Plus className="w-4 h-4" />
@@ -175,14 +165,16 @@ export default function InventoryPage() {
                         </TableCell>
                         <TableCell className="flex gap-2">
                           <Pencil
-                            className="w-4 h-4 cursor-pointer text-gray-500"
+                            className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEdit(item);
+                              setSelectedItem(item);
+                              setMode("edit");
+                              setOpen(true);
                             }}
                           />
                           <Trash2
-                            className="w-4 h-4 cursor-pointer text-red-400"
+                            className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDelete(item._id);
@@ -218,6 +210,26 @@ export default function InventoryPage() {
 
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedItem(null);
+        }}
+        title={selectedItem ? "Editar Inventario" : "Agregar Producto"}
+        size="lg"
+      >
+        <InventoryForm
+          onClose={() => {
+            setOpen(false);
+            setSelectedItem(null);
+          }}
+          onSuccess={handleSuccess}
+          item={selectedItem}
+        />
+      </Modal>
     </div>
   );
 }

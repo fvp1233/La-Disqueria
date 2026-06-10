@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
 import Card from "@/global/components/Card";
@@ -11,12 +11,17 @@ import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
 import { ProviderForm } from "@/modules/providers/components/ProviderForm";
 import { FilterDropdown } from "@/global/components/FilterDropdown";
-import { suppliersService } from "../../service/supplierService";
+import useSuppliers from "@/modules/providers/hooks/useSuppliers";
 
 export default function ProvidersPage() {
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    suppliers,
+    loading,
+    error,
+    message,
+    handleDelete,
+    fetchSuppliers,
+  } = useSuppliers();
 
   const [open, setOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(null);
@@ -25,41 +30,8 @@ export default function ProvidersPage() {
   const [countryFilter, setCountryFilter] = useState("all");
   const [search, setSearch] = useState("");
 
-  // GET
-  useEffect(() => {
-    const fetchSuppliers = async () => {
-      try {
-        const data = await suppliersService.getAll();
-        setSuppliers(data);
-      } catch (err) {
-        setError("Error al cargar los proveedores");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSuppliers();
-  }, []);
-
-  // DELETE
-  const handleDelete = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este proveedor?")) return;
-    try {
-      await suppliersService.delete(id);
-      setSuppliers(prev => prev.filter(s => s._id !== id));
-      setContextMenu(null);
-    } catch (err) {
-      alert("Error al eliminar proveedor");
-    }
-  };
-
-  // Refresca lista tras crear/editar
   const handleSuccess = async () => {
-    try {
-      const data = await suppliersService.getAll();
-      setSuppliers(data);
-    } catch (err) {
-      console.error(err);
-    }
+    await fetchSuppliers();
     setOpen(false);
     setSelectedProvider(null);
   };
@@ -78,10 +50,13 @@ export default function ProvidersPage() {
     );
 
   if (loading) return <p className="p-6">Cargando proveedores...</p>;
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
     <div onClick={() => setContextMenu(null)}>
+
+      {/* Mensajes */}
+      {error && <p className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</p>}
+      {message && <p className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm">{message}</p>}
 
       {/* Cards */}
       <div className="flex gap-6 flex-wrap justify-evenly">
@@ -170,8 +145,6 @@ export default function ProvidersPage() {
                 <TableCell>{s.country}</TableCell>
                 <TableCell>{s.city}</TableCell>
                 <TableCell>{s.catalog?.length || 0} items</TableCell>
-
-                {/* ← Botones editar y eliminar directos en la tabla */}
                 <TableCell className="flex gap-2">
                   <Pencil
                     className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"

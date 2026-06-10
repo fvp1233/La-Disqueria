@@ -9,8 +9,7 @@ import AddDiscPage from "@/modules/discs/pages/AddDiscPage";
 import AccesoriesPage from "@/modules/accesories/pages/AccesoriesPage"
 import AddAccesoryPage from "@/modules/accesories/pages/AddAccesoryPage";
 import InventoryPage from "@/modules/inventory/pages/InventoryPage"
-import AddInventoryPage from "@/modules/inventory/pages/AddInventoryPage";
-import ProvidersPage from "./modules/providers/ProvidersPage"
+import ProvidersPage from "./modules/providers/pages/ProvidersPage"
 import EmployeesPage from "./modules/employees/pages/EmployeesPage"
 import CustomersPage from "./modules/customers/pages/CustomersPage"
 import LoginPage from "./modules/login/pages/LoginPage"
@@ -88,15 +87,6 @@ function App() {
         element={
           <MainLayout>
             <InventoryPage />
-          </MainLayout>
-        }
-      />
-
-      <Route
-        path="/inventory/add"
-        element={
-          <MainLayout>
-            <AddInventoryPage />
           </MainLayout>
         }
       />
