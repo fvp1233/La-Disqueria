@@ -18,13 +18,15 @@ import {
 } from "@/global/components/DropdownMenu"
 
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/context/AuthContext"
 
 export function DropdownMenuAvatar() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
-  const handleLogout = () => {
-    console.log("cerrando sesión...")
-      navigate("/")
+  const handleLogout = async () => {
+    await logout()
+    navigate("/")
   }
 
   return (
