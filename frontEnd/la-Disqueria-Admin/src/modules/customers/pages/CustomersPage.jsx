@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { useState } from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 // Componentes reutilizables
 import Card from "@/global/components/Card";
@@ -17,16 +17,19 @@ import { Modal } from "@/global/components/Modal";
 import { CustomerForm } from "@/modules/customers/components/CustomerForm";
 import { FilterDropdown } from "@/global/components/FilterDropdown";
 
-// Servicios para consumir la API
-import {
-  getCustomers,
-  deleteCustomer,
-} from "../services/CustomerService";
+// Hook con el GET/POST/PUT/DELETE reales de clientes
+import useCustomers from "@/modules/customers/hooks/useCustomers";
 
 export default function CustomersPage() {
 
-  // Lista de clientes obtenidos desde la API
-  const [customers, setCustomers] = useState([]);
+  const {
+    customers,
+    loading,
+    error,
+    message,
+    handleDelete,
+    fetchCustomers,
+  } = useCustomers();
 
   // Controla la apertura del modal
   const [open, setOpen] = useState(false);
@@ -43,33 +46,10 @@ export default function CustomersPage() {
   // Filtro de estado (Todos, Activo, Inactivo)
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Obtiene los clientes desde el backend
-  const loadCustomers = async () => {
-    const data = await getCustomers();
-
-    if (data) {
-      setCustomers(data);
-    }
-  };
-
-  // Carga los clientes al iniciar la página
-  useEffect(() => {
-    loadCustomers();
-  }, []);
-
-  // Elimina un cliente
-  const handleDelete = async (id) => {
-
-    const confirmDelete = window.confirm(
-      "¿Seguro que deseas eliminar este cliente?"
-    );
-
-    if (!confirmDelete) return;
-
-    await deleteCustomer(id);
-
-    // Refresca la tabla
-    loadCustomers();
+  const handleSuccess = async () => {
+    await fetchCustomers();
+    setOpen(false);
+    setSelectedCustomer(null);
   };
 
   // Filtra los clientes según el estado seleccionado
@@ -82,10 +62,16 @@ export default function CustomersPage() {
       : !c.is_active;
   });
 
+  if (loading) return <p className="p-6">Cargando clientes...</p>;
+
   return (
 
     // Al hacer click fuera del menú contextual lo cierra
     <div onClick={() => setContextMenu(null)}>
+
+      {/* Mensajes */}
+      {error && <p className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</p>}
+      {message && <p className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm">{message}</p>}
 
       {/* TARJETAS DE RESUMEN */}
       <div className="flex gap-6 flex-wrap justify-evenly">
@@ -156,19 +142,19 @@ export default function CustomersPage() {
 
           <TableHeader>
             <TableRow>
-              <TableHead>ID</TableHead>
+              <TableHead>Id</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Apellido</TableHead>
               <TableHead>Correo</TableHead>
               <TableHead>Teléfono</TableHead>
-              <TableHead>Dirección</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
 
-            {filteredCustomers.map((c) => (
+            {filteredCustomers.map((c, index) => (
 
               <TableRow
                 key={c._id}
@@ -192,22 +178,35 @@ export default function CustomersPage() {
                   });
                 }}
               >
-                <TableCell>{c._id}</TableCell>
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>{c.name}</TableCell>
                 <TableCell>{c.last_name}</TableCell>
                 <TableCell>{c.email}</TableCell>
                 <TableCell>{c.phone}</TableCell>
 
-                {/* Dirección principal */}
-                <TableCell>
-                  {c.addresses?.length > 0
-                    ? `${c.addresses[0].street}, ${c.addresses[0].city}`
-                    : "Sin dirección"}
-                </TableCell>
-
                 {/* Estado del cliente */}
                 <TableCell>
                   {c.is_active ? "Activo" : "Inactivo"}
+                </TableCell>
+
+                {/* Acciones */}
+                <TableCell className="flex gap-2">
+                  <Pencil
+                    className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCustomer(c);
+                      setMode("edit");
+                      setOpen(true);
+                    }}
+                  />
+                  <Trash2
+                    className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(c._id);
+                    }}
+                  />
                 </TableCell>
 
               </TableRow>
@@ -276,9 +275,6 @@ export default function CustomersPage() {
         onClose={() => {
           setOpen(false);
           setSelectedCustomer(null);
-
-          // Refresca la tabla al cerrar
-          loadCustomers();
         }}
 
         title={
@@ -294,10 +290,9 @@ export default function CustomersPage() {
         <CustomerForm
           onClose={() => {
             setOpen(false);
-
-            // Refresca los datos después de guardar
-            loadCustomers();
+            setSelectedCustomer(null);
           }}
+          onSuccess={handleSuccess}
           customer={selectedCustomer}
           mode={mode}
         />

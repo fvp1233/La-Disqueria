@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import useDataVinyls from "@/modules/discs/hooks/useDataVinyls"; // Hook con el GET y DELETE reales
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
 import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { DiscForm } from "@/modules/discs/components/DiscForm";
 import {
   Table,
   TableHeader,
@@ -18,14 +20,21 @@ import {
 } from "@/global/components/Table";
 
 export default function DiscosPage() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  
-  const { dataVinyls, loading, error, handleDelete } = useDataVinyls();
+
+  const { dataVinyls, loading, error, message, handleDelete, fetchDataVinyls } = useDataVinyls();
 
   const [tipo, setTipo] = useState(searchParams.get("tipo") || "vinilos"); // Cambiado a vinilos por defecto
   const [search, setSearch] = useState("");
   const [openRow, setOpenRow] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [selectedVinyl, setSelectedVinyl] = useState(null);
+
+  const handleSuccess = async () => {
+    await fetchDataVinyls();
+    setOpen(false);
+    setSelectedVinyl(null);
+  };
 
   const filtered = dataVinyls.filter((item) => {
     if (tipo === "cds") return false; 
@@ -56,6 +65,11 @@ export default function DiscosPage() {
       {error && (
         <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm font-medium">
           {error}
+        </div>
+      )}
+      {message && (
+        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm font-medium">
+          {message}
         </div>
       )}
 
@@ -105,7 +119,10 @@ export default function DiscosPage() {
 
             <Button
               variant="cd"
-              onClick={() => navigate(`/discs/add?tipo=${tipo}`)}
+              onClick={() => {
+                setSelectedVinyl(null);
+                setOpen(true);
+              }}
             >
               <Plus className="w-4 h-4" />
               <p className="text-base">Agregar</p>
@@ -177,7 +194,8 @@ export default function DiscosPage() {
                               className="w-4 h-4 cursor-pointer text-gray-500 hover:text-black transition"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/discs/add?tipo=${tipo}&id=${item._id || item.id}`);
+                                setSelectedVinyl(item);
+                                setOpen(true);
                               }}
                             />
 
@@ -235,6 +253,27 @@ export default function DiscosPage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedVinyl(null);
+        }}
+        title={!selectedVinyl ? `Agregar ${tipo === "cds" ? "CD" : "Disco"}` : `Editar ${tipo === "cds" ? "CD" : "Disco"}`}
+        size="lg"
+      >
+        <DiscForm
+          onClose={() => {
+            setOpen(false);
+            setSelectedVinyl(null);
+          }}
+          onSuccess={handleSuccess}
+          vinyl={selectedVinyl}
+          mode="edit"
+          tipo={tipo}
+        />
+      </Modal>
     </div>
   );
 }

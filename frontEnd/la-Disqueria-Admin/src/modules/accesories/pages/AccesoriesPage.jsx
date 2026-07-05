@@ -1,14 +1,13 @@
 "use client";
 
 //Importamos React y hooks
-import React, { useState, useEffect } from "react";
-
-//Hook de React Router para navegar entre páginas
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
 import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { AccessoryForm } from "@/modules/accesories/components/AccessoryForm";
 
 import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -22,60 +21,37 @@ import {
  TableCell,
 } from "@/global/components/Table";
 
-//Servicio para consumir la API de accesorios
-import { accessoriesService } from "../../../service/accessoriesService.jsx";
+//Hook con el GET/POST/PUT/DELETE reales de accesorios
+import useDataAccessories from "@/modules/accesories/hooks/useDataAccesories";
 
 export default function AccessoriesPage() {
- //Permite redireccionar a otras rutas
- const navigate = useNavigate();
-
  //Estado para el texto de búsqueda
  const [search, setSearch] = useState("");
-
- //Estado que almacena los accesorios obtenidos desde la API
- const [extraItems, setExtraItems] = useState([]);
 
  //Guarda la fila actualmente expandida
  const [openRow, setOpenRow] = useState(null);
 
- //Se ejecuta una sola vez al cargar la página
- useEffect(() => {
- loadAccessories();
- }, []);
+ //Estado del modal de agregar/editar
+ const [open, setOpen] = useState(false);
+ const [selectedAccessory, setSelectedAccessory] = useState(null);
 
- //Obtener todos los accesorios desde la API
- const loadAccessories = async () => {
- try {
- const data = await accessoriesService.getAll();
- setExtraItems(data);
- } catch (error) {
- console.error(error);
- }
- };
+ const {
+   dataAccessories,
+   loading,
+   error,
+   message,
+   handleDelete,
+   fetchDataAccessories,
+ } = useDataAccessories();
 
- //ELIMINAR ACCESORIO
- const handleDelete = async (id) => {
- try {
- //Elimina el accesorio en la base de datos
- await accessoriesService.delete(id);
-
- //Actualiza la lista local eliminando el elemento
- setExtraItems((prev) =>
- prev.filter((item) => item._id !== id)
- );
- } catch (error) {
- console.error(error);
- }
- };
-
- //EDITAR ACCESORIO
- const handleEdit = (item) => {
- //Navega a la pantalla de edición usando el ID
- navigate(`/accessories/edit/${item._id}`);
+ const handleSuccess = async () => {
+   await fetchDataAccessories();
+   setOpen(false);
+   setSelectedAccessory(null);
  };
 
  //Datos completos
- const data = extraItems;
+ const data = dataAccessories;
 
  //Filtrar accesorios según la búsqueda
  const filtered = data.filter((item) =>
@@ -89,8 +65,27 @@ export default function AccessoriesPage() {
  : { text: "No disponible", color: "bg-red-400 text-white" };
  };
 
+ if (loading) {
+   return (
+     <div className="flex justify-center items-center min-h-100">
+       <p className="text-slate-500 font-medium animate-pulse">Cargando accesorios desde la API...</p>
+     </div>
+   );
+ }
+
  return (
  <div>
+ {error && (
+   <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm font-medium">
+     {error}
+   </div>
+ )}
+ {message && (
+   <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm font-medium">
+     {message}
+   </div>
+ )}
+
  <div className="bg-white p-6 rounded-2xl shadow-md relative">
 
  {/*Etiqueta superior*/}
@@ -114,26 +109,14 @@ export default function AccessoriesPage() {
  />
 
  <Card
- title="Ingresos de accesorios"
- value="$70,540"
- change="+18%"
- changeText="Que el mes pasado"
+ title="Disponibles"
+ value={data.filter((item) => item.isAvailable).length}
  color="#B8D4FF"
  />
 
  <Card
- title="Con bajo stock"
- value="8"
- change="+33%"
- changeText="Que el mes pasado"
- color="#F3E2B3"
- />
-
- <Card
  title="Accesorios agotados"
- value="5"
- change="-29%"
- changeText="Que el mes pasado"
+ value={data.filter((item) => !item.isAvailable).length}
  color="#F28B8B"
  />
  </div>
@@ -145,6 +128,7 @@ export default function AccessoriesPage() {
 
  {/*Campo de busqueda*/}
  <InputGroupInlineStart
+ value={search}
  onChange={(e) => setSearch(e.target.value)}
  />
 
@@ -158,7 +142,10 @@ export default function AccessoriesPage() {
  {/*Boton para agregar un nuevo accesorio*/}
  <Button
  variant="cd"
- onClick={() => navigate("/accessories/add")}>
+ onClick={() => {
+   setSelectedAccessory(null);
+   setOpen(true);
+ }}>
  <Plus className="w-4 h-4" />
  <p className="text-base">Agregar</p>
  </Button>
@@ -239,7 +226,8 @@ export default function AccessoriesPage() {
  className="w-4 h-4 cursor-pointer text-gray-500"
  onClick={(e) => {
  e.stopPropagation();
- handleEdit(item);
+ setSelectedAccessory(item);
+ setOpen(true);
  }}
  />
 
@@ -292,6 +280,26 @@ export default function AccessoriesPage() {
  </div>
  </div>
  </div>
+
+ <Modal
+   open={open}
+   onClose={() => {
+     setOpen(false);
+     setSelectedAccessory(null);
+   }}
+   title={!selectedAccessory ? "Agregar accesorio" : "Editar accesorio"}
+   size="md"
+ >
+   <AccessoryForm
+     onClose={() => {
+       setOpen(false);
+       setSelectedAccessory(null);
+     }}
+     onSuccess={handleSuccess}
+     accessory={selectedAccessory}
+     mode="edit"
+   />
+ </Modal>
  </div>
  );
 }

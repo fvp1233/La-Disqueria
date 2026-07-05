@@ -5,9 +5,7 @@ import MainLayout from "@/global/layout/MainLayout"
 import DashboardPage from "@/modules/dashboard/pages/DashboardPage"
 import OrdersPage from "@/modules/orders/pages/OrdersPage"
 import DiscsPage from "@/modules/discs/pages/DiscsPage"
-import AddDiscPage from "@/modules/discs/pages/AddDiscPage";
 import AccesoriesPage from "@/modules/accesories/pages/AccesoriesPage"
-import AddAccesoryPage from "@/modules/accesories/pages/AddAccesoryPage";
 import InventoryPage from "@/modules/inventory/pages/InventoryPage"
 import ProvidersPage from "./modules/providers/pages/ProvidersPage"
 import EmployeesPage from "./modules/employees/pages/EmployeesPage"
@@ -19,7 +17,15 @@ function App() {
   return (
     <Routes>
 
-      <Route path="/" element={<DiscsPage />} />
+      <Route
+        path="/"
+        element={<LoginPage />}
+      />
+
+      <Route
+        path="/login"
+        element={<LoginPage />}
+      />
 
       <Route
         path="/dashboard"
@@ -49,15 +55,6 @@ function App() {
       />
 
       <Route
-        path="/discs/add"
-        element={
-          <MainLayout>
-            <AddDiscPage />
-          </MainLayout>
-        }
-      />
-
-      <Route
         path="/accesories"
         element={
           <MainLayout>
@@ -65,23 +62,7 @@ function App() {
           </MainLayout>
         }
       />
-
-      <Route
-        path="/accessories/add"
-        element={
-          <MainLayout>
-            <AddAccesoryPage />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/accessories/edit/:id"
-        element={
-          <MainLayout>
-            <AddAccesoryPage />
-          </MainLayout>
-        }
-      />
+      
       <Route
         path="/inventory"
         element={

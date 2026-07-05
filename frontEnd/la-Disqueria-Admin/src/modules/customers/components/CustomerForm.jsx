@@ -9,17 +9,17 @@ import { Label } from "@/global/components/Label";
 import { Button } from "@/global/components/button";
 import { FormDropdown } from "@/global/components/FormDropdown";
 
-// Servicios para consumir la API
-import {
-  createCustomer,
-  updateCustomer,
-} from "../services/CustomerService";
+// Hook con el GET/POST/PUT/DELETE reales de clientes
+import useCustomers from "../hooks/useCustomers";
 
 export function CustomerForm({
   onClose,
+  onSuccess,
   customer,
   mode = "edit",
 }) {
+
+  const { saveCustomer, submitting, error } = useCustomers();
 
   // Controla si el formulario está en modo vista o edición
   const [internalMode, setInternalMode] = useState(mode);
@@ -95,60 +95,38 @@ export function CustomerForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
+    // Objeto base que se enviará al backend
+    const customerData = {
+      name,
+      last_name: lastName,
+      email,
+      phone,
 
-      // Objeto base que se enviará al backend
-      const customerData = {
-        name,
-        last_name: lastName,
-        email,
-        phone,
+      addresses: [
+        {
+          street,
+          city,
+        },
+      ],
 
-        addresses: [
-          {
-            street,
-            city,
-          },
-        ],
+      is_active: status === "Activo",
+    };
 
-        is_active: status === "Activo",
-      };
-
-      // Solo agrega contraseña si el usuario escribió una
-      if (password.trim()) {
-        customerData.password = password;
-      }
-
-      // Crear cliente nuevo
-      if (!customer) {
-
-        customerData.password = password;
-
-        await createCustomer(customerData);
-
-      }
-
-      // Actualizar cliente existente
-      else {
-
-        await updateCustomer(
-          customer._id,
-          customerData
-        );
-
-      }
-
-      // Cierra el modal al finalizar
-      onClose();
-
-    } catch (error) {
-
-      console.error(error);
-
+    // Solo agrega contraseña si el usuario escribió una
+    if (password.trim()) {
+      customerData.password = password;
     }
+
+    const success = await saveCustomer(customer?._id || null, customerData);
+
+    // Cierra el modal y refresca la tabla al finalizar
+    if (success) onSuccess();
   };
 
   return (
+    <>
+    {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
+
     <form
       className="flex flex-col gap-4"
       onSubmit={handleSubmit}
@@ -285,12 +263,13 @@ export function CustomerForm({
 
         {/* Guardar cambios */}
         {!isReadOnly && (
-          <Button type="submit" variant="cd">
-            Guardar
+          <Button type="submit" variant="cd" disabled={submitting}>
+            {submitting ? "Guardando..." : "Guardar"}
           </Button>
         )}
 
       </div>
     </form>
+    </>
   );
 }

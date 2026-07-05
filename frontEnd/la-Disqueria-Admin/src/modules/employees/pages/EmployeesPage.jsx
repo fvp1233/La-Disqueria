@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 
 import Card from "@/global/components/Card"
 import {
@@ -15,97 +15,61 @@ import { Button } from "@/global/components/button"
 import { Modal } from "@/global/components/Modal"
 import { EmployeeForm } from "@/modules/employees/components/EmployeeForm"
 import { FilterDropdown } from "@/global/components/FilterDropdown"
-
-const empleados = [
-    {
-        id: "#EMP001",
-        imagen: "/empleados/emp1.jpg",
-        nombre: "Gabriela",
-        apellido: "Castillo",
-        correo: "gabriela@vinylstore.com",
-        posicion: "Ventas",
-        fecha: "12/02/2024",
-        activo: "Activo",
-    },
-    {
-        id: "#EMP002",
-        imagen: "/empleados/emp2.jpg",
-        nombre: "Carlos",
-        apellido: "Hernández",
-        correo: "carlos@vinylstore.com",
-        posicion: "Administrador",
-        fecha: "05/08/2023",
-        activo: "Activo",
-    },
-    {
-        id: "#EMP003",
-        imagen: "/empleados/emp3.jpg",
-        nombre: "Andrea",
-        apellido: "Martínez",
-        correo: "andrea@vinylstore.com",
-        posicion: "Marketing",
-        fecha: "20/01/2025",
-        activo: "Inactivo",
-    },
-    // --- Nuevos Registros ---
-    {
-        id: "#EMP004",
-        imagen: "/empleados/emp4.jpg",
-        nombre: "Ricardo",
-        apellido: "López",
-        correo: "ricardo@vinylstore.com",
-        posicion: "Logística",
-        fecha: "15/03/2025",
-        activo: "Activo",
-    },
-    {
-        id: "#EMP005",
-        imagen: "/empleados/emp5.jpg",
-        nombre: "Elena",
-        apellido: "Rivas",
-        correo: "elena@vinylstore.com",
-        posicion: "Curadora de Arte",
-        fecha: "10/11/2024",
-        activo: "Activo",
-    },
-    {
-        id: "#EMP006",
-        imagen: "/empleados/emp6.jpg",
-        nombre: "Mauricio",
-        apellido: "Pérez",
-        correo: "mauricio@vinylstore.com",
-        posicion: "Soporte Técnico",
-        fecha: "02/02/2026",
-        activo: "Activo",
-    },
-]
+import useEmployees from "@/modules/employees/hooks/useEmployees"
 
 export default function EmployeesPage() {
+    const {
+        employees,
+        loading,
+        error,
+        message,
+        handleDelete,
+        fetchEmployees,
+    } = useEmployees()
+
     const [open, setOpen] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState(null)
     const [contextMenu, setContextMenu] = useState(null)
     const [mode, setMode] = useState("view")
     const [statusFilter, setStatusFilter] = useState("all")
+    const [search, setSearch] = useState("")
 
-    const filteredEmployees = empleados.filter((e) => {
-        if (statusFilter === "all") return true
-        return e.activo === statusFilter
-    })
+    const handleSuccess = async () => {
+        await fetchEmployees()
+        setOpen(false)
+        setSelectedEmployee(null)
+    }
+
+    const filteredEmployees = employees
+        .filter((e) => {
+            if (statusFilter === "all") return true
+            return statusFilter === "Activo" ? e.is_active : !e.is_active
+        })
+        .filter((e) =>
+            `${e.name || ""} ${e.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+            (e.email || "").toLowerCase().includes(search.toLowerCase())
+        )
+
+    if (loading) return <p className="p-6">Cargando empleados...</p>
 
     return (
         <div onClick={() => setContextMenu(null)}>
 
+            {/* Mensajes */}
+            {error && <p className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</p>}
+            {message && <p className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm">{message}</p>}
+
             {/* TARJETAS */}
             <div className="flex gap-6 flex-wrap justify-evenly">
-                <Card title="Total de empleados" value="6" change="+5%" changeText="Que el mes pasado" color="#EFA4B1" />
-                <Card title="Nuevos empleados" value="1" change="+18%" changeText="Que el mes pasado" color="#A9BDE5" />
-                <Card title="Empleado destacado" value="Andrea Martínez" color="#E8D6A7" />
+                <Card title="Total de empleados" value={employees.length} color="#EFA4B1" />
+                <Card title="Empleados activos" value={employees.filter((e) => e.is_active).length} color="#A9BDE5" />
+                <Card title="Empleados inactivos" value={employees.filter((e) => !e.is_active).length} color="#E8D6A7" />
             </div>
 
             {/* HEADER */}
             <div className="mt-8 flex justify-between items-center">
                 <div className="flex gap-4 items-center">
-                    <InputGroupInlineStart />
+                    <InputGroupInlineStart value={search} onChange={(e) => setSearch(e.target.value)} />
 
                     <FilterDropdown
                         value={statusFilter}
@@ -136,7 +100,6 @@ export default function EmployeesPage() {
                 <Table className="min-w-[1000px]">
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Imagen</TableHead>
                             <TableHead>Id</TableHead>
                             <TableHead>Nombre</TableHead>
                             <TableHead>Apellido</TableHead>
@@ -144,14 +107,15 @@ export default function EmployeesPage() {
                             <TableHead>Posición</TableHead>
                             <TableHead>Fecha de contratación</TableHead>
                             <TableHead>Estado</TableHead>
+                            <TableHead></TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
                         {filteredEmployees.map((e, index) => (
                             <TableRow
-                                key={index}
-                                className="cursor-pointer"
+                                key={e._id}
+                                className="cursor-pointer hover:bg-gray-50 transition"
                                 onDoubleClick={() => {
                                     setSelectedEmployee(e)
                                     setMode("view")
@@ -166,19 +130,31 @@ export default function EmployeesPage() {
                                     })
                                 }}
                             >
-                                <TableCell>
-                                    <img
-                                        src={e.imagen}
-                                        className="w-10 h-10 rounded-full object-cover"
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{e.name}</TableCell>
+                                <TableCell>{e.last_name}</TableCell>
+                                <TableCell>{e.email}</TableCell>
+                                <TableCell>{e.position}</TableCell>
+                                <TableCell>{e.hire_date ? e.hire_date.substring(0, 10) : ""}</TableCell>
+                                <TableCell>{e.is_active ? "Activo" : "Inactivo"}</TableCell>
+                                <TableCell className="flex gap-2">
+                                    <Pencil
+                                        className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                                        onClick={(ev) => {
+                                            ev.stopPropagation()
+                                            setSelectedEmployee(e)
+                                            setMode("edit")
+                                            setOpen(true)
+                                        }}
+                                    />
+                                    <Trash2
+                                        className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
+                                        onClick={(ev) => {
+                                            ev.stopPropagation()
+                                            handleDelete(e._id)
+                                        }}
                                     />
                                 </TableCell>
-                                <TableCell>{e.id}</TableCell>
-                                <TableCell>{e.nombre}</TableCell>
-                                <TableCell>{e.apellido}</TableCell>
-                                <TableCell>{e.correo}</TableCell>
-                                <TableCell>{e.posicion}</TableCell>
-                                <TableCell>{e.fecha}</TableCell>
-                                <TableCell>{e.activo}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -193,9 +169,10 @@ export default function EmployeesPage() {
                         top: contextMenu.y,
                         left: contextMenu.x,
                     }}
+                    onClick={(e) => e.stopPropagation()}
                 >
                     <div
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                         onClick={() => {
                             setSelectedEmployee(contextMenu.employee)
                             setMode("view")
@@ -207,7 +184,7 @@ export default function EmployeesPage() {
                     </div>
 
                     <div
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                         onClick={() => {
                             setSelectedEmployee(contextMenu.employee)
                             setMode("edit")
@@ -219,9 +196,9 @@ export default function EmployeesPage() {
                     </div>
 
                     <div
-                        className="px-4 py-2 hover:bg-red-100 text-red-500 cursor-pointer"
+                        className="px-4 py-2 hover:bg-red-100 text-red-500 cursor-pointer text-sm"
                         onClick={() => {
-                            console.log("Eliminar:", contextMenu.employee)
+                            handleDelete(contextMenu.employee._id)
                             setContextMenu(null)
                         }}
                     >
@@ -247,7 +224,11 @@ export default function EmployeesPage() {
                 size="md"
             >
                 <EmployeeForm
-                    onClose={() => setOpen(false)}
+                    onClose={() => {
+                        setOpen(false)
+                        setSelectedEmployee(null)
+                    }}
+                    onSuccess={handleSuccess}
                     employee={selectedEmployee}
                     mode={mode}
                 />

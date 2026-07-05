@@ -10,7 +10,11 @@ import inventoryRoutes from "./src/routes/inventory/inventory.js"
 import cdsRoutes from './src/routes/cds/cds.js'
 import turntablesRoutes from './src/routes/turntables/turntables.js '
 import ordersRoutes from "./src/routes/orders/orders.js"
-
+import employeeRoute from "./src/routes/employees/employee.js"
+import adminRoute from "./src/routes/admin/admin.js"
+import loginRoute from "./src/routes/login/login.js"
+import logoutRoute from "./src/routes/login/logout.js"
+import adminRegister from "./src/routes/admin/registerAdmin.js"
 const app = express();
 
 app.use(cors({
@@ -32,5 +36,9 @@ app.use("/api/inventory", inventoryRoutes)
 app.use("/api/cds", cdsRoutes)
 app.use("/api/turntables", turntablesRoutes)
 app.use("/api/orders", ordersRoutes)
-
+app.use("/api/employees", employeeRoute)
+app.use("/api/admin", adminRoute)
+app.use("/api/login", loginRoute)
+app.use("/api/logout", logoutRoute)
+app.use("/api/adminRegister", adminRegister)
 export default app;

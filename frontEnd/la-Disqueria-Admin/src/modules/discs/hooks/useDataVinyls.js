@@ -93,6 +93,7 @@ const useDataVinyls = () => {
     dataVinyls,
     saveVinyl,
     handleDelete,
+    fetchDataVinyls,
   };
 };
 
