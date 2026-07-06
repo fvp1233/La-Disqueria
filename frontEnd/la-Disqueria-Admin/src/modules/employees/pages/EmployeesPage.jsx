@@ -14,7 +14,7 @@ import { InputGroupInlineStart } from "@/global/components/SearchInput"
 import { Button } from "@/global/components/button"
 import { Modal } from "@/global/components/Modal"
 import { EmployeeForm } from "@/modules/employees/components/EmployeeForm"
-import { FilterDropdown } from "@/global/components/FilterDropdown"
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown"
 import { StatusBadge } from "@/global/components/StatusBadge"
 import useEmployees from "@/modules/employees/hooks/useEmployees"
 
@@ -32,7 +32,8 @@ export default function EmployeesPage() {
     const [selectedEmployee, setSelectedEmployee] = useState(null)
     const [contextMenu, setContextMenu] = useState(null)
     const [mode, setMode] = useState("view")
-    const [statusFilter, setStatusFilter] = useState("all")
+    const [filterCategory, setFilterCategory] = useState(null)
+    const [filterValue, setFilterValue] = useState("all")
     const [search, setSearch] = useState("")
 
     const handleSuccess = async () => {
@@ -41,10 +42,39 @@ export default function EmployeesPage() {
         setSelectedEmployee(null)
     }
 
+    const handleFilterChange = (category, value) => {
+        setFilterCategory(category)
+        setFilterValue(value)
+    }
+
+    const positions = [...new Set(employees.map((e) => e.position).filter(Boolean))]
+
+    const filterGroups = [
+        {
+            key: "estado",
+            label: "Estado",
+            options: [
+                { label: "Todos", value: "all" },
+                { label: "Activo", value: "Activo" },
+                { label: "Inactivo", value: "Inactivo" },
+            ],
+        },
+        {
+            key: "posicion",
+            label: "Posición",
+            options: [
+                { label: "Todas", value: "all" },
+                ...positions.map((p) => ({ label: p, value: p })),
+            ],
+        },
+    ]
+
     const filteredEmployees = employees
         .filter((e) => {
-            if (statusFilter === "all") return true
-            return statusFilter === "Activo" ? e.is_active : !e.is_active
+            if (!filterCategory || filterValue === "all") return true
+            if (filterCategory === "estado") return filterValue === "Activo" ? e.is_active : !e.is_active
+            if (filterCategory === "posicion") return e.position === filterValue
+            return true
         })
         .filter((e) =>
             `${e.name || ""} ${e.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
@@ -72,14 +102,11 @@ export default function EmployeesPage() {
                 <div className="flex gap-4 items-center">
                     <InputGroupInlineStart value={search} onChange={(e) => setSearch(e.target.value)} />
 
-                    <FilterDropdown
-                        value={statusFilter}
-                        onChange={setStatusFilter}
-                        options={[
-                            { label: "Todos", value: "all" },
-                            { label: "Activo", value: "Activo" },
-                            { label: "Inactivo", value: "Inactivo" },
-                        ]}
+                    <MultiFilterDropdown
+                        filters={filterGroups}
+                        activeFilter={filterCategory}
+                        value={filterValue}
+                        onChange={handleFilterChange}
                     />
                 </div>
 

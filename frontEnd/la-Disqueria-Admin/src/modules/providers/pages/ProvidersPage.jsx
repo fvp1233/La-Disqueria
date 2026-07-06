@@ -10,7 +10,8 @@ import { InputGroupInlineStart } from "@/global/components/SearchInput";
 import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
 import { ProviderForm } from "@/modules/providers/components/ProviderForm";
-import { FilterDropdown } from "@/global/components/FilterDropdown";
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
+import { StatusBadge } from "@/global/components/StatusBadge";
 import useSuppliers from "@/modules/providers/hooks/useSuppliers";
 
 export default function ProvidersPage() {
@@ -27,7 +28,8 @@ export default function ProvidersPage() {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
   const [mode, setMode] = useState("view");
-  const [countryFilter, setCountryFilter] = useState("all");
+  const [filterCategory, setFilterCategory] = useState(null);
+  const [filterValue, setFilterValue] = useState("all");
   const [search, setSearch] = useState("");
 
   const handleSuccess = async () => {
@@ -36,14 +38,40 @@ export default function ProvidersPage() {
     setSelectedProvider(null);
   };
 
+  const handleFilterChange = (category, value) => {
+    setFilterCategory(category);
+    setFilterValue(value);
+  };
+
   const countries = [...new Set(suppliers.map(s => s.country).filter(Boolean))];
-  const options = [
-    { label: "Todos", value: "all" },
-    ...countries.map(c => ({ label: c, value: c })),
+
+  const filterGroups = [
+    {
+      key: "estado",
+      label: "Estado",
+      options: [
+        { label: "Todos", value: "all" },
+        { label: "Activo", value: "Activo" },
+        { label: "Inactivo", value: "Inactivo" },
+      ],
+    },
+    {
+      key: "pais",
+      label: "País",
+      options: [
+        { label: "Todos", value: "all" },
+        ...countries.map(c => ({ label: c, value: c })),
+      ],
+    },
   ];
 
   const filtered = suppliers
-    .filter(s => countryFilter === "all" || s.country === countryFilter)
+    .filter((s) => {
+      if (!filterCategory || filterValue === "all") return true;
+      if (filterCategory === "estado") return filterValue === "Activo" ? s.is_active !== false : s.is_active === false;
+      if (filterCategory === "pais") return s.country === filterValue;
+      return true;
+    })
     .filter(s =>
       (s.companny || s.company || "").toLowerCase().includes(search.toLowerCase()) ||
       (s.contact_name || "").toLowerCase().includes(search.toLowerCase())
@@ -88,10 +116,11 @@ export default function ProvidersPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <FilterDropdown
-            value={countryFilter}
-            onChange={setCountryFilter}
-            options={options}
+          <MultiFilterDropdown
+            filters={filterGroups}
+            activeFilter={filterCategory}
+            value={filterValue}
+            onChange={handleFilterChange}
           />
         </div>
         <Button
@@ -119,6 +148,7 @@ export default function ProvidersPage() {
               <TableHead>País</TableHead>
               <TableHead>Ciudad</TableHead>
               <TableHead>Catálogo</TableHead>
+              <TableHead>Estado</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -145,6 +175,9 @@ export default function ProvidersPage() {
                 <TableCell>{s.country}</TableCell>
                 <TableCell>{s.city}</TableCell>
                 <TableCell>{s.catalog?.length || 0} items</TableCell>
+                <TableCell>
+                  <StatusBadge estado={s.is_active === false ? "Inactivo" : "Activo"} />
+                </TableCell>
                 <TableCell className="flex gap-2">
                   <Pencil
                     className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"

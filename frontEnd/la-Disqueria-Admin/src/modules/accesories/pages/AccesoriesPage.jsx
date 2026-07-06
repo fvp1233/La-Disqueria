@@ -7,9 +7,10 @@ import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
 import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
 import { AccessoryForm } from "@/modules/accesories/components/AccessoryForm";
 
-import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 //componentes de tabla
 import {
@@ -35,6 +36,10 @@ export default function AccessoriesPage() {
  const [open, setOpen] = useState(false);
  const [selectedAccessory, setSelectedAccessory] = useState(null);
 
+ //Filtro activo (estado o tipo) y su valor seleccionado
+ const [filterCategory, setFilterCategory] = useState(null);
+ const [filterValue, setFilterValue] = useState("all");
+
  const {
    dataAccessories,
    loading,
@@ -53,10 +58,47 @@ export default function AccessoriesPage() {
  //Datos completos
  const data = dataAccessories;
 
- //Filtrar accesorios según la búsqueda
- const filtered = data.filter((item) =>
- item?.name?.toLowerCase().includes(search.toLowerCase())
- );
+ const handleFilterChange = (category, value) => {
+   setFilterCategory(category);
+   setFilterValue(value);
+ };
+
+ const types = [...new Set(data.map((item) => item.subtype).filter(Boolean))];
+
+ const filterGroups = [
+   {
+     key: "estado",
+     label: "Estado",
+     options: [
+       { label: "Todos", value: "all" },
+       { label: "Disponible", value: "Disponible" },
+       { label: "No disponible", value: "No disponible" },
+     ],
+   },
+   {
+     key: "tipo",
+     label: "Tipo",
+     options: [
+       { label: "Todos", value: "all" },
+       ...types.map((t) => ({ label: t, value: t })),
+     ],
+   },
+ ];
+
+ //Filtrar accesorios según el filtro activo y la búsqueda
+ const filtered = data
+   .filter((item) => {
+     if (!filterCategory || filterValue === "all") return true;
+     if (filterCategory === "estado") {
+       const estadoText = item.isAvailable ? "Disponible" : "No disponible";
+       return estadoText === filterValue;
+     }
+     if (filterCategory === "tipo") return item.subtype === filterValue;
+     return true;
+   })
+   .filter((item) =>
+     item?.name?.toLowerCase().includes(search.toLowerCase())
+   );
 
  //Devuelve el estado visual de disponibilidad
  const getEstado = (isAvailable) => {
@@ -132,11 +174,13 @@ export default function AccessoriesPage() {
  onChange={(e) => setSearch(e.target.value)}
  />
 
- {/*Botnn de filtro */}
- <Button variant="filter">
- <p className="text-base">Filtrar</p>
- <SlidersHorizontal className="w-4 h-4" />
- </Button>
+ {/*Filtro por estado o tipo*/}
+ <MultiFilterDropdown
+ filters={filterGroups}
+ activeFilter={filterCategory}
+ value={filterValue}
+ onChange={handleFilterChange}
+ />
  </div>
 
  {/*Boton para agregar un nuevo accesorio*/}

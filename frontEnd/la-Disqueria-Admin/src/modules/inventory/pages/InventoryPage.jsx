@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Pencil, Trash2, Plus, SlidersHorizontal } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
 import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
 import { InventoryForm } from "@/modules/inventory/components/InventoryForm";
 import useInventory from "@/modules/inventory/hooks/useInventory";
 
@@ -28,11 +29,18 @@ export default function InventoryPage() {
   const [open, setOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [mode, setMode] = useState("edit");
+  const [filterCategory, setFilterCategory] = useState(null);
+  const [filterValue, setFilterValue] = useState("all");
 
   const handleSuccess = async () => {
     await fetchInventory();
     setOpen(false);
     setSelectedItem(null);
+  };
+
+  const handleFilterChange = (category, value) => {
+    setFilterCategory(category);
+    setFilterValue(value);
   };
 
   const getEstado = (stock) => {
@@ -49,9 +57,44 @@ export default function InventoryPage() {
     return tipo;
   };
 
-  const filtered = inventory.filter(item =>
-    item?.sku?.toLowerCase().includes(search.toLowerCase())
-  );
+  const getSupplierNames = (item) =>
+    (item.supplierId || [])
+      .map((s) => s.supplierId?.companny || s.supplierId?.company)
+      .filter(Boolean);
+
+  const supplierNames = [...new Set(inventory.flatMap((item) => getSupplierNames(item)))];
+
+  const filterGroups = [
+    {
+      key: "estado",
+      label: "Estado",
+      options: [
+        { label: "Todos", value: "all" },
+        { label: "Disponible", value: "Disponible" },
+        { label: "Bajo", value: "Bajo" },
+        { label: "Agotado", value: "Agotado" },
+      ],
+    },
+    {
+      key: "proveedor",
+      label: "Proveedor",
+      options: [
+        { label: "Todos", value: "all" },
+        ...supplierNames.map((name) => ({ label: name, value: name })),
+      ],
+    },
+  ];
+
+  const filtered = inventory
+    .filter((item) => {
+      if (!filterCategory || filterValue === "all") return true;
+      if (filterCategory === "estado") return getEstado(item.stock).text === filterValue;
+      if (filterCategory === "proveedor") return getSupplierNames(item).includes(filterValue);
+      return true;
+    })
+    .filter(item =>
+      item?.sku?.toLowerCase().includes(search.toLowerCase())
+    );
 
   if (loading) return <p className="p-6">Cargando inventario...</p>;
 
@@ -103,10 +146,12 @@ export default function InventoryPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <Button variant="filter">
-                <p className="text-base">Filtrar</p>
-                <SlidersHorizontal className="w-4 h-4" />
-              </Button>
+              <MultiFilterDropdown
+                filters={filterGroups}
+                activeFilter={filterCategory}
+                value={filterValue}
+                onChange={handleFilterChange}
+              />
             </div>
             <Button
               variant="cd"

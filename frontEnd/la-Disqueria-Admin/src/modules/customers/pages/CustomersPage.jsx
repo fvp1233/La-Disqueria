@@ -47,21 +47,29 @@ export default function CustomersPage() {
   // Filtro de estado (Todos, Activo, Inactivo)
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Texto de búsqueda
+  const [search, setSearch] = useState("");
+
   const handleSuccess = async () => {
     await fetchCustomers();
     setOpen(false);
     setSelectedCustomer(null);
   };
 
-  // Filtra los clientes según el estado seleccionado
-  const filteredCustomers = customers.filter((c) => {
+  // Filtra los clientes según el estado seleccionado y el texto de búsqueda
+  const filteredCustomers = customers
+    .filter((c) => {
 
-    if (statusFilter === "all") return true;
+      if (statusFilter === "all") return true;
 
-    return statusFilter === "Activo"
-      ? c.is_active
-      : !c.is_active;
-  });
+      return statusFilter === "Activo"
+        ? c.is_active
+        : !c.is_active;
+    })
+    .filter((c) =>
+      `${c.name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+      (c.email || "").toLowerCase().includes(search.toLowerCase())
+    );
 
   if (loading) return <p className="p-6">Cargando clientes...</p>;
 
@@ -106,7 +114,7 @@ export default function CustomersPage() {
         <div className="flex gap-4 items-center">
 
           {/* Barra de búsqueda */}
-          <InputGroupInlineStart />
+          <InputGroupInlineStart value={search} onChange={(e) => setSearch(e.target.value)} />
 
           {/* Filtro por estado */}
           <FilterDropdown

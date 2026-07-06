@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/global/components/Input";
 import { Label } from "@/global/components/Label";
 import { Button } from "@/global/components/button";
+import { FormDropdown } from "@/global/components/FormDropdown";
 import useSuppliers from "@/modules/providers/hooks/useSuppliers";
 import useProducts from "@/modules/providers/hooks/useProducts";
 
@@ -17,18 +18,25 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
   const [openProductsModal, setOpenProductsModal] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
       company: "", contact_name: "", email: "",
-      phone: "", country: "", city: "",
+      phone: "", country: "", city: "", is_active: "true",
     },
   });
+
+  const isActive = watch("is_active");
+
+  const statusOptions = [
+    { label: "Activo", value: "true" },
+    { label: "Inactivo", value: "false" },
+  ];
 
   useEffect(() => { setInternalMode(mode); }, [mode]);
 
   useEffect(() => {
     if (!provider) {
-      reset({ company: "", contact_name: "", email: "", phone: "", country: "", city: "" });
+      reset({ company: "", contact_name: "", email: "", phone: "", country: "", city: "", is_active: "true" });
       setCatalog([]);
       return;
     }
@@ -39,6 +47,7 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
       phone: provider.phone || "",
       country: provider.country || "",
       city: provider.city || "",
+      is_active: provider.is_active === false ? "false" : "true",
     });
     setCatalog(provider.catalog || []);
   }, [provider, reset]);
@@ -60,8 +69,9 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
 
   const onSubmit = async (data) => {
     const typeMapper = { vinyl: "vinyls", cd: "cds", turntable: "turntables", accessory: "accessories" };
+    const { is_active, ...rest } = data;
     const payload = {
-      ...data,
+      ...rest,
       catalog: catalog.map(c => ({
         type: typeMapper[c.type] || c.type,
         title: c.title,
@@ -69,6 +79,9 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
         isAvailable: c.isAvailable,
       })),
     };
+    if (provider) {
+      payload.is_active = is_active === "true";
+    }
     const success = await saveSupplier(provider?._id || null, payload);
     if (success) onSuccess();
   };
@@ -143,6 +156,18 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
             <Input {...register("city", { required: "La ciudad es requerida" })} disabled={isReadOnly} className={inputClass(errors.city)} />
             {errors.city && <span className="text-xs text-red-400">{errors.city.message}</span>}
           </div>
+
+          {provider && (
+            <div>
+              <Label>Estado</Label>
+              <FormDropdown
+                options={statusOptions}
+                value={isActive}
+                onChange={(value) => setValue("is_active", value)}
+                disabled={isReadOnly}
+              />
+            </div>
+          )}
 
         </div>
 

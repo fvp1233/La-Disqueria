@@ -51,7 +51,11 @@ const supplierSchema = new Schema ({
                 type: Boolean
             }
         }
-    ]
+    ],
+    is_active: {
+        type: Boolean,
+        default: true
+    }
 })
 
 export default model ("suppliers", supplierSchema)

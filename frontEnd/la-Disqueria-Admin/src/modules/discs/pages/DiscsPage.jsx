@@ -7,9 +7,10 @@ import useDataCds from "@/modules/discs/hooks/useDataCds";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
-import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
 import { DiscForm } from "@/modules/discs/components/DiscForm";
 import { CdForm } from "@/modules/discs/components/CdForm";
 import {
@@ -47,6 +48,8 @@ export default function DiscosPage() {
   const [openRow, setOpenRow] = useState(null);
   const [open, setOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [filterCategory, setFilterCategory] = useState(null);
+  const [filterValue, setFilterValue] = useState("all");
 
   const isCds = tipo === "cds";
 
@@ -67,10 +70,47 @@ export default function DiscosPage() {
     else handleDeleteVinyl(id);
   };
 
-  const filtered = items.filter((item) => {
-    const name = isCds ? item.title : item.tittle;
-    return name?.toLowerCase().includes(search.toLowerCase());
-  });
+  const handleFilterChange = (category, value) => {
+    setFilterCategory(category);
+    setFilterValue(value);
+  };
+
+  const formats = [...new Set(items.map((item) => item.format).filter(Boolean))];
+
+  const filterGroups = [
+    {
+      key: "estado",
+      label: "Estado",
+      options: [
+        { label: "Todos", value: "all" },
+        { label: "Disponible", value: "Disponible" },
+        { label: "Agotado", value: "Agotado" },
+      ],
+    },
+    {
+      key: "formato",
+      label: "Formato",
+      options: [
+        { label: "Todos", value: "all" },
+        ...formats.map((f) => ({ label: f, value: f })),
+      ],
+    },
+  ];
+
+  const filtered = items
+    .filter((item) => {
+      if (!filterCategory || filterValue === "all") return true;
+      if (filterCategory === "estado") {
+        const estadoText = item.isAvailable ? "Disponible" : "Agotado";
+        return estadoText === filterValue;
+      }
+      if (filterCategory === "formato") return item.format === filterValue;
+      return true;
+    })
+    .filter((item) => {
+      const name = isCds ? item.title : item.tittle;
+      return name?.toLowerCase().includes(search.toLowerCase());
+    });
 
   const getEstado = (isAvailable) => {
     if (!isAvailable) return { text: "Agotado", color: "bg-red-400 text-white" };
@@ -116,6 +156,8 @@ export default function DiscosPage() {
               setTipo("cds");
               setOpenRow(null);
               setSearch("");
+              setFilterCategory(null);
+              setFilterValue("all");
             }}
             className={`px-4 py-1 rounded text-xs font-semibold ${tipo === "cds" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4] opacity-50"}`}
           >
@@ -126,6 +168,8 @@ export default function DiscosPage() {
               setTipo("vinilos");
               setOpenRow(null);
               setSearch("");
+              setFilterCategory(null);
+              setFilterValue("all");
             }}
             className={`px-4 py-1 rounded text-xs font-semibold ${tipo === "vinilos" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4]"}`}
           >
@@ -160,10 +204,12 @@ export default function DiscosPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={isCds ? "Buscar CD..." : "Buscar vinilo..."}
               />
-              <Button variant="filter">
-                <p className="text-base">Filtrar</p>
-                <SlidersHorizontal className="w-4 h-4" />
-              </Button>
+              <MultiFilterDropdown
+                filters={filterGroups}
+                activeFilter={filterCategory}
+                value={filterValue}
+                onChange={handleFilterChange}
+              />
             </div>
 
             <Button

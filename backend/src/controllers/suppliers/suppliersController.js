@@ -61,7 +61,8 @@ supplierController.insertSuppliers = async(req,res) => {
             phone,
             country,
             city,
-            catalog
+            catalog,
+            is_active: true
         })
 
         await payload.save()
@@ -92,7 +93,8 @@ supplierController.updateSupplier = async(req,res) => {
             phone,
             country,
             city,
-            catalog
+            catalog,
+            is_active
         } = req.body
 
         if(!company || !contact_name || !email || !phone || !country || !city || !catalog){
@@ -130,7 +132,8 @@ supplierController.updateSupplier = async(req,res) => {
             phone,
             country,
             city,
-            catalog
+            catalog,
+            is_active
         }
 
         await supplierModel.findByIdAndUpdate(req.params.id, payload)
