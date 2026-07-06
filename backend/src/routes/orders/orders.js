@@ -1,18 +1,19 @@
 import express from "express";
 import ordersController from "../../controllers/orders/ordersController.js";
+import { validateAuthCookie } from "../../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 router.route("/")
-.get(ordersController.getOrders)
+.get(validateAuthCookie(["admin"]), ordersController.getOrders)
 .post(ordersController.insertOrder);
 
 router.route("/manual")
-.post(ordersController.insertManualOrder);
+.post(validateAuthCookie(["admin"]), ordersController.insertManualOrder);
 
 router.route("/:id")
-.get(ordersController.getOrderById)
-.put(ordersController.updateOrder)
-.delete(ordersController.deleteOrder);
+.get(validateAuthCookie(["admin"]), ordersController.getOrderById)
+.put(validateAuthCookie(["admin"]), ordersController.updateOrder)
+.delete(validateAuthCookie(["admin"]), ordersController.deleteOrder);
 
 export default router;

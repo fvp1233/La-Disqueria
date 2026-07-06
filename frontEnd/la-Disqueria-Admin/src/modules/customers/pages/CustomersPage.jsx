@@ -16,6 +16,7 @@ import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
 import { CustomerForm } from "@/modules/customers/components/CustomerForm";
 import { FilterDropdown } from "@/global/components/FilterDropdown";
+import { StatusBadge } from "@/global/components/StatusBadge";
 
 // Hook con el GET/POST/PUT/DELETE reales de clientes
 import useCustomers from "@/modules/customers/hooks/useCustomers";
@@ -186,7 +187,7 @@ export default function CustomersPage() {
 
                 {/* Estado del cliente */}
                 <TableCell>
-                  {c.is_active ? "Activo" : "Inactivo"}
+                  <StatusBadge estado={c.is_active ? "Activo" : "Inactivo"} />
                 </TableCell>
 
                 {/* Acciones */}

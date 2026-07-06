@@ -39,6 +39,7 @@ const useDataAccessories = () => {
 
       const response = await fetch(url, {
         method,
+        credentials: "include",
         body: formData,
       });
 
@@ -60,7 +61,7 @@ const useDataAccessories = () => {
     try {
       setError("");
       setMessage("");
-      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar el accesorio");
       setMessage("Accesorio eliminado correctamente");
       await fetchDataAccessories();

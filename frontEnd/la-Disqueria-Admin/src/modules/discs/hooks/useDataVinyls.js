@@ -48,6 +48,7 @@ const useDataVinyls = () => {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(payload),
       });
 
@@ -72,7 +73,7 @@ const useDataVinyls = () => {
     try {
       setError("");
       setMessage("");
-      const response = await fetch(`${API_URL}/${itemId}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/${itemId}`, { method: "DELETE", credentials: "include" });
 
       if (!response.ok) throw new Error("No se pudo eliminar el vinilo");
 

@@ -39,6 +39,7 @@ const useDataCds = () => {
 
       const response = await fetch(url, {
         method,
+        credentials: "include",
         body: formData, // FormData para imágenes
       });
 
@@ -60,7 +61,7 @@ const useDataCds = () => {
     try {
       setError("");
       setMessage("");
-      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar el CD");
       setMessage("CD eliminado correctamente");
       await fetchDataCds();

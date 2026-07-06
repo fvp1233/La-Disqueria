@@ -13,7 +13,7 @@ const useOrders = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, { credentials: "include" });
       if (!response.ok) throw new Error("No se pudo obtener las órdenes");
       const data = await response.json();
       setOrders(data);
@@ -42,6 +42,7 @@ const useOrders = () => {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
@@ -64,7 +65,7 @@ const useOrders = () => {
     try {
       setError("");
       setMessage("");
-      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar la orden");
       setMessage("Orden eliminada correctamente");
       await fetchOrders();

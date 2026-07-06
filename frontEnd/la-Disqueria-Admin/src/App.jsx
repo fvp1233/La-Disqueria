@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom"
 
 import MainLayout from "@/global/layout/MainLayout"
+import { ProtectedRoute } from "@/global/components/ProtectedRoute"
 
 import DashboardPage from "@/modules/dashboard/pages/DashboardPage"
 import OrdersPage from "@/modules/orders/pages/OrdersPage"
@@ -27,86 +28,91 @@ function App() {
         element={<LoginPage />}
       />
 
-      <Route
-        path="/dashboard"
-        element={
-          <MainLayout>
-            <DashboardPage />
-          </MainLayout>
-        }
-      />
+      {/* Rutas protegidas: sin sesión iniciada redirigen a /login */}
+      <Route element={<ProtectedRoute />}>
 
-      <Route
-        path="/orders"
-        element={
-          <MainLayout>
-            <OrdersPage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/dashboard"
+          element={
+            <MainLayout>
+              <DashboardPage />
+            </MainLayout>
+          }
+        />
 
-      <Route
-        path="/discs"
-        element={
-          <MainLayout>
-            <DiscsPage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/orders"
+          element={
+            <MainLayout>
+              <OrdersPage />
+            </MainLayout>
+          }
+        />
 
-      <Route
-        path="/accesories"
-        element={
-          <MainLayout>
-            <AccesoriesPage />
-          </MainLayout>
-        }
-      />
-      
-      <Route
-        path="/inventory"
-        element={
-          <MainLayout>
-            <InventoryPage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/discs"
+          element={
+            <MainLayout>
+              <DiscsPage />
+            </MainLayout>
+          }
+        />
 
-      <Route
-        path="/providers"
-        element={
-          <MainLayout>
-            <ProvidersPage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/accesories"
+          element={
+            <MainLayout>
+              <AccesoriesPage />
+            </MainLayout>
+          }
+        />
 
-      <Route
-        path="/employees"
-        element={
-          <MainLayout>
-            <EmployeesPage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/inventory"
+          element={
+            <MainLayout>
+              <InventoryPage />
+            </MainLayout>
+          }
+        />
 
-      <Route
-        path="/customers"
-        element={
-          <MainLayout>
-            <CustomersPage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/providers"
+          element={
+            <MainLayout>
+              <ProvidersPage />
+            </MainLayout>
+          }
+        />
 
-      <Route
-        path="/profile"
-        element={
-          <MainLayout>
-            <ProfilePage />
-          </MainLayout>
-        }
-      />
+        <Route
+          path="/employees"
+          element={
+            <MainLayout>
+              <EmployeesPage />
+            </MainLayout>
+          }
+        />
+
+        <Route
+          path="/customers"
+          element={
+            <MainLayout>
+              <CustomersPage />
+            </MainLayout>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <MainLayout>
+              <ProfilePage />
+            </MainLayout>
+          }
+        />
+
+      </Route>
     </Routes>
   );
 }

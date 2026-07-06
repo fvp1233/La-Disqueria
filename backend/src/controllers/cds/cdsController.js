@@ -30,24 +30,24 @@ cdsController.insertCd = async (req, res) => {
         } = req.body
 
         // Mapea cada archivo subido a public_id e image
-        const images = req.files.map(file => ({
+        const images = (req.files || []).map(file => ({
             public_id: file.filename,
             image: file.path
         }))
 
         const payload = new cdsModel({
             title,
-            artistId,
+            artistId: artistId || undefined,
             label,
-            genre,
+            genre: JSON.parse(genre || "[]"),
             year,
             format,
-            tracks,
+            tracks: JSON.parse(tracks || "[]"),
             album_duration,
             edition,
             price,
             images,
-            tags,
+            tags: JSON.parse(tags || "[]"),
             isAvailable
         })
 
@@ -101,16 +101,16 @@ cdsController.updateCd = async (req, res) => {
 
         const payload = {
             title,
-            artistId,
+            artistId: artistId || undefined,
             label,
-            genre,
+            genre: JSON.parse(genre || "[]"),
             year,
             format,
-            tracks,
+            tracks: JSON.parse(tracks || "[]"),
             album_duration,
             edition,
             price,
-            tags,
+            tags: JSON.parse(tags || "[]"),
             isAvailable
         }
 

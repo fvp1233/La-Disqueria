@@ -15,6 +15,7 @@ import { Button } from "@/global/components/button"
 import { Modal } from "@/global/components/Modal"
 import { EmployeeForm } from "@/modules/employees/components/EmployeeForm"
 import { FilterDropdown } from "@/global/components/FilterDropdown"
+import { StatusBadge } from "@/global/components/StatusBadge"
 import useEmployees from "@/modules/employees/hooks/useEmployees"
 
 export default function EmployeesPage() {
@@ -136,7 +137,9 @@ export default function EmployeesPage() {
                                 <TableCell>{e.email}</TableCell>
                                 <TableCell>{e.position}</TableCell>
                                 <TableCell>{e.hire_date ? e.hire_date.substring(0, 10) : ""}</TableCell>
-                                <TableCell>{e.is_active ? "Activo" : "Inactivo"}</TableCell>
+                                <TableCell>
+                                    <StatusBadge estado={e.is_active ? "Activo" : "Inactivo"} />
+                                </TableCell>
                                 <TableCell className="flex gap-2">
                                     <Pencil
                                         className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"

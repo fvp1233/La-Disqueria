@@ -1,12 +1,13 @@
 import express from 'express'
 import adminController from '../../controllers/admin/adminController.js'
+import { validateAuthCookie } from '../../middlewares/authMiddleware.js'
 
 const router = express.Router()
 
 router.route("/")
-  .get(adminController.getAdmins)
+  .get(validateAuthCookie(["admin"]), adminController.getAdmins)
 
 router.route("/:id")
-    .put(adminController.updateAdmin)
-    .delete(adminController.deleteAdmin)
+    .put(validateAuthCookie(["admin"]), adminController.updateAdmin)
+    .delete(validateAuthCookie(["admin"]), adminController.deleteAdmin)
 export default router

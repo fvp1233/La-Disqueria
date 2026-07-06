@@ -13,7 +13,7 @@ const useCustomers = () => {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, { credentials: "include" });
       if (!response.ok) throw new Error("No se pudo obtener los clientes");
       const data = await response.json();
       setCustomers(data);
@@ -40,6 +40,7 @@ const useCustomers = () => {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(data),
       });
 
@@ -62,7 +63,7 @@ const useCustomers = () => {
     try {
       setError("");
       setMessage("");
-      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar el cliente");
       setMessage("Cliente eliminado correctamente");
       await fetchCustomers();

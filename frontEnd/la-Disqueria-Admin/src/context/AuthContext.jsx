@@ -42,8 +42,18 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Actualiza el usuario en memoria y localStorage tras editar el perfil,
+  // sin necesidad de volver a iniciar sesión.
+  const updateUser = (updates) => {
+    setUser((prev) => {
+      const next = { ...prev, ...updates };
+      localStorage.setItem("adminUser", JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

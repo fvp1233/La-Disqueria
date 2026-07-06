@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import useDataVinyls from "@/modules/discs/hooks/useDataVinyls"; // Hook con el GET y DELETE reales
+import useDataVinyls from "@/modules/discs/hooks/useDataVinyls";
+import useDataCds from "@/modules/discs/hooks/useDataCds";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
@@ -10,6 +11,7 @@ import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
 import { DiscForm } from "@/modules/discs/components/DiscForm";
+import { CdForm } from "@/modules/discs/components/CdForm";
 import {
   Table,
   TableHeader,
@@ -22,24 +24,52 @@ import {
 export default function DiscosPage() {
   const [searchParams] = useSearchParams();
 
-  const { dataVinyls, loading, error, message, handleDelete, fetchDataVinyls } = useDataVinyls();
+  const {
+    dataVinyls,
+    loading: loadingVinyls,
+    error: errorVinyls,
+    message: messageVinyls,
+    handleDelete: handleDeleteVinyl,
+    fetchDataVinyls,
+  } = useDataVinyls();
 
-  const [tipo, setTipo] = useState(searchParams.get("tipo") || "vinilos"); // Cambiado a vinilos por defecto
+  const {
+    dataCds,
+    loading: loadingCds,
+    error: errorCds,
+    message: messageCds,
+    handleDelete: handleDeleteCd,
+    fetchDataCds,
+  } = useDataCds();
+
+  const [tipo, setTipo] = useState(searchParams.get("tipo") || "vinilos");
   const [search, setSearch] = useState("");
   const [openRow, setOpenRow] = useState(null);
   const [open, setOpen] = useState(false);
-  const [selectedVinyl, setSelectedVinyl] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const isCds = tipo === "cds";
+
+  const items = isCds ? dataCds : dataVinyls;
+  const loading = isCds ? loadingCds : loadingVinyls;
+  const error = isCds ? errorCds : errorVinyls;
+  const message = isCds ? messageCds : messageVinyls;
 
   const handleSuccess = async () => {
-    await fetchDataVinyls();
+    if (isCds) await fetchDataCds();
+    else await fetchDataVinyls();
     setOpen(false);
-    setSelectedVinyl(null);
+    setSelectedItem(null);
   };
 
-  const filtered = dataVinyls.filter((item) => {
-    if (tipo === "cds") return false; 
-    
-    return item?.tittle?.toLowerCase().includes(search.toLowerCase());
+  const handleDeleteItem = (id) => {
+    if (isCds) handleDeleteCd(id);
+    else handleDeleteVinyl(id);
+  };
+
+  const filtered = items.filter((item) => {
+    const name = isCds ? item.title : item.tittle;
+    return name?.toLowerCase().includes(search.toLowerCase());
   });
 
   const getEstado = (isAvailable) => {
@@ -48,9 +78,14 @@ export default function DiscosPage() {
   };
 
   const totalVinilos = dataVinyls.length;
-  const agotados = dataVinyls.filter(v => !v.isAvailable).length;
-  const disponibles = totalVinilos - agotados;
-  const valorInventario = dataVinyls.reduce((acc, curr) => acc + (curr.price || 0), 0);
+  const agotadosVinilos = dataVinyls.filter((v) => !v.isAvailable).length;
+  const disponiblesVinilos = totalVinilos - agotadosVinilos;
+  const valorInventarioVinilos = dataVinyls.reduce((acc, curr) => acc + (curr.price || 0), 0);
+
+  const totalCds = dataCds.length;
+  const agotadosCds = dataCds.filter((c) => !c.isAvailable).length;
+  const disponiblesCds = totalCds - agotadosCds;
+  const valorInventarioCds = dataCds.reduce((acc, curr) => acc + (curr.price || 0), 0);
 
   if (loading) {
     return (
@@ -76,29 +111,43 @@ export default function DiscosPage() {
       <div className="bg-white p-6 rounded-2xl shadow-md relative">
         {/* Pestañas Superiores */}
         <div className="absolute -top-4 left-6 flex gap-2">
-          <button onClick={() => setTipo("cds")} className={`px-4 py-1 rounded text-xs font-semibold ${tipo === "cds" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4] opacity-50"}`}>
+          <button
+            onClick={() => {
+              setTipo("cds");
+              setOpenRow(null);
+              setSearch("");
+            }}
+            className={`px-4 py-1 rounded text-xs font-semibold ${tipo === "cds" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4] opacity-50"}`}
+          >
             CDs
           </button>
-          <button onClick={() => setTipo("vinilos")} className={`px-4 py-1 rounded text-xs font-semibold ${tipo === "vinilos" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4]"}`}>
+          <button
+            onClick={() => {
+              setTipo("vinilos");
+              setOpenRow(null);
+              setSearch("");
+            }}
+            className={`px-4 py-1 rounded text-xs font-semibold ${tipo === "vinilos" ? "bg-[#4A6163] text-[#F9FAF4]" : "bg-[#334647] text-[#C4C4C4]"}`}
+          >
             Vinilos
           </button>
         </div>
 
         <div className="mt-6">
           <div className="flex gap-6 flex-wrap">
-            {tipo === "cds" ? (
+            {isCds ? (
               <>
-                <Card title="Total de CDs" value="0" change="0%" changeText="Sin API" color="#EFA4B1" />
-                <Card title="Ingresos de CDs" value="$0" change="0%" changeText="Sin API" color="#A9BDE5" />
-                <Card title="Con bajo stock" value="0" change="0%" changeText="Sin API" color="#E8D6A7" />
-                <Card title="CDs agotados" value="0" change="0%" changeText="Sin API" color="#E57373" />
+                <Card title="Total de CDs" value={totalCds} change="API" changeText="Activa" color="#EFA4B1" />
+                <Card title="Valor Inventario" value={`$${valorInventarioCds.toLocaleString()}`} change="Mongoose" changeText="Total" color="#A9BDE5" />
+                <Card title="Disponibles" value={disponiblesCds} change="En Tienda" changeText="Copias" color="#E8D6A7" />
+                <Card title="CDs Agotados" value={agotadosCds} change="Requieren" changeText="Atención" color="#E57373" />
               </>
             ) : (
               <>
                 <Card title="Total de Vinilos" value={totalVinilos} change="API" changeText="Activa" color="#EFA4B1" />
-                <Card title="Valor Inventario" value={`$${valorInventario.toLocaleString()}`} change="Mongoose" changeText="Total" color="#A9BDE5" />
-                <Card title="Disponibles" value={disponibles} change="En Tienda" changeText="Copias" color="#E8D6A7" />
-                <Card title="Vinilos Agotados" value={agotados} change="Requieren" changeText="Atención" color="#E57373" />
+                <Card title="Valor Inventario" value={`$${valorInventarioVinilos.toLocaleString()}`} change="Mongoose" changeText="Total" color="#A9BDE5" />
+                <Card title="Disponibles" value={disponiblesVinilos} change="En Tienda" changeText="Copias" color="#E8D6A7" />
+                <Card title="Vinilos Agotados" value={agotadosVinilos} change="Requieren" changeText="Atención" color="#E57373" />
               </>
             )}
           </div>
@@ -106,10 +155,10 @@ export default function DiscosPage() {
           {/* Barra de Búsqueda y Botón Agregar */}
           <div className="mt-8 flex justify-between items-center">
             <div className="flex gap-4 items-center">
-              <InputGroupInlineStart 
+              <InputGroupInlineStart
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar vinilo..."
+                placeholder={isCds ? "Buscar CD..." : "Buscar vinilo..."}
               />
               <Button variant="filter">
                 <p className="text-base">Filtrar</p>
@@ -120,7 +169,7 @@ export default function DiscosPage() {
             <Button
               variant="cd"
               onClick={() => {
-                setSelectedVinyl(null);
+                setSelectedItem(null);
                 setOpen(true);
               }}
             >
@@ -149,7 +198,9 @@ export default function DiscosPage() {
                 {filtered.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center py-8 text-slate-400 italic">
-                      No se encontraron vinilos registrados en el catálogo.
+                      {isCds
+                        ? "No se encontraron CDs registrados en el catálogo."
+                        : "No se encontraron vinilos registrados en el catálogo."}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -157,11 +208,19 @@ export default function DiscosPage() {
                     const estado = getEstado(item.isAvailable);
                     const isOpen = openRow === i;
 
-                    // Extraemos la primera imagen o la que sea portada (isCover)
-                    const coverImage = item.images?.find(img => img.isCover)?.image || item.images?.[0]?.image;
+                    const title = isCds ? item.title : item.tittle;
 
-                    // Formateamos la fecha ISO de Mongo para extraer solo el año
-                    const releaseYear = item.year ? new Date(item.year).getFullYear() : "-";
+                    // Extraemos la primera imagen o la que sea portada (isCover, solo vinilos)
+                    const coverImage = isCds
+                      ? item.images?.[0]?.image
+                      : item.images?.find((img) => img.isCover)?.image || item.images?.[0]?.image;
+
+                    // Año: los CDs lo guardan como texto plano, los vinilos como fecha ISO
+                    const releaseYear = isCds
+                      ? item.year || "-"
+                      : item.year
+                        ? new Date(item.year).getFullYear()
+                        : "-";
 
                     return (
                       <React.Fragment key={item._id || i}>
@@ -173,11 +232,13 @@ export default function DiscosPage() {
                             {coverImage ? (
                               <img src={coverImage} className="w-12 h-12 object-cover rounded-lg shadow-sm" alt="Cover" />
                             ) : (
-                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-400">LP</div>
+                              <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center text-[10px] font-bold text-slate-400">
+                                {isCds ? "CD" : "LP"}
+                              </div>
                             )}
                           </TableCell>
 
-                          <TableCell className="font-semibold text-slate-700">{item.tittle}</TableCell>
+                          <TableCell className="font-semibold text-slate-700">{title}</TableCell>
                           <TableCell>{item.label || "-"}</TableCell>
                           <TableCell>{releaseYear}</TableCell>
                           <TableCell>{item.format || "-"}</TableCell>
@@ -194,7 +255,7 @@ export default function DiscosPage() {
                               className="w-4 h-4 cursor-pointer text-gray-500 hover:text-black transition"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedVinyl(item);
+                                setSelectedItem(item);
                                 setOpen(true);
                               }}
                             />
@@ -203,43 +264,72 @@ export default function DiscosPage() {
                               className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600 transition"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDelete(item._id || item.id);
+                                handleDeleteItem(item._id || item.id);
                               }}
                             />
                           </TableCell>
                         </TableRow>
 
-                        {/* Fila Desplegable con los datos coleccionables y el Tracklist dinámico */}
+                        {/* Fila Desplegable con los datos adicionales del álbum */}
                         {isOpen && (
                           <TableRow>
                             <TableCell colSpan={8}>
                               <div className="bg-white rounded-xl p-5 shadow-inner grid grid-cols-2 gap-4 text-sm border border-slate-100">
-                                <div><b>Género:</b> {item.genre || "-"}</div>
-                                <div><b>Velocidad:</b> {item.speed || "-"}</div>
-                                <div><b>Tamaño:</b> {item.size || "-"}</div>
-                                <div><b>Color:</b> {item.color || "-"}</div>
-                                <div><b>Condición:</b> {item.condition || "-"}</div>
-                                <div><b>Tags:</b> {item.tags || "-"}</div>
-                                
-                                {/* Render de canciones embebidas */}
-                                <div className="col-span-2 border-t pt-3 mt-1">
-                                  <span className="font-bold text-slate-700 block mb-2">Canciones en este disco:</span>
-                                  {item.trackList && item.trackList.length > 0 ? (
-                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
-                                      {item.trackList.map((track, tIdx) => (
-                                        <li key={tIdx} className="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between">
-                                          <span>
-                                            <b className="text-slate-400 mr-1.5">{track.side}{track.position}.</b>
-                                            {track.song_name}
-                                          </span>
-                                          <span className="text-slate-400 font-medium">{track.duration}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  ) : (
-                                    <p className="text-xs text-slate-400 italic">No hay canciones cargadas en este álbum.</p>
-                                  )}
-                                </div>
+                                {isCds ? (
+                                  <>
+                                    <div><b>Género:</b> {item.genre?.join(", ") || "-"}</div>
+                                    <div><b>Edición:</b> {item.edition || "-"}</div>
+                                    <div><b>Duración del álbum:</b> {item.album_duration || "-"}</div>
+                                    <div><b>Tags:</b> {item.tags?.join(", ") || "-"}</div>
+
+                                    <div className="col-span-2 border-t pt-3 mt-1">
+                                      <span className="font-bold text-slate-700 block mb-2">Canciones en este disco:</span>
+                                      {item.tracks && item.tracks.length > 0 ? (
+                                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
+                                          {item.tracks.map((track, tIdx) => (
+                                            <li key={tIdx} className="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between">
+                                              <span>
+                                                <b className="text-slate-400 mr-1.5">{track.position}.</b>
+                                                {track.title}
+                                              </span>
+                                              <span className="text-slate-400 font-medium">{track.duration}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      ) : (
+                                        <p className="text-xs text-slate-400 italic">No hay canciones cargadas en este álbum.</p>
+                                      )}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div><b>Género:</b> {item.genre || "-"}</div>
+                                    <div><b>Velocidad:</b> {item.speed || "-"}</div>
+                                    <div><b>Tamaño:</b> {item.size || "-"}</div>
+                                    <div><b>Color:</b> {item.color || "-"}</div>
+                                    <div><b>Condición:</b> {item.condition || "-"}</div>
+                                    <div><b>Tags:</b> {item.tags || "-"}</div>
+
+                                    <div className="col-span-2 border-t pt-3 mt-1">
+                                      <span className="font-bold text-slate-700 block mb-2">Canciones en este disco:</span>
+                                      {item.trackList && item.trackList.length > 0 ? (
+                                        <ul className="grid grid-cols-1 md:grid-cols-2 gap-1.5 text-xs">
+                                          {item.trackList.map((track, tIdx) => (
+                                            <li key={tIdx} className="bg-slate-50 p-2 rounded border border-slate-100 flex justify-between">
+                                              <span>
+                                                <b className="text-slate-400 mr-1.5">{track.side}{track.position}.</b>
+                                                {track.song_name}
+                                              </span>
+                                              <span className="text-slate-400 font-medium">{track.duration}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      ) : (
+                                        <p className="text-xs text-slate-400 italic">No hay canciones cargadas en este álbum.</p>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </TableCell>
                           </TableRow>
@@ -258,21 +348,33 @@ export default function DiscosPage() {
         open={open}
         onClose={() => {
           setOpen(false);
-          setSelectedVinyl(null);
+          setSelectedItem(null);
         }}
-        title={!selectedVinyl ? `Agregar ${tipo === "cds" ? "CD" : "Disco"}` : `Editar ${tipo === "cds" ? "CD" : "Disco"}`}
+        title={!selectedItem ? `Agregar ${isCds ? "CD" : "Disco"}` : `Editar ${isCds ? "CD" : "Disco"}`}
         size="lg"
       >
-        <DiscForm
-          onClose={() => {
-            setOpen(false);
-            setSelectedVinyl(null);
-          }}
-          onSuccess={handleSuccess}
-          vinyl={selectedVinyl}
-          mode="edit"
-          tipo={tipo}
-        />
+        {isCds ? (
+          <CdForm
+            onClose={() => {
+              setOpen(false);
+              setSelectedItem(null);
+            }}
+            onSuccess={handleSuccess}
+            cd={selectedItem}
+            mode="edit"
+          />
+        ) : (
+          <DiscForm
+            onClose={() => {
+              setOpen(false);
+              setSelectedItem(null);
+            }}
+            onSuccess={handleSuccess}
+            vinyl={selectedItem}
+            mode="edit"
+            tipo={tipo}
+          />
+        )}
       </Modal>
     </div>
   );
