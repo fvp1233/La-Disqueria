@@ -17,7 +17,7 @@ const getProductName = (product, type) => {
 };
 
 export function InventoryForm({ onClose, onSuccess, item }) {
-  const { saveInventory, submitting, error } = useInventory();
+  const { saveInventory, submitting } = useInventory();
   const { suppliers } = useSuppliers();
 
   // Hooks de productos — carga todos pero solo usamos el del tipo seleccionado
@@ -91,8 +91,6 @@ export function InventoryForm({ onClose, onSuccess, item }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-4">
 

@@ -23,7 +23,7 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
   const [internalMode, setInternalMode] = useState(mode)
   const isReadOnly = internalMode === "view"
 
-  const { saveArtist, submitting, error } = useArtists()
+  const { saveArtist, submitting } = useArtists()
   const { genres } = useGenres()
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues })
@@ -114,8 +114,6 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         {/* Foto */}
         <div className="space-y-2">

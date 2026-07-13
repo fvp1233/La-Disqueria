@@ -24,6 +24,12 @@ export const validateAuthCookie = (allowedTypes = []) => {
 
       next();
     } catch (error) {
+      if (
+        error.name === "JsonWebTokenError" ||
+        error.name === "TokenExpiredError"
+      ) {
+        return res.status(401).json({ message: "Invalid or expired session" });
+      }
       console.log("error" + error);
       return res.status(500).json({ message: "Internal server error" });
     }

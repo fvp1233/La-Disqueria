@@ -11,7 +11,7 @@ const DEFAULT_AVATAR = "https://img.freepik.com/free-photo/view-adorable-3d-cat_
 
 export default function ProfilePage() {
   const { user, updateUser } = useAuth()
-  const { updateProfile, submitting, error, message } = useProfile()
+  const { updateProfile, submitting } = useProfile()
 
   const [isEditing, setIsEditing] = useState(false)
   const [form, setForm] = useState({
@@ -73,9 +73,6 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-
-      {error && <p className="p-3 bg-red-100 text-red-700 rounded-lg text-sm">{error}</p>}
-      {message && <p className="p-3 bg-green-100 text-green-700 rounded-lg text-sm">{message}</p>}
 
       {/* Header */}
       <div className="flex items-center gap-4">

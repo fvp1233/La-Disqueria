@@ -1,24 +1,22 @@
 import { useState, useEffect } from "react";
+import { notifySuccess, notifyError, confirmDelete } from "@/global/lib/notifications";
 
 const API_URL = "http://localhost:4000/api/employees";
 
 const useEmployees = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      setError("");
       const response = await fetch(API_URL, { credentials: "include" });
       if (!response.ok) throw new Error("No se pudo obtener los empleados");
       const result = await response.json();
       setEmployees(result.data || []);
     } catch (err) {
-      setError(err.message || "Error al cargar los empleados");
+      notifyError(err.message || "Error al cargar los empleados");
     } finally {
       setLoading(false);
     }
@@ -31,8 +29,6 @@ const useEmployees = () => {
   const saveEmployee = async (id, data) => {
     try {
       setSubmitting(true);
-      setError("");
-      setMessage("");
 
       const url = id ? `${API_URL}/${id}` : API_URL;
       const method = id ? "PUT" : "POST";
@@ -47,11 +43,11 @@ const useEmployees = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || `Error HTTP: ${response.status}`);
 
-      setMessage(id ? "Empleado actualizado con éxito" : "Empleado creado con éxito");
+      notifySuccess(id ? "Empleado actualizado con éxito" : "Empleado creado con éxito");
       await fetchEmployees();
       return true;
     } catch (err) {
-      setError(err.message || "Error al guardar el empleado");
+      notifyError(err.message || "Error al guardar el empleado");
       return false;
     } finally {
       setSubmitting(false);
@@ -59,24 +55,21 @@ const useEmployees = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este empleado?")) return;
+    const confirmed = await confirmDelete({ text: "¿Estás seguro de eliminar este empleado?" });
+    if (!confirmed) return;
     try {
-      setError("");
-      setMessage("");
       const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar el empleado");
-      setMessage("Empleado eliminado correctamente");
+      notifySuccess("Empleado eliminado correctamente");
       await fetchEmployees();
     } catch (err) {
-      setError(err.message || "Error al eliminar el empleado");
+      notifyError(err.message || "Error al eliminar el empleado");
     }
   };
 
   return {
     employees,
     loading,
-    error,
-    message,
     submitting,
     saveEmployee,
     handleDelete,

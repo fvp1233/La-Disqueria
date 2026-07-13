@@ -41,7 +41,7 @@ export function TurntableForm({ onClose, onSuccess, turntable, mode = "edit" }) 
   const [internalMode, setInternalMode] = useState(mode);
   const isReadOnly = internalMode === "view";
 
-  const { saveTurntable, submitting, error } = useDataTurntables();
+  const { saveTurntable, submitting } = useDataTurntables();
 
   const {
     register,
@@ -144,8 +144,6 @@ export function TurntableForm({ onClose, onSuccess, turntable, mode = "edit" }) 
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
 
         {/* Foto */}

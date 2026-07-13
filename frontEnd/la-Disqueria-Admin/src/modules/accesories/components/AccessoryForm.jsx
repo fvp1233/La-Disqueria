@@ -23,7 +23,7 @@ export function AccessoryForm({ onClose, onSuccess, accessory, mode = "edit" }) 
   const [internalMode, setInternalMode] = useState(mode);
   const isReadOnly = internalMode === "view";
 
-  const { saveAccessory, submitting, error } = useDataAccessories();
+  const { saveAccessory, submitting } = useDataAccessories();
 
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
     defaultValues: emptyValues,
@@ -88,8 +88,6 @@ export function AccessoryForm({ onClose, onSuccess, accessory, mode = "edit" }) 
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Label>Imagen</Label>

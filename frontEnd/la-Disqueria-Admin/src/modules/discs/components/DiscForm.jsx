@@ -31,7 +31,7 @@ export function DiscForm({ onClose, onSuccess, vinyl, mode = "edit", tipo = "vin
   const [internalMode, setInternalMode] = useState(mode);
   const isReadOnly = internalMode === "view";
 
-  const { saveVinyl, submitting, error } = useDataVinyls();
+  const { saveVinyl, submitting } = useDataVinyls();
 
   const methods = useForm({ defaultValues: emptyValues });
 
@@ -101,8 +101,6 @@ export function DiscForm({ onClose, onSuccess, vinyl, mode = "edit", tipo = "vin
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <Form {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
           <fieldset disabled={isReadOnly} className="space-y-8">

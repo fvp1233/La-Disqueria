@@ -1,17 +1,14 @@
 import { useState } from "react";
+import { notifySuccess, notifyError } from "@/global/lib/notifications";
 
 const API_URL = "http://localhost:4000/api/admin";
 
 const useProfile = () => {
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
 
   const updateProfile = async (id, data) => {
     try {
       setSubmitting(true);
-      setError("");
-      setMessage("");
 
       const response = await fetch(`${API_URL}/${id}`, {
         method: "PUT",
@@ -23,17 +20,17 @@ const useProfile = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || `Error HTTP: ${response.status}`);
 
-      setMessage("Perfil actualizado con éxito");
+      notifySuccess("Perfil actualizado con éxito");
       return result.data;
     } catch (err) {
-      setError(err.message || "Error al actualizar el perfil");
+      notifyError(err.message || "Error al actualizar el perfil");
       return null;
     } finally {
       setSubmitting(false);
     }
   };
 
-  return { updateProfile, submitting, error, message };
+  return { updateProfile, submitting };
 };
 
 export default useProfile;

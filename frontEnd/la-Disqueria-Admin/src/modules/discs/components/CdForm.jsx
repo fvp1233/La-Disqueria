@@ -27,7 +27,7 @@ export function CdForm({ onClose, onSuccess, cd, mode = "edit" }) {
   const [internalMode, setInternalMode] = useState(mode);
   const isReadOnly = internalMode === "view";
 
-  const { saveCd, submitting, error } = useDataCds();
+  const { saveCd, submitting } = useDataCds();
 
   const {
     register,
@@ -142,8 +142,6 @@ export function CdForm({ onClose, onSuccess, cd, mode = "edit" }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
 
         {/* Portada */}

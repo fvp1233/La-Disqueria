@@ -28,8 +28,6 @@ export default function CustomersPage() {
   const {
     customers,
     loading,
-    error,
-    message,
     handleDelete,
     fetchCustomers,
   } = useCustomers();
@@ -89,10 +87,6 @@ export default function CustomersPage() {
 
     // Al hacer click fuera del menú contextual lo cierra
     <div onClick={() => setContextMenu(null)}>
-
-      {/* Mensajes */}
-      {error && <p className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</p>}
-      {message && <p className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm">{message}</p>}
 
       {/* TARJETAS DE RESUMEN */}
       <div className="flex gap-6 flex-wrap justify-evenly">

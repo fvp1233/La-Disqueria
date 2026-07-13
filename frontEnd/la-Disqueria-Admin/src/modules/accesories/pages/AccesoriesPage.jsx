@@ -45,8 +45,6 @@ export default function AccessoriesPage() {
  const {
    dataAccessories,
    loading,
-   error,
-   message,
    handleDelete,
    fetchDataAccessories,
  } = useDataAccessories();
@@ -130,17 +128,6 @@ export default function AccessoriesPage() {
 
  return (
  <div>
- {error && (
-   <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm font-medium">
-     {error}
-   </div>
- )}
- {message && (
-   <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm font-medium">
-     {message}
-   </div>
- )}
-
  <div className="bg-white p-6 rounded-2xl shadow-md relative">
 
  {/*Etiqueta superior*/}

@@ -24,8 +24,6 @@ export default function EmployeesPage() {
     const {
         employees,
         loading,
-        error,
-        message,
         handleDelete,
         fetchEmployees,
     } = useEmployees()
@@ -98,10 +96,6 @@ export default function EmployeesPage() {
 
     return (
         <div onClick={() => setContextMenu(null)}>
-
-            {/* Mensajes */}
-            {error && <p className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</p>}
-            {message && <p className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm">{message}</p>}
 
             {/* TARJETAS */}
             <div className="flex gap-6 flex-wrap justify-evenly">

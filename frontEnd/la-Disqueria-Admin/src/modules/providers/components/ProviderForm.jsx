@@ -11,7 +11,7 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
   const [internalMode, setInternalMode] = useState(mode);
   const isReadOnly = internalMode === "view";
 
-  const { saveSupplier, submitting, error } = useSuppliers();
+  const { saveSupplier, submitting } = useSuppliers();
   const { allProducts } = useProducts();
 
   const [catalog, setCatalog] = useState([]);
@@ -104,8 +104,6 @@ export function ProviderForm({ onClose, onSuccess, provider, mode = "edit" }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="grid grid-cols-2 gap-4">
 

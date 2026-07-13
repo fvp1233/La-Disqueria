@@ -36,8 +36,6 @@ export default function DiscosPage() {
   const {
     dataVinyls,
     loading: loadingVinyls,
-    error: errorVinyls,
-    message: messageVinyls,
     handleDelete: handleDeleteVinyl,
     fetchDataVinyls,
   } = useDataVinyls();
@@ -45,8 +43,6 @@ export default function DiscosPage() {
   const {
     dataCds,
     loading: loadingCds,
-    error: errorCds,
-    message: messageCds,
     handleDelete: handleDeleteCd,
     fetchDataCds,
   } = useDataCds();
@@ -54,8 +50,6 @@ export default function DiscosPage() {
   const {
     dataTurntables,
     loading: loadingTurntables,
-    error: errorTurntables,
-    message: messageTurntables,
     handleDelete: handleDeleteTurntable,
     fetchDataTurntables,
   } = useDataTurntables();
@@ -63,8 +57,6 @@ export default function DiscosPage() {
   const {
     artists,
     loading: loadingArtists,
-    error: errorArtists,
-    message: messageArtists,
     handleDelete: handleDeleteArtist,
     fetchArtists,
   } = useArtists();
@@ -72,8 +64,6 @@ export default function DiscosPage() {
   const {
     genres,
     loading: loadingGenres,
-    error: errorGenres,
-    message: messageGenres,
     handleDelete: handleDeleteGenre,
     fetchGenres,
   } = useGenres();
@@ -93,8 +83,6 @@ export default function DiscosPage() {
 
   const items = isGenres ? genres : isArtists ? artists : isCds ? dataCds : isTurntables ? dataTurntables : dataVinyls;
   const loading = isGenres ? loadingGenres : isArtists ? loadingArtists : isCds ? loadingCds : isTurntables ? loadingTurntables : loadingVinyls;
-  const error = isGenres ? errorGenres : isArtists ? errorArtists : isCds ? errorCds : isTurntables ? errorTurntables : errorVinyls;
-  const message = isGenres ? messageGenres : isArtists ? messageArtists : isCds ? messageCds : isTurntables ? messageTurntables : messageVinyls;
 
   const handleSuccess = async () => {
     if (isGenres) await fetchGenres();
@@ -263,17 +251,6 @@ export default function DiscosPage() {
 
   return (
     <div>
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm font-medium">
-          {error}
-        </div>
-      )}
-      {message && (
-        <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm font-medium">
-          {message}
-        </div>
-      )}
-
       <div className="bg-white p-6 rounded-2xl shadow-md relative">
         {/* Pestañas Superiores */}
         <div className="absolute -top-4 left-6 flex gap-2">

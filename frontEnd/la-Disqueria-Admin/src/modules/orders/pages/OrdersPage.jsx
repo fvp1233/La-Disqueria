@@ -26,8 +26,6 @@ export default function OrdersPage() {
   const {
     orders,
     loading,
-    error,
-    message,
     handleDelete,
     fetchOrders,
   } = useOrders()
@@ -70,10 +68,6 @@ export default function OrdersPage() {
 
   return (
     <div onClick={() => setContextMenu(null)}>
-
-      {/* Mensajes */}
-      {error && <p className="mb-4 p-4 bg-red-100 text-red-700 rounded-xl text-sm">{error}</p>}
-      {message && <p className="mb-4 p-4 bg-green-100 text-green-700 rounded-xl text-sm">{message}</p>}
 
       {/* TARJETAS */}
       <div className="flex gap-6 flex-wrap">

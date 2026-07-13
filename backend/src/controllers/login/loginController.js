@@ -93,4 +93,32 @@ loginController.loginAdmin = async (req, res) => {
   }
 };
 
+// verifySession se ejecuta en cada carga/refresco del panel admin para
+// confirmar que la cookie sigue siendo válida y que el admin sigue existiendo,
+// en vez de confiar en lo que quedó guardado en localStorage.
+loginController.verifySession = async (req, res) => {
+  try {
+    const admin = await adminModel.findById(req.user.id);
+
+    if (!admin) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      message: "Session valid",
+      userType: "admin",
+      user: {
+        id: admin._id,
+        email: admin.email,
+        name: admin.name,
+        last_name: admin.last_name,
+        is_active: admin.is_active,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export default loginController;

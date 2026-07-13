@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { useAuth } from "@/context/AuthContext";
+import { notifySuccess, notifyError } from "@/global/lib/notifications";
 
 function CornerWaves({ className }) {
   return (
@@ -39,12 +40,10 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState("");
 
   const handleChange = (field) => (e) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
-    if (apiError) setApiError("");
   };
 
   const validate = () => {
@@ -72,14 +71,14 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
-    setApiError("");
 
     try {
-      await login(formData.email, formData.password);
+      const user = await login(formData.email, formData.password);
+      notifySuccess(`Bienvenido/a, ${user.name || "administrador"}`);
       navigate("/dashboard");
     } catch (error) {
       const message = error?.message || "Credenciales incorrectas. Por favor, intenta de nuevo.";
-      setApiError(errorMessages[message] || message);
+      notifyError(errorMessages[message] || message);
     } finally {
       setIsLoading(false);
     }
@@ -98,12 +97,6 @@ export default function LoginPage() {
         <p className="text-xs tracking-widest text-gray-500 uppercase mb-6">Inciar sesión</p>
 
         <form onSubmit={handleLogin} className="w-full flex flex-col gap-4" noValidate>
-
-          {apiError && (
-            <div className="px-4 py-3 rounded-lg bg-red-100 border border-red-200 text-sm text-red-700">
-              {apiError}
-            </div>
-          )}
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">Email</label>

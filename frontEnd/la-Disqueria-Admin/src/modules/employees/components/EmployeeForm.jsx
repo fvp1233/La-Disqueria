@@ -13,7 +13,7 @@ export function EmployeeForm({ onClose, onSuccess, employee, mode = "edit" }) {
   const [internalMode, setInternalMode] = useState(mode)
   const isReadOnly = internalMode === "view"
 
-  const { saveEmployee, submitting, error } = useEmployees()
+  const { saveEmployee, submitting } = useEmployees()
 
   const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm({
     defaultValues: {
@@ -90,8 +90,6 @@ export function EmployeeForm({ onClose, onSuccess, employee, mode = "edit" }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="grid grid-cols-2 gap-4">
 

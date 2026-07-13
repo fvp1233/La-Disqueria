@@ -36,7 +36,7 @@ export function OrderForm({ onClose, onSuccess, order, mode = "edit" }) {
   const isReadOnly = internalMode === "view"
   const isNewOrder = !order
 
-  const { saveOrder, submitting, error } = useOrders()
+  const { saveOrder, submitting } = useOrders()
   const { customers } = useCustomers()
   const { allProducts } = useProducts()
 
@@ -189,8 +189,6 @@ export function OrderForm({ onClose, onSuccess, order, mode = "edit" }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={onSubmit}>
 
         {/* Cliente + Estado */}

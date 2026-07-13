@@ -19,7 +19,7 @@ export function CustomerForm({
   mode = "edit",
 }) {
 
-  const { saveCustomer, submitting, error } = useCustomers();
+  const { saveCustomer, submitting } = useCustomers();
 
   // Controla si el formulario está en modo vista o edición
   const [internalMode, setInternalMode] = useState(mode);
@@ -125,8 +125,6 @@ export function CustomerForm({
 
   return (
     <>
-    {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
     <form
       className="flex flex-col gap-4"
       onSubmit={handleSubmit}

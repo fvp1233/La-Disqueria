@@ -1,24 +1,22 @@
 import { useState, useEffect } from "react";
+import { notifySuccess, notifyError, confirmDelete } from "@/global/lib/notifications";
 
 const API_URL = "http://localhost:4000/api/customers";
 
 const useCustomers = () => {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      setError("");
       const response = await fetch(API_URL, { credentials: "include" });
       if (!response.ok) throw new Error("No se pudo obtener los clientes");
       const data = await response.json();
       setCustomers(data);
     } catch (err) {
-      setError(err.message || "Error al cargar los clientes");
+      notifyError(err.message || "Error al cargar los clientes");
     } finally {
       setLoading(false);
     }
@@ -31,8 +29,6 @@ const useCustomers = () => {
   const saveCustomer = async (id, data) => {
     try {
       setSubmitting(true);
-      setError("");
-      setMessage("");
 
       const url = id ? `${API_URL}/${id}` : API_URL;
       const method = id ? "PUT" : "POST";
@@ -47,11 +43,11 @@ const useCustomers = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || `Error HTTP: ${response.status}`);
 
-      setMessage(id ? "Cliente actualizado con éxito" : "Cliente creado con éxito");
+      notifySuccess(id ? "Cliente actualizado con éxito" : "Cliente creado con éxito");
       await fetchCustomers();
       return true;
     } catch (err) {
-      setError(err.message || "Error al guardar el cliente");
+      notifyError(err.message || "Error al guardar el cliente");
       return false;
     } finally {
       setSubmitting(false);
@@ -59,24 +55,21 @@ const useCustomers = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este cliente?")) return;
+    const confirmed = await confirmDelete({ text: "¿Estás seguro de eliminar este cliente?" });
+    if (!confirmed) return;
     try {
-      setError("");
-      setMessage("");
       const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar el cliente");
-      setMessage("Cliente eliminado correctamente");
+      notifySuccess("Cliente eliminado correctamente");
       await fetchCustomers();
     } catch (err) {
-      setError(err.message || "Error al eliminar el cliente");
+      notifyError(err.message || "Error al eliminar el cliente");
     }
   };
 
   return {
     customers,
     loading,
-    error,
-    message,
     submitting,
     saveCustomer,
     handleDelete,

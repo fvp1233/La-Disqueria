@@ -20,8 +20,6 @@ export default function InventoryPage() {
   const {
     inventory,
     loading,
-    error,
-    message,
     handleDelete,
     fetchInventory,
   } = useInventory();
@@ -115,10 +113,6 @@ export default function InventoryPage() {
     <div>
       <div className="bg-white p-6 rounded-2xl shadow-md">
         <div className="mt-6">
-
-          {/* Mensajes */}
-          {error && <p className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg text-sm">{error}</p>}
-          {message && <p className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">{message}</p>}
 
           {/* Cards */}
           <div className="flex gap-6 flex-wrap">

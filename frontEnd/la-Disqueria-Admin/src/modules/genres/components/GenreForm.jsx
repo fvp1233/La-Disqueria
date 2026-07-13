@@ -16,7 +16,7 @@ export function GenreForm({ onClose, onSuccess, genre, mode = "edit" }) {
   const [internalMode, setInternalMode] = useState(mode)
   const isReadOnly = internalMode === "view"
 
-  const { saveGenre, submitting, error } = useGenres()
+  const { saveGenre, submitting } = useGenres()
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues })
 
@@ -44,8 +44,6 @@ export function GenreForm({ onClose, onSuccess, genre, mode = "edit" }) {
 
   return (
     <>
-      {error && <p className="mb-3 p-3 bg-red-100 text-red-700 rounded-lg text-xs">{error}</p>}
-
       <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
         <div>
           <Label>Nombre del género *</Label>

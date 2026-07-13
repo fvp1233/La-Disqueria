@@ -19,6 +19,7 @@ import {
 
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
+import { notifySuccess } from "@/global/lib/notifications"
 
 export function DropdownMenuAvatar() {
   const navigate = useNavigate()
@@ -26,6 +27,7 @@ export function DropdownMenuAvatar() {
 
   const handleLogout = async () => {
     await logout()
+    notifySuccess("Sesión cerrada correctamente")
     navigate("/")
   }
 

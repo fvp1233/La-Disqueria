@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const API_URL = "http://localhost:4000/api";
 
@@ -9,6 +9,47 @@ export function AuthProvider({ children }) {
     const stored = localStorage.getItem("adminUser");
     return stored ? JSON.parse(stored) : null;
   });
+  // checkingSession empieza en true: mientras no confirmemos la cookie con el
+  // backend, las rutas protegidas no deben decidir si dejan pasar o no.
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // Al cargar la app (o refrescar), confirma contra el backend que la cookie
+  // sigue siendo válida. Si no lo es, limpia cualquier rastro en localStorage
+  // para que nadie quede "logeado" solo porque el dato quedó guardado ahí.
+  useEffect(() => {
+    let cancelled = false;
+
+    const verifySession = async () => {
+      try {
+        const response = await fetch(`${API_URL}/login/verify`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Invalid session");
+        }
+
+        const data = await response.json();
+        if (cancelled) return;
+
+        setUser(data.user);
+        localStorage.setItem("adminUser", JSON.stringify(data.user));
+      } catch {
+        if (cancelled) return;
+        setUser(null);
+        localStorage.removeItem("adminUser");
+      } finally {
+        if (!cancelled) setCheckingSession(false);
+      }
+    };
+
+    verifySession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const login = async (email, password) => {
     const response = await fetch(`${API_URL}/login`, {
@@ -53,7 +94,9 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, checkingSession, login, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

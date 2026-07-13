@@ -1,24 +1,22 @@
 import { useState, useEffect } from "react";
+import { notifySuccess, notifyError, confirmDelete } from "@/global/lib/notifications";
 
 const API_URL = "http://localhost:4000/api/genres";
 
 const useGenres = () => {
   const [genres, setGenres] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const fetchGenres = async () => {
     try {
       setLoading(true);
-      setError("");
       const response = await fetch(API_URL, { credentials: "include" });
       if (!response.ok) throw new Error("No se pudo obtener los géneros");
       const data = await response.json();
       setGenres(data);
     } catch (err) {
-      setError(err.message || "Error al cargar los géneros");
+      notifyError(err.message || "Error al cargar los géneros");
     } finally {
       setLoading(false);
     }
@@ -31,8 +29,6 @@ const useGenres = () => {
   const saveGenre = async (id, data) => {
     try {
       setSubmitting(true);
-      setError("");
-      setMessage("");
 
       const url = id ? `${API_URL}/${id}` : API_URL;
       const method = id ? "PUT" : "POST";
@@ -47,11 +43,11 @@ const useGenres = () => {
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || `Error HTTP: ${response.status}`);
 
-      setMessage(id ? "Género actualizado con éxito" : "Género creado con éxito");
+      notifySuccess(id ? "Género actualizado con éxito" : "Género creado con éxito");
       await fetchGenres();
       return true;
     } catch (err) {
-      setError(err.message || "Error al guardar el género");
+      notifyError(err.message || "Error al guardar el género");
       return false;
     } finally {
       setSubmitting(false);
@@ -59,24 +55,21 @@ const useGenres = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("¿Estás seguro de eliminar este género?")) return;
+    const confirmed = await confirmDelete({ text: "¿Estás seguro de eliminar este género?" });
+    if (!confirmed) return;
     try {
-      setError("");
-      setMessage("");
       const response = await fetch(`${API_URL}/${id}`, { method: "DELETE", credentials: "include" });
       if (!response.ok) throw new Error("No se pudo eliminar el género");
-      setMessage("Género eliminado correctamente");
+      notifySuccess("Género eliminado correctamente");
       await fetchGenres();
     } catch (err) {
-      setError(err.message || "Error al eliminar el género");
+      notifyError(err.message || "Error al eliminar el género");
     }
   };
 
   return {
     genres,
     loading,
-    error,
-    message,
     submitting,
     saveGenre,
     handleDelete,
