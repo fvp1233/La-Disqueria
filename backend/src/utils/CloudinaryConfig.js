@@ -15,7 +15,7 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: "la_disqueria",
-    allowed_formats: ["jpg", "png", "jpeg", "gif", "pdf"]
+    allowed_formats: ["jpg", "png", "jpeg", "gif", "pdf", "webp"]
   },
 });
 

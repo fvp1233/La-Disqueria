@@ -76,7 +76,7 @@ artistController.insertArtist = async (req, res) => {
       data: payload,
     });
   } catch (error) {
-    console.log(error);
+    console.log("Error inserting artist:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -8,10 +8,10 @@ import { Label } from "@/global/components/Label"
 import { Textarea } from "@/global/components/Textarea"
 import { Button } from "@/global/components/button"
 import useArtists from "@/modules/artists/hooks/useArtists"
+import useGenres from "@/modules/genres/hooks/useGenres"
 
 const defaultValues = {
   name: "",
-  genre: "",
   origin: "",
   biography: "",
   spotify: "",
@@ -24,8 +24,26 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
   const isReadOnly = internalMode === "view"
 
   const { saveArtist, submitting, error } = useArtists()
+  const { genres } = useGenres()
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm({ defaultValues })
+
+  const [selectedGenres, setSelectedGenres] = useState([])
+  const [openGenresModal, setOpenGenresModal] = useState(false)
+  const [genreSearch, setGenreSearch] = useState("")
+
+  const toggleGenre = (genre) => {
+    const exists = selectedGenres.find((g) => g._id === genre._id)
+    if (exists) {
+      setSelectedGenres((prev) => prev.filter((g) => g._id !== genre._id))
+    } else {
+      setSelectedGenres((prev) => [...prev, genre])
+    }
+  }
+
+  const filteredGenres = genres.filter((g) =>
+    g.name?.toLowerCase().includes(genreSearch.toLowerCase())
+  )
 
   const [imageFile, setImageFile] = useState(null)
   const [preview, setPreview] = useState(null)
@@ -39,12 +57,12 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
 
     if (!artist) {
       reset(defaultValues)
+      setSelectedGenres([])
       setPreview(null)
       return
     }
     reset({
       name: artist.name || "",
-      genre: (artist.genre || []).join(", "),
       origin: artist.origin || "",
       biography: artist.biography || "",
       spotify: artist.social_links?.spotify || "",
@@ -53,6 +71,12 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
     })
     setPreview(artist.image || null)
   }, [artist, reset])
+
+  useEffect(() => {
+    if (!artist) return
+    const artistGenreNames = artist.genre || []
+    setSelectedGenres(genres.filter((g) => artistGenreNames.includes(g.name)))
+  }, [artist, genres])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
@@ -67,10 +91,7 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
     formData.append("name", data.name)
     formData.append("origin", data.origin)
     formData.append("biography", data.biography)
-    formData.append(
-      "genre",
-      JSON.stringify(data.genre.split(",").map((v) => v.trim()).filter(Boolean))
-    )
+    formData.append("genre", JSON.stringify(selectedGenres.map((g) => g.name)))
     formData.append(
       "social_links",
       JSON.stringify({
@@ -134,8 +155,27 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
           </div>
 
           <div>
-            <Label>Géneros (separados por comas)</Label>
-            <Input {...register("genre")} disabled={isReadOnly} placeholder="Ej: Rock, Pop" className={inputClass(errors.genre)} />
+            <Label>Géneros</Label>
+            <div className="border rounded-lg p-2 h-[74px] flex flex-col gap-1.5 overflow-y-auto">
+              {selectedGenres.length === 0 && (
+                <p className="text-xs text-gray-400 text-center mt-2">Sin géneros seleccionados</p>
+              )}
+              {selectedGenres.map((g) => (
+                <div key={g._id} className="flex items-center gap-2 border rounded-md px-2 py-1">
+                  <p className="flex-1 text-xs font-medium">{g.name}</p>
+                  {!isReadOnly && (
+                    <button type="button" onClick={() => toggleGenre(g)} className="text-red-400 text-xs hover:underline">
+                      Quitar
+                    </button>
+                  )}
+                </div>
+              ))}
+              {!isReadOnly && (
+                <button type="button" onClick={() => setOpenGenresModal(true)} className="text-xs text-red-400 hover:bg-red-50 border p-1 rounded">
+                  + Agregar género
+                </button>
+              )}
+            </div>
           </div>
 
           <div>
@@ -174,6 +214,37 @@ export function ArtistForm({ onClose, onSuccess, artist, mode = "edit" }) {
           )}
         </div>
       </form>
+
+      {/* Modal géneros */}
+      {openGenresModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl w-[800px] max-h-[85vh] flex flex-col p-5">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold">Seleccionar géneros</h2>
+              <input type="text" placeholder="Buscar por nombre..." value={genreSearch} onChange={(e) => setGenreSearch(e.target.value)}
+                className="mt-3 w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-200" />
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+              {filteredGenres.map((g) => {
+                const isSelected = selectedGenres.find((sel) => sel._id === g._id)
+                return (
+                  <div key={g._id} onClick={() => toggleGenre(g)}
+                    className={`flex items-center gap-4 p-3 rounded-lg border cursor-pointer ${isSelected ? "bg-red-50 border-red-300" : "hover:bg-gray-50"}`}
+                  >
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">{g.name}</p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <span className="text-sm text-gray-500">{selectedGenres.length} género(s) seleccionado(s)</span>
+              <Button variant="cancel" onClick={() => setOpenGenresModal(false)}>Cerrar</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
