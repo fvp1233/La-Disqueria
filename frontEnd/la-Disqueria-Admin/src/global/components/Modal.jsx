@@ -28,12 +28,12 @@ export function Modal({
       {/* Modal */}
       <div
         className={cn(
-          "relative bg-[#F5F6F1] rounded-2xl shadow-xl w-full p-6 overflow-hidden flex flex-col",
+          "relative bg-[#F5F6F1] rounded-2xl shadow-xl w-full max-h-[90vh] p-6 overflow-hidden flex flex-col",
           sizes[size]
         )}
       >
         {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 shrink-0">
           <h2 className="text-base font-semibold text-gray-600">
             {title}
           </h2>
@@ -44,7 +44,7 @@ export function Modal({
         </div>
 
         {/* Body scrollable */}
-        <div className="overflow-y-auto pr-2">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-2">
           {children}
         </div>
       </div>

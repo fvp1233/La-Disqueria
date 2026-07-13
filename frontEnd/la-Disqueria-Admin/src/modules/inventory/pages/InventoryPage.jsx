@@ -1,112 +1,49 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
-import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
+import { InventoryForm } from "@/modules/inventory/components/InventoryForm";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
+import useInventory from "@/modules/inventory/hooks/useInventory";
 
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
+  Table, TableHeader, TableBody,
+  TableHead, TableRow, TableCell,
 } from "@/global/components/Table";
 
-export default function InventarioPage() {
-  const navigate = useNavigate();
+export default function InventoryPage() {
+  const {
+    inventory,
+    loading,
+    handleDelete,
+    fetchInventory,
+  } = useInventory();
 
   const [search, setSearch] = useState("");
-  const [inventory, setInventory] = useState([]);
   const [openRow, setOpenRow] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [mode, setMode] = useState("edit");
+  const [filterCategory, setFilterCategory] = useState(null);
+  const [filterValue, setFilterValue] = useState("all");
 
-  useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem("inventory"));
-
-    if (guardados && guardados.length > 0) {
-      setInventory(guardados);
-      return;
-    }
-
-    const baseInventory = [
-      {
-        product_id: "disc_1",
-        product_type: "cd",
-        sku: "CD-OLIVIA-001",
-        stock: 10,
-        location: "A1",
-        supplier_id: [{ supplier_id: "SUP-001" }],
-      },
-      {
-        product_id: "disc_2",
-        product_type: "cd",
-        sku: "CD-WEEKND-002",
-        stock: 2,
-        location: "A2",
-        supplier_id: [{ supplier_id: "SUP-002" }],
-      },
-      {
-        product_id: "disc_3",
-        product_type: "vinilo",
-        sku: "VIN-AM-003",
-        stock: 0,
-        location: "B1",
-        supplier_id: [{ supplier_id: "SUP-003" }],
-      },
-      {
-        product_id: "acc_1",
-        product_type: "accessory",
-        sku: "ACC-AUX-001",
-        stock: 15,
-        location: "C1",
-        supplier_id: [{ supplier_id: "SUP-004" }],
-      },
-      {
-        product_id: "acc_2",
-        product_type: "accessory",
-        sku: "ACC-SLEEVE-002",
-        stock: 0,
-        location: "C2",
-        supplier_id: [{ supplier_id: "SUP-005" }],
-      },
-      {
-        product_id: "acc_3",
-        product_type: "accessory",
-        sku: "ACC-CLEAN-003",
-        stock: 6,
-        location: "C3",
-        supplier_id: [{ supplier_id: "SUP-006" }],
-      },
-    ];
-
-    setInventory(baseInventory);
-    localStorage.setItem("inventory", JSON.stringify(baseInventory));
-  }, []);
-
-  const handleDelete = (index) => {
-    const updated = [...inventory];
-    updated.splice(index, 1);
-
-    setInventory(updated);
-    localStorage.setItem("inventory", JSON.stringify(updated));
+  const handleSuccess = async () => {
+    await fetchInventory();
+    setOpen(false);
+    setSelectedItem(null);
   };
 
-  const handleEdit = (index) => {
-    const item = inventory[index];
-
-    localStorage.setItem(
-      "editInventory",
-      JSON.stringify({ item, index })
-    );
-
-    navigate(`/inventory/add`);
+  const handleFilterChange = (category, value) => {
+    setFilterCategory(category);
+    setFilterValue(value);
+    setPage(1);
   };
 
- 
   const getEstado = (stock) => {
     if (stock === 0) return { text: "Agotado", color: "bg-red-400 text-white" };
     if (stock <= 5) return { text: "Bajo", color: "bg-yellow-300 text-black" };
@@ -115,19 +52,69 @@ export default function InventarioPage() {
 
   const getTipoLabel = (tipo) => {
     if (tipo === "cd") return "CD";
-    if (tipo === "vinilo") return "Vinilo";
-    return "Accesorio";
+    if (tipo === "vinyl") return "Vinilo";
+    if (tipo === "turntable") return "Tocadiscos";
+    if (tipo === "accessory") return "Accesorio";
+    return tipo;
   };
 
-  const filtered = inventory.filter((item) =>
-    item?.sku?.toLowerCase().includes(search.toLowerCase())
-  );
+  const getSupplierNames = (item) =>
+    (item.supplierId || [])
+      .map((s) => s.supplierId?.companny || s.supplierId?.company)
+      .filter(Boolean);
+
+  const supplierNames = [...new Set(inventory.flatMap((item) => getSupplierNames(item)))];
+
+  const filterGroups = [
+    {
+      key: "estado",
+      label: "Estado",
+      options: [
+        { label: "Todos", value: "all" },
+        { label: "Disponible", value: "Disponible" },
+        { label: "Bajo", value: "Bajo" },
+        { label: "Agotado", value: "Agotado" },
+      ],
+    },
+    {
+      key: "proveedor",
+      label: "Proveedor",
+      options: [
+        { label: "Todos", value: "all" },
+        ...supplierNames.map((name) => ({ label: name, value: name })),
+      ],
+    },
+  ];
+
+  const filtered = inventory
+    .filter((item) => {
+      if (!filterCategory || filterValue === "all") return true;
+      if (filterCategory === "estado") return getEstado(item.stock).text === filterValue;
+      if (filterCategory === "proveedor") return getSupplierNames(item).includes(filterValue);
+      return true;
+    })
+    .filter(item =>
+      item?.sku?.toLowerCase().includes(search.toLowerCase())
+    );
+
+  const {
+    paginatedData: paginated,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filtered, 10);
+
+  if (loading) return <p className="p-6">Cargando inventario...</p>;
 
   return (
     <div>
-      <div className="bg-white p-6 rounded-2xl shadow-md relative">
-
+      <div className="bg-white p-6 rounded-2xl shadow-md">
         <div className="mt-6">
+
+          {/* Cards */}
           <div className="flex gap-6 flex-wrap">
             <Card
               title="Total Productos"
@@ -159,32 +146,41 @@ export default function InventarioPage() {
             />
           </div>
 
+          {/* Buscador y botón */}
           <div className="mt-8 flex justify-between items-center">
             <div className="flex gap-4 items-center">
               <InputGroupInlineStart
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
               />
-              <Button variant="filter">
-                <p className="text-base">Filtrar</p>
-                <SlidersHorizontal className="w-4 h-4" />
-              </Button>
+              <MultiFilterDropdown
+                filters={filterGroups}
+                activeFilter={filterCategory}
+                value={filterValue}
+                onChange={handleFilterChange}
+              />
             </div>
-
             <Button
               variant="cd"
-              onClick={() => navigate(`/inventory/add`)}
+              onClick={() => {
+                setSelectedItem(null);
+                setMode("edit");
+                setOpen(true);
+              }}
             >
               <Plus className="w-4 h-4" />
               <p className="text-base">Agregar</p>
             </Button>
           </div>
 
+          {/* Tabla */}
           <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Product ID</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Stock</TableHead>
@@ -196,48 +192,47 @@ export default function InventarioPage() {
               </TableHeader>
 
               <TableBody>
-                {filtered.map((item, i) => {
+                {paginated.map((item, i) => {
                   const estado = getEstado(item.stock);
                   const isOpen = openRow === i;
 
                   return (
-                    <React.Fragment key={i}>
+                    <React.Fragment key={item._id}>
                       <TableRow
                         onClick={() => setOpenRow(isOpen ? null : i)}
                         className="cursor-pointer hover:bg-gray-50 transition"
                       >
-                        <TableCell>{item.product_id}</TableCell>
-                        <TableCell>{getTipoLabel(item.product_type)}</TableCell>
+                        <TableCell>{getTipoLabel(item.productType)}</TableCell>
                         <TableCell>{item.sku}</TableCell>
                         <TableCell>{item.stock}</TableCell>
                         <TableCell>{item.location}</TableCell>
-
                         <TableCell>
-                          {item.supplier_id?.map((s, idx) => (
-                            <span key={idx}>{s.supplier_id} </span>
+                          {item.supplierId?.map((s, idx) => (
+                            <span key={idx} className="text-xs text-gray-500">
+                              {s.supplierId?.companny || s.supplierId?.company || s.supplierId?.toString()}{" "}
+                            </span>
                           ))}
                         </TableCell>
-
                         <TableCell>
                           <span className={`px-3 py-1 rounded-full text-xs ${estado.color}`}>
                             {estado.text}
                           </span>
                         </TableCell>
-
                         <TableCell className="flex gap-2">
                           <Pencil
-                            className="w-4 h-4 cursor-pointer text-gray-500"
+                            className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEdit(i);
+                              setSelectedItem(item);
+                              setMode("edit");
+                              setOpen(true);
                             }}
                           />
-
                           <Trash2
-                            className="w-4 h-4 cursor-pointer text-red-400"
+                            className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDelete(i);
+                              handleDelete(item._id);
                             }}
                           />
                         </TableCell>
@@ -245,16 +240,17 @@ export default function InventarioPage() {
 
                       {isOpen && (
                         <TableRow>
-                          <TableCell colSpan={8}>
+                          <TableCell colSpan={7}>
                             <div className="bg-white rounded-xl p-4 shadow-inner grid grid-cols-2 gap-4 text-sm">
-                              <div><b>Product ID:</b> {item.product_id}</div>
-                              <div><b>Tipo:</b> {getTipoLabel(item.product_type)}</div>
+                              <div><b>Tipo:</b> {getTipoLabel(item.productType)}</div>
                               <div><b>SKU:</b> {item.sku}</div>
-                              <div><b>Ubicación:</b> {item.location}</div>
                               <div><b>Stock:</b> {item.stock}</div>
+                              <div><b>Ubicación:</b> {item.location}</div>
                               <div>
                                 <b>Proveedor:</b>{" "}
-                                {item.supplier_id?.map(s => s.supplier_id).join(", ")}
+                                {item.supplierId?.map(s =>
+                                  s.supplierId?.companny || s.supplierId?.company || s.supplierId?.toString()
+                                ).join(", ")}
                               </div>
                             </div>
                           </TableCell>
@@ -265,10 +261,45 @@ export default function InventarioPage() {
                 })}
               </TableBody>
             </Table>
+
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={(p) => {
+                setPage(p);
+                setOpenRow(null);
+              }}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setOpenRow(null);
+              }}
+            />
           </div>
 
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setSelectedItem(null);
+        }}
+        title={selectedItem ? "Editar Inventario" : "Agregar Producto"}
+        size="lg"
+      >
+        <InventoryForm
+          onClose={() => {
+            setOpen(false);
+            setSelectedItem(null);
+          }}
+          onSuccess={handleSuccess}
+          item={selectedItem}
+        />
+      </Modal>
     </div>
   );
 }

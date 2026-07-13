@@ -1,7 +1,8 @@
-import { useState } from "react"
-import { Plus } from "lucide-react"
+import { useState } from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
-import Card from "@/global/components/Card"
+// Componentes reutilizables
+import Card from "@/global/components/Card";
 import {
   Table,
   TableHeader,
@@ -9,183 +10,249 @@ import {
   TableHead,
   TableRow,
   TableCell,
-} from "@/global/components/Table"
-import { InputGroupInlineStart } from "@/global/components/SearchInput"
-import { Button } from "@/global/components/button"
-import { Modal } from "@/global/components/Modal"
-import { CustomerForm } from "@/modules/customers/components/CustomerForm"
-import { FilterDropdown } from "@/global/components/FilterDropdown"
+} from "@/global/components/Table";
+import { InputGroupInlineStart } from "@/global/components/SearchInput";
+import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { CustomerForm } from "@/modules/customers/components/CustomerForm";
+import { FilterDropdown } from "@/global/components/FilterDropdown";
+import { StatusBadge } from "@/global/components/StatusBadge";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
 
-const clientes = [
-  {
-    id: "#CL001",
-    imagen: "/clientes/c1.jpg",
-    nombre: "Gabriela",
-    apellido: "Castillo",
-    correo: "gabriela@gmail.com",
-    telefono: "+503 7123-4567",
-    direccion: "Colonia Escalón, San Salvador",
-    activo: "Activo",
-  },
-  {
-    id: "#CL002",
-    imagen: "/clientes/c2.jpg",
-    nombre: "Carlos",
-    apellido: "Hernández",
-    correo: "carlos@gmail.com",
-    telefono: "+503 7234-5678",
-    direccion: "Santa Tecla, La Libertad",
-    activo: "Activo",
-  },
-  {
-    id: "#CL003",
-    imagen: "/clientes/c3.jpg",
-    nombre: "Andrea",
-    apellido: "Martínez",
-    correo: "andrea@gmail.com",
-    telefono: "+503 7345-6789",
-    direccion: "San Miguel",
-    activo: "Inactivo",
-  },
-  // --- Nuevos Registros ---
-  {
-    id: "#CL004",
-    imagen: "/clientes/c4.jpg",
-    nombre: "Roberto",
-    apellido: "Guzmán",
-    correo: "roberto.g@outlook.com",
-    telefono: "+503 7456-1122",
-    direccion: "Antiguo Cuscatlán, La Libertad",
-    activo: "Activo",
-  },
-  {
-    id: "#CL005",
-    imagen: "/clientes/c5.jpg",
-    nombre: "Lucía",
-    apellido: "Villalobos",
-    correo: "lu.villa@yahoo.com",
-    telefono: "+503 7567-3344",
-    direccion: "Colonia San Benito, San Salvador",
-    activo: "Activo",
-  },
-  {
-    id: "#CL006",
-    imagen: "/clientes/c6.jpg",
-    nombre: "Fernando",
-    apellido: "Quinteros",
-    correo: "f.quinteros@gmail.com",
-    telefono: "+503 7678-5566",
-    direccion: "Sonsonate, Centro",
-    activo: "Inactivo",
-  },
-];
+// Hook con el GET/POST/PUT/DELETE reales de clientes
+import useCustomers from "@/modules/customers/hooks/useCustomers";
 
 export default function CustomersPage() {
-  const [open, setOpen] = useState(false)
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
-  const [contextMenu, setContextMenu] = useState(null)
-  const [mode, setMode] = useState("view")
-  const [statusFilter, setStatusFilter] = useState("all")
 
-  const filteredCustomers = clientes.filter((c) => {
-    if (statusFilter === "all") return true
-    return c.activo === statusFilter
-  })
+  const {
+    customers,
+    loading,
+    handleDelete,
+    fetchCustomers,
+  } = useCustomers();
+
+  // Controla la apertura del modal
+  const [open, setOpen] = useState(false);
+
+  // Cliente seleccionado para ver o editar
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  // Información del menú contextual
+  const [contextMenu, setContextMenu] = useState(null);
+
+  // Modo del formulario: view o edit
+  const [mode, setMode] = useState("view");
+
+  // Filtro de estado (Todos, Activo, Inactivo)
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  // Texto de búsqueda
+  const [search, setSearch] = useState("");
+
+  const handleSuccess = async () => {
+    await fetchCustomers();
+    setOpen(false);
+    setSelectedCustomer(null);
+  };
+
+  // Filtra los clientes según el estado seleccionado y el texto de búsqueda
+  const filteredCustomers = customers
+    .filter((c) => {
+
+      if (statusFilter === "all") return true;
+
+      return statusFilter === "Activo"
+        ? c.is_active
+        : !c.is_active;
+    })
+    .filter((c) =>
+      `${c.name || ""} ${c.last_name || ""}`.toLowerCase().includes(search.toLowerCase()) ||
+      (c.email || "").toLowerCase().includes(search.toLowerCase())
+    );
+
+  const {
+    paginatedData: paginatedCustomers,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filteredCustomers, 10);
+
+  if (loading) return <p className="p-6">Cargando clientes...</p>;
 
   return (
+
+    // Al hacer click fuera del menú contextual lo cierra
     <div onClick={() => setContextMenu(null)}>
 
-      {/* TARJETAS */}
+      {/* TARJETAS DE RESUMEN */}
       <div className="flex gap-6 flex-wrap justify-evenly">
-        <Card title="Total de clientes" value="6" change="+5%" changeText="Que el mes pasado" color="#EFA4B1" />
-        <Card title="Nuevos clientes" value="1" change="+18%" changeText="Que el mes pasado" color="#A9BDE5" />
-        <Card title="Cliente destacado" value="Andrea Martínez" color="#E8D6A7" />
+
+        {/* Total de clientes */}
+        <Card
+          title="Total de clientes"
+          value={customers.length}
+          color="#EFA4B1"
+        />
+
+        {/* Clientes activos */}
+        <Card
+          title="Clientes activos"
+          value={customers.filter((c) => c.is_active).length}
+          color="#A9BDE5"
+        />
+
+        {/* Clientes inactivos */}
+        <Card
+          title="Clientes inactivos"
+          value={customers.filter((c) => !c.is_active).length}
+          color="#E8D6A7"
+        />
+
       </div>
 
       {/* HEADER */}
       <div className="mt-8 flex justify-between items-center">
-        <div className="flex gap-4 items-center">
-          <InputGroupInlineStart />
 
+        <div className="flex gap-4 items-center">
+
+          {/* Barra de búsqueda */}
+          <InputGroupInlineStart
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
+
+          {/* Filtro por estado */}
           <FilterDropdown
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
             options={[
               { label: "Todos", value: "all" },
               { label: "Activo", value: "Activo" },
               { label: "Inactivo", value: "Inactivo" },
             ]}
           />
+
         </div>
 
+        {/* Botón para agregar un nuevo cliente */}
         <Button
           variant="cd"
           onClick={() => {
-            setMode("edit")
-            setSelectedCustomer(null)
-            setOpen(true)
+            setMode("edit");
+            setSelectedCustomer(null);
+            setOpen(true);
           }}
         >
           <Plus className="w-5 h-5" />
           <p className="text-sm py-1 px-2">Agregar</p>
         </Button>
+
       </div>
 
-      {/* TABLA */}
+      {/* TABLA DE CLIENTES */}
       <div className="mt-5 w-full mb-5">
+
         <Table className="min-w-[1000px]">
+
           <TableHeader>
             <TableRow>
-              <TableHead>Imagen</TableHead>
               <TableHead>Id</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Apellido</TableHead>
               <TableHead>Correo</TableHead>
               <TableHead>Teléfono</TableHead>
-              <TableHead>Dirección</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {filteredCustomers.map((c, index) => (
+
+            {paginatedCustomers.map((c, index) => (
+
               <TableRow
-                key={index}
+                key={c._id}
                 className="cursor-pointer"
+
+                // Doble click para ver detalles
                 onDoubleClick={() => {
-                  setSelectedCustomer(c)
-                  setMode("view")
-                  setOpen(true)
+                  setSelectedCustomer(c);
+                  setMode("view");
+                  setOpen(true);
                 }}
+
+                // Click derecho para mostrar menú contextual
                 onContextMenu={(e) => {
-                  e.preventDefault()
+                  e.preventDefault();
+
                   setContextMenu({
                     x: e.clientX,
                     y: e.clientY,
                     customer: c,
-                  })
+                  });
                 }}
               >
+                <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
+                <TableCell>{c.name}</TableCell>
+                <TableCell>{c.last_name}</TableCell>
+                <TableCell>{c.email}</TableCell>
+                <TableCell>{c.phone}</TableCell>
+
+                {/* Estado del cliente */}
                 <TableCell>
-                  <img
-                    src={c.imagen}
-                    className="w-10 h-10 rounded-full object-cover"
+                  <StatusBadge estado={c.is_active ? "Activo" : "Inactivo"} />
+                </TableCell>
+
+                {/* Acciones */}
+                <TableCell className="flex gap-2">
+                  <Pencil
+                    className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCustomer(c);
+                      setMode("edit");
+                      setOpen(true);
+                    }}
+                  />
+                  <Trash2
+                    className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(c._id);
+                    }}
                   />
                 </TableCell>
-                <TableCell>{c.id}</TableCell>
-                <TableCell>{c.nombre}</TableCell>
-                <TableCell>{c.apellido}</TableCell>
-                <TableCell>{c.correo}</TableCell>
-                <TableCell className="whitespace-nowrap">{c.telefono}</TableCell>
-                <TableCell>{c.direccion}</TableCell>
-                <TableCell>{c.activo}</TableCell>
+
               </TableRow>
+
             ))}
+
           </TableBody>
+
         </Table>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
+
       </div>
 
-      {/* MENU CONTEXTUAL */}
+      {/* MENÚ CONTEXTUAL */}
       {contextMenu && (
         <div
           className="fixed z-50 bg-white rounded-xl shadow-lg border w-40"
@@ -194,39 +261,44 @@ export default function CustomersPage() {
             left: contextMenu.x,
           }}
         >
+
+          {/* Ver cliente */}
           <div
             className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
             onClick={() => {
-              setSelectedCustomer(contextMenu.customer)
-              setMode("view")
-              setOpen(true)
-              setContextMenu(null)
+              setSelectedCustomer(contextMenu.customer);
+              setMode("view");
+              setOpen(true);
+              setContextMenu(null);
             }}
           >
             Ver
           </div>
 
+          {/* Editar cliente */}
           <div
             className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
             onClick={() => {
-              setSelectedCustomer(contextMenu.customer)
-              setMode("edit")
-              setOpen(true)
-              setContextMenu(null)
+              setSelectedCustomer(contextMenu.customer);
+              setMode("edit");
+              setOpen(true);
+              setContextMenu(null);
             }}
           >
             Editar
           </div>
 
+          {/* Eliminar cliente */}
           <div
             className="px-4 py-2 hover:bg-red-100 text-red-500 cursor-pointer"
             onClick={() => {
-              console.log("Eliminar:", contextMenu.customer)
-              setContextMenu(null)
+              handleDelete(contextMenu.customer._id);
+              setContextMenu(null);
             }}
           >
             Eliminar
           </div>
+
         </div>
       )}
 
@@ -234,24 +306,31 @@ export default function CustomersPage() {
       <Modal
         open={open}
         onClose={() => {
-          setOpen(false)
-          setSelectedCustomer(null)
+          setOpen(false);
+          setSelectedCustomer(null);
         }}
+
         title={
           !selectedCustomer
             ? "Agregar cliente"
             : mode === "view"
-              ? "Detalle de cliente"
-              : "Editar cliente"
+            ? "Detalle de cliente"
+            : "Editar cliente"
         }
+
         size="md"
       >
         <CustomerForm
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            setSelectedCustomer(null);
+          }}
+          onSuccess={handleSuccess}
           customer={selectedCustomer}
           mode={mode}
         />
       </Modal>
+
     </div>
-  )
+  );
 }

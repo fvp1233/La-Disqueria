@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { Plus } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 
 import Card from "@/global/components/Card"
 import {
@@ -17,151 +17,89 @@ import { Button } from "@/global/components/button"
 import { Modal } from "@/global/components/Modal"
 import { OrderForm } from "@/modules/orders/components/OrderForm"
 import { FilterDropdown } from "@/global/components/FilterDropdown"
-
-const ordenes = [
-  {
-    orderid: "#01542d415s",
-    cliente: "Gabriela Isabel Castillo",
-    precio: "$89.54",
-    estado: "Entregado",
-    descuento: "10%",
-    metodo_de_pago: "Nequi",
-    fecha_de_entrega: "06 de abril del 2026",
-
-    subtotal: 99.54,
-    envio: 0,
-    total: 89.54,
-    direccion: {
-      calle: "Colonia Escalón",
-      ciudad: "San Salvador",
-      departamento: "San Salvador",
-      pais: "El Salvador",
-    },
-    estado_pago: "Pagado",
-    notas: "Cliente frecuente",
-  },
-  {
-    orderid: "#01542d415s",
-    cliente: "Victoria Guadalupe Mena",
-    precio: "$78.99",
-    estado: "Entregado",
-    descuento: "-",
-    metodo_de_pago: "Tarjeta de Débito",
-    fecha_de_entrega: "17 de marzo del 2026",
-
-    subtotal: 78.99,
-    envio: 0,
-    total: 78.99,
-    direccion: {
-      calle: "Colonia Miralvalle",
-      ciudad: "Santa Tecla",
-      departamento: "La Libertad",
-      pais: "El Salvador",
-    },
-    estado_pago: "Pagado",
-    notas: "",
-  },
-  {
-    orderid: "#01242e415s",
-    cliente: "Isabel del Carmén Portillo",
-    precio: "$48.99",
-    estado: "Entregado",
-    descuento: "20%",
-    metodo_de_pago: "Efectivo",
-    fecha_de_entrega: "11 de marzo del 2026",
-
-    subtotal: 61.24,
-    envio: 0,
-    total: 48.99,
-    direccion: {
-      calle: "Colonia San Benito",
-      ciudad: "San Salvador",
-      departamento: "San Salvador",
-      pais: "El Salvador",
-    },
-    estado_pago: "Pagado",
-    notas: "Aplicar descuento especial",
-  },
-  {
-    orderid: "#01242e415s",
-    cliente: "Fabiola Nicole Fuentes",
-    precio: "$104.99",
-    estado: "En camino",
-    descuento: "-",
-    metodo_de_pago: "Nequi",
-    fecha_de_entrega: "-",
-
-    subtotal: 99.99,
-    envio: 5,
-    total: 104.99,
-    direccion: {
-      calle: "Colonia Flor Blanca",
-      ciudad: "San Salvador",
-      departamento: "San Salvador",
-      pais: "El Salvador",
-    },
-    estado_pago: "No pagado",
-    notas: "Entrega urgente",
-  },
-  {
-    orderid: "#01875f415g",
-    cliente: "Monica Alejandra Giron",
-    precio: "$64.99",
-    estado: "En camino",
-    descuento: "-",
-    metodo_de_pago: "Efectivo",
-    fecha_de_entrega: "-",
-
-    subtotal: 59.99,
-    envio: 5,
-    total: 64.99,
-    direccion: {
-      calle: "Colonia Escalón",
-      ciudad: "San Salvador",
-      departamento: "San Salvador",
-      pais: "El Salvador",
-    },
-    estado_pago: "No pagado",
-    notas: "",
-  },
-];
+import { Pagination } from "@/global/components/Pagination"
+import usePagination from "@/global/hooks/usePagination"
+import useOrders from "@/modules/orders/hooks/useOrders"
 
 export default function OrdersPage() {
 
+  const {
+    orders,
+    loading,
+    handleDelete,
+    fetchOrders,
+  } = useOrders()
+
   const [open, setOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState("all")
+  const [search, setSearch] = useState("")
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [contextMenu, setContextMenu] = useState(null)
   const [mode, setMode] = useState("view")
 
-  const filteredOrders = ordenes.filter((orden) => {
-    if (statusFilter === "all") return true
-    return orden.estado === statusFilter
-  })
+  const handleSuccess = async () => {
+    await fetchOrders()
+    setOpen(false)
+    setSelectedOrder(null)
+  }
+
+  const filteredOrders = orders
+    .filter((order) => statusFilter === "all" || order.status === statusFilter)
+    .filter((order) =>
+      order.order_number?.toLowerCase().includes(search.toLowerCase()) ||
+      order.customerId?.name?.toLowerCase().includes(search.toLowerCase())
+    )
+
+  const {
+    paginatedData: paginatedOrders,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filteredOrders, 10)
+
+  const totalIngresos = orders.reduce((acc, order) => acc + (order.total || 0), 0)
+  const pendientes = orders.filter((o) => o.status === "Pendiente" || o.status === "pendiente").length
+  const entregadas = orders.filter((o) => o.status === "Entregado").length
+
+  if (loading) return <p className="p-6">Cargando órdenes...</p>
 
   return (
     <div onClick={() => setContextMenu(null)}>
 
       {/* TARJETAS */}
       <div className="flex gap-6 flex-wrap">
-        <Card title="Total de accesorios" value="150" change="+5%" changeText="Que el mes pasado" color="#EFA4B1" />
-        <Card title="Ingresos de accesorios" value="$70,540" change="+18%" changeText="Que el mes pasado" color="#A9BDE5" />
-        <Card title="Con bajo stock" value="8" change="+33%" changeText="Que el mes pasado" color="#E8D6A7" />
-        <Card title="Accesorios agotados" value="5" change="-29%" changeText="Que el mes pasado" color="#E57373" />
+        <Card title="Total de órdenes" value={orders.length} color="#EFA4B1" />
+        <Card title="Ingresos totales" value={`$${totalIngresos.toLocaleString()}`} color="#A9BDE5" />
+        <Card title="Pendientes" value={pendientes} color="#E8D6A7" />
+        <Card title="Entregadas" value={entregadas} color="#E57373" />
       </div>
 
       {/* HEADER */}
       <div className="mt-8 flex justify-between items-center">
         <div className="flex gap-4 items-center">
-          <InputGroupInlineStart />
+          <InputGroupInlineStart
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
 
           <FilterDropdown
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => {
+              setStatusFilter(value)
+              setPage(1)
+            }}
             options={[
               { label: "Todos", value: "all" },
-              { label: "Entregado", value: "Entregado" },
+              { label: "Pendiente", value: "Pendiente" },
               { label: "En camino", value: "En camino" },
+              { label: "Entregado", value: "Entregado" },
+              { label: "Cancelado", value: "Cancelado" },
             ]}
           />
         </div>
@@ -186,22 +124,22 @@ export default function OrdersPage() {
             <TableRow>
               <TableHead>Orden Id</TableHead>
               <TableHead>Cliente</TableHead>
-              <TableHead>Precio</TableHead>
+              <TableHead>Total</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead>Descuento</TableHead>
               <TableHead>Método de pago</TableHead>
-              <TableHead>Fecha de entrega</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {filteredOrders.map((p, index) => (
+            {paginatedOrders.map((order) => (
               <TableRow
-                key={index}
-                className="cursor-pointer"
+                key={order._id}
+                className="cursor-pointer hover:bg-gray-50 transition"
 
                 onDoubleClick={() => {
-                  setSelectedOrder(p)
+                  setSelectedOrder(order)
                   setMode("view")
                   setOpen(true)
                 }}
@@ -211,21 +149,49 @@ export default function OrdersPage() {
                   setContextMenu({
                     x: e.clientX,
                     y: e.clientY,
-                    order: p,
+                    order,
                   })
                 }}
               >
-                <TableCell>{p.orderid}</TableCell>
-                <TableCell>{p.cliente}</TableCell>
-                <TableCell>{p.precio}</TableCell>
-                <TableCell><StatusBadge estado={p.estado} /></TableCell>
-                <TableCell>{p.descuento}</TableCell>
-                <TableCell>{p.metodo_de_pago}</TableCell>
-                <TableCell>{p.fecha_de_entrega}</TableCell>
+                <TableCell>{order.order_number}</TableCell>
+                <TableCell>{order.customerId?.name || "-"}</TableCell>
+                <TableCell>${(order.total || 0).toFixed(2)}</TableCell>
+                <TableCell><StatusBadge estado={order.status} /></TableCell>
+                <TableCell>{order.payment_method || "-"}</TableCell>
+                <TableCell>
+                  {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "-"}
+                </TableCell>
+                <TableCell className="flex gap-2">
+                  <Pencil
+                    className="w-4 h-4 cursor-pointer text-gray-500 hover:text-gray-700"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedOrder(order)
+                      setMode("edit")
+                      setOpen(true)
+                    }}
+                  />
+                  <Trash2
+                    className="w-4 h-4 cursor-pointer text-red-400 hover:text-red-600"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDelete(order._id)
+                    }}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
 
       {/* MENU CONTEXTUAL */}
@@ -236,6 +202,7 @@ export default function OrdersPage() {
             top: contextMenu.y,
             left: contextMenu.x,
           }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* VER */}
           <div
@@ -267,7 +234,7 @@ export default function OrdersPage() {
           <div
             className="px-4 py-2 hover:bg-red-100 text-red-500 cursor-pointer"
             onClick={() => {
-              console.log("Eliminar:", contextMenu.order)
+              handleDelete(contextMenu.order._id)
               setContextMenu(null)
             }}
           >
@@ -293,7 +260,11 @@ export default function OrdersPage() {
         size="full"
       >
         <OrderForm
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false)
+            setSelectedOrder(null)
+          }}
+          onSuccess={handleSuccess}
           order={selectedOrder}
           mode={mode}
         />

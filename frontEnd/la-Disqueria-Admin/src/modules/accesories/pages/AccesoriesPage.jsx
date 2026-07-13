@@ -1,240 +1,367 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+//Importamos React y hooks
+import React, { useState } from "react";
 
 import Card from "@/global/components/Card";
 import { InputGroupInlineStart } from "@/global/components/SearchInput";
-import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/global/components/button";
+import { Modal } from "@/global/components/Modal";
+import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
+import { AccessoryForm } from "@/modules/accesories/components/AccessoryForm";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
 
+import { Plus, Pencil, Trash2 } from "lucide-react";
+
+//componentes de tabla
 import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
+ Table,
+ TableHeader,
+ TableBody,
+ TableHead,
+ TableRow,
+ TableCell,
 } from "@/global/components/Table";
 
+//Hook con el GET/POST/PUT/DELETE reales de accesorios
+import useDataAccessories from "@/modules/accesories/hooks/useDataAccesories";
+
 export default function AccessoriesPage() {
-  const navigate = useNavigate();
+ //Estado para el texto de búsqueda
+ const [search, setSearch] = useState("");
 
-  const [search, setSearch] = useState("");
-  const [extraItems, setExtraItems] = useState([]);
-  const [openRow, setOpenRow] = useState(null);
+ //Guarda la fila actualmente expandida
+ const [openRow, setOpenRow] = useState(null);
 
-  useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem("accessories")) || [];
-    setExtraItems(guardados);
-  }, []);
+ //Estado del modal de agregar/editar
+ const [open, setOpen] = useState(false);
+ const [selectedAccessory, setSelectedAccessory] = useState(null);
 
-  // DELETE
-  const handleDelete = (index, isExtra) => {
-    if (!isExtra) return;
+ //Filtro activo (estado o tipo) y su valor seleccionado
+ const [filterCategory, setFilterCategory] = useState(null);
+ const [filterValue, setFilterValue] = useState("all");
 
-    const updated = [...extraItems];
-    updated.splice(index, 1);
+ const {
+   dataAccessories,
+   loading,
+   handleDelete,
+   fetchDataAccessories,
+ } = useDataAccessories();
 
-    setExtraItems(updated);
-    localStorage.setItem("accessories", JSON.stringify(updated));
-  };
+ const handleSuccess = async () => {
+   await fetchDataAccessories();
+   setOpen(false);
+   setSelectedAccessory(null);
+ };
 
-  // EDIT
-  const handleEdit = (index, isExtra) => {
-    if (!isExtra) return;
+ //Datos completos
+ const data = dataAccessories;
 
-    const item = extraItems[index];
+ const handleFilterChange = (category, value) => {
+   setFilterCategory(category);
+   setFilterValue(value);
+   setPage(1);
+ };
 
-    localStorage.setItem(
-      "editAccessory",
-      JSON.stringify({ item, index })
-    );
+ const types = [...new Set(data.map((item) => item.subtype).filter(Boolean))];
 
-    navigate(`/accessories/add`);
-  };
+ const filterGroups = [
+   {
+     key: "estado",
+     label: "Estado",
+     options: [
+       { label: "Todos", value: "all" },
+       { label: "Disponible", value: "Disponible" },
+       { label: "No disponible", value: "No disponible" },
+     ],
+   },
+   {
+     key: "tipo",
+     label: "Tipo",
+     options: [
+       { label: "Todos", value: "all" },
+       ...types.map((t) => ({ label: t, value: t })),
+     ],
+   },
+ ];
 
-  // BASE DATA
-  const baseData = [
-    { name: "Cable AUX", brand: "Sony", subtype: "Audio", price: 10, isAvailable: true },
-    { name: "Funda Vinilo", brand: "Generic", subtype: "Protección", price: 5, isAvailable: false },
-  ];
+ //Filtrar accesorios según el filtro activo y la búsqueda
+ const filtered = data
+   .filter((item) => {
+     if (!filterCategory || filterValue === "all") return true;
+     if (filterCategory === "estado") {
+       const estadoText = item.isAvailable ? "Disponible" : "No disponible";
+       return estadoText === filterValue;
+     }
+     if (filterCategory === "tipo") return item.subtype === filterValue;
+     return true;
+   })
+   .filter((item) =>
+     item?.name?.toLowerCase().includes(search.toLowerCase())
+   );
 
-  const nuevosFiltrados = extraItems
-    .map((d, index) => ({ ...d, originalIndex: index }))
-    .filter(d => d);
+ const {
+   paginatedData: paginated,
+   page,
+   setPage,
+   pageSize,
+   setPageSize,
+   totalPages,
+   totalItems,
+ } = usePagination(filtered, 10);
 
-  const data = [
-    ...baseData.map(d => ({ ...d, isExtra: false })),
-    ...nuevosFiltrados.map(d => ({
-      ...d,
-      isExtra: true,
-      extraIndex: d.originalIndex
-    }))
-  ];
+ //Devuelve el estado visual de disponibilidad
+ const getEstado = (isAvailable) => {
+ return isAvailable
+ ? { text: "Disponible", color: "bg-green-300 text-black" }
+ : { text: "No disponible", color: "bg-red-400 text-white" };
+ };
 
-  const filtered = data.filter((item) =>
-    item?.name?.toLowerCase().includes(search.toLowerCase())
-  );
+ if (loading) {
+   return (
+     <div className="flex justify-center items-center min-h-100">
+       <p className="text-slate-500 font-medium animate-pulse">Cargando accesorios desde la API...</p>
+     </div>
+   );
+ }
 
-  const getEstado = (isAvailable) => {
-    return isAvailable
-      ? { text: "Disponible", color: "bg-green-300 text-black" }
-      : { text: "No disponible", color: "bg-red-400 text-white" };
-  };
+ return (
+ <div>
+ <div className="bg-white p-6 rounded-2xl shadow-md relative">
 
-  return (
-    <div>
+ {/*Etiqueta superior*/}
+ <div className="absolute -top-4 left-6">
+ <button className="px-4 py-1 rounded bg-[#4A6163] text-[#F9FAF4]">
+ Accesorios
+ </button>
+ </div>
 
+ <div className="mt-6">
 
-      <div className="bg-white p-6 rounded-2xl shadow-md relative">
+ {/* Tarjetas de resumen */}
+ <div className="flex gap-6 flex-wrap">
 
-        <div className="absolute -top-4 left-6">
-          <button className="px-4 py-1 rounded bg-[#4A6163] text-[#F9FAF4]">
-            Accesorios
-          </button>
-        </div>
+ <Card
+ title="Total de accesorios"
+ value={data.length}
+ change="+5%"
+ changeText="Que el mes pasado"
+ color="#FFB6C1"
+ />
 
-        <div className="mt-6">
+ <Card
+ title="Disponibles"
+ value={data.filter((item) => item.isAvailable).length}
+ color="#B8D4FF"
+ />
 
-         <div className="flex gap-6 flex-wrap">
+ <Card
+ title="Accesorios agotados"
+ value={data.filter((item) => !item.isAvailable).length}
+ color="#F28B8B"
+ />
+ </div>
 
-  <Card
-    title="Total de accesorios"
-    value={data.length}
-    change="+5%"
-    changeText="Que el mes pasado"
-    color="#FFB6C1"
-  />
+ {/*Barra de busqueda y botones*/}
+ <div className="mt-8 flex justify-between items-center">
 
-  <Card
-    title="Ingresos de accesorios"
-    value="$70,540"
-    change="+18%"
-    changeText="Que el mes pasado"
-    color="#B8D4FF"
-  />
+ <div className="flex gap-4 items-center">
 
-  <Card
-    title="Con bajo stock"
-    value="8"
-    change="+33%"
-    changeText="Que el mes pasado"
-    color="#F3E2B3"
-  />
+ {/*Campo de busqueda*/}
+ <InputGroupInlineStart
+ value={search}
+ onChange={(e) => {
+   setSearch(e.target.value);
+   setPage(1);
+ }}
+ />
 
-  <Card
-    title="Accesorios agotados"
-    value="5"
-    change="-29%"
-    changeText="Que el mes pasado"
-    color="#F28B8B"
-  />
+ {/*Filtro por estado o tipo*/}
+ <MultiFilterDropdown
+ filters={filterGroups}
+ activeFilter={filterCategory}
+ value={filterValue}
+ onChange={handleFilterChange}
+ />
+ </div>
 
-</div>
-          <div className="mt-8 flex justify-between items-center">
-            <div className="flex gap-4 items-center">
-              <InputGroupInlineStart onChange={(e) => setSearch(e.target.value)} />
-              <Button variant="filter">
-                <p className="text-base">Filtrar</p>
-                <SlidersHorizontal className="w-4 h-4" />
-              </Button>
-            </div>
+ {/*Boton para agregar un nuevo accesorio*/}
+ <Button
+ variant="cd"
+ onClick={() => {
+   setSelectedAccessory(null);
+   setOpen(true);
+ }}>
+ <Plus className="w-4 h-4" />
+ <p className="text-base">Agregar</p>
+ </Button>
+ </div>
 
-            <Button
-              variant="cd"
-              onClick={() => navigate(`/accessories/add`)}
-            >
-              <Plus className="w-4 h-4" />
-              <p className="text-base">Agregar</p>
-            </Button>
-          </div>
+ {/*Tabla de accesorios*/}
+ <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
+ <Table>
 
-          {/* TABLE */}
-          <div className="mt-8 bg-[#F5F5F2] p-4 rounded-2xl">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imagen</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Marca</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Precio</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
+ {/*Encabezados*/}
+ <TableHeader>
+ <TableRow>
+ <TableHead>Imagen</TableHead>
+ <TableHead>Nombre</TableHead>
+ <TableHead>Marca</TableHead>
+ <TableHead>Tipo</TableHead>
+ <TableHead>Precio</TableHead>
+ <TableHead>Estado</TableHead>
+ <TableHead></TableHead>
+ </TableRow>
+ </TableHeader>
 
-              <TableBody>
-                {filtered.map((item, i) => {
-                  const estado = getEstado(item.isAvailable);
-                  const isOpen = openRow === i;
+ <TableBody>
 
-                  return (
-                    <React.Fragment key={i}>
-                      <TableRow
-                        onClick={() => setOpenRow(isOpen ? null : i)}
-                        className="cursor-pointer hover:bg-gray-50 transition"
-                      >
-                        <TableCell>
-                          {item.images?.[0] ? (
-                            <img src={item.images[0]} className="w-12 h-12 object-cover rounded-lg" />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-200 rounded-lg" />
-                          )}
-                        </TableCell>
+ {/*Recorrer accesorios filtrados*/}
+ {paginated.map((item, i) => {
 
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{item.brand}</TableCell>
-                        <TableCell>{item.subtype}</TableCell>
-                        <TableCell>{item.price}</TableCell>
+ //Estado visual del accesorio
+ const estado = getEstado(item.isAvailable);
 
-                        <TableCell>
-                          <span className={`px-3 py-1 rounded-full text-xs ${estado.color}`}>
-                            {estado.text}
-                          </span>
-                        </TableCell>
+ //Verifica si la fila está expandida
+ const isOpen = openRow === i;
 
-                        <TableCell className="flex gap-2">
-                          <Pencil
-                            className="w-4 h-4 cursor-pointer text-gray-500"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(item.extraIndex, item.isExtra);
-                            }}
-                          />
+ return (
+ <React.Fragment key={item._id || i}>
 
-                          <Trash2
-                            className="w-4 h-4 cursor-pointer text-red-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(item.extraIndex, item.isExtra);
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
+ {/*Fila principal*/}
+ <TableRow
+ onClick={() =>
+ setOpenRow(isOpen ? null : i)
+ }
+ className="cursor-pointer hover:bg-gray-50 transition"
+ >
 
-                      {isOpen && (
-                        <TableRow>
-                          <TableCell colSpan={7}>
-                            <div className="bg-white rounded-xl p-4 shadow-inner grid grid-cols-2 gap-4 text-sm">
-                              <div><b>Descripción:</b> {item.description || "-"}</div>
-                              <div><b>Material:</b> {item.material || "-"}</div>
-                              <div><b>Compatible con:</b> {item.compatible_with || "-"}</div>
-                              <div><b>Tags:</b> {item.tags?.join(", ") || "-"}</div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+ {/*Imagen*/}
+ <TableCell>
+ {item.images?.[0] ? (
+ <img
+ src={item.images[0]}
+ alt={item.name}
+ className="w-12 h-12 object-cover rounded-lg"
+ />
+ ) : (
+ <div className="w-12 h-12 bg-gray-200 rounded-lg" />
+ )}
+ </TableCell>
 
-        </div>
-      </div>
-    </div>
-  );
+ {/*Información básica*/}
+ <TableCell>{item.name}</TableCell>
+ <TableCell>{item.brand}</TableCell>
+ <TableCell>{item.subtype}</TableCell>
+ <TableCell>${item.price}</TableCell>
+
+ {/*Estado*/}
+ <TableCell>
+ <span
+ className={`px-3 py-1 rounded-full text-xs ${estado.color}`}
+ >
+ {estado.text}
+ </span>
+ </TableCell>
+
+ {/*Acciones*/}
+ <TableCell className="flex gap-2">
+
+ {/*Botón editar*/}
+ <Pencil
+ className="w-4 h-4 cursor-pointer text-gray-500"
+ onClick={(e) => {
+ e.stopPropagation();
+ setSelectedAccessory(item);
+ setOpen(true);
+ }}
+ />
+
+ {/*Botón eliminar*/}
+ <Trash2
+ className="w-4 h-4 cursor-pointer text-red-400"
+ onClick={(e) => {
+ e.stopPropagation();
+ handleDelete(item._id);
+ }}
+ />
+ </TableCell>
+ </TableRow>
+
+ {/*Información extra desplegable*/}
+ {isOpen && (
+ <TableRow>
+ <TableCell colSpan={7}>
+ <div className="bg-white rounded-xl p-4 shadow-inner grid grid-cols-2 gap-4 text-sm">
+
+ <div>
+ <b>Descripción:</b>{" "}
+ {item.description || "-"}
+ </div>
+
+ <div>
+ <b>Material:</b>{" "}
+ {item.material || "-"}
+ </div>
+
+ <div>
+ <b>Compatible con:</b>{" "}
+ {item.compatibleWith?.join(", ") || "-"}
+ </div>
+
+ <div>
+ <b>Tags:</b>{" "}
+ {item.tags?.join(", ") || "-"}
+ </div>
+
+ </div>
+ </TableCell>
+ </TableRow>
+ )}
+ </React.Fragment>
+ );
+ })}
+ </TableBody>
+ </Table>
+
+ <Pagination
+   page={page}
+   totalPages={totalPages}
+   totalItems={totalItems}
+   pageSize={pageSize}
+   onPageChange={(p) => {
+     setPage(p);
+     setOpenRow(null);
+   }}
+   onPageSizeChange={(size) => {
+     setPageSize(size);
+     setOpenRow(null);
+   }}
+ />
+ </div>
+ </div>
+ </div>
+
+ <Modal
+   open={open}
+   onClose={() => {
+     setOpen(false);
+     setSelectedAccessory(null);
+   }}
+   title={!selectedAccessory ? "Agregar accesorio" : "Editar accesorio"}
+   size="md"
+ >
+   <AccessoryForm
+     onClose={() => {
+       setOpen(false);
+       setSelectedAccessory(null);
+     }}
+     onSuccess={handleSuccess}
+     accessory={selectedAccessory}
+     mode="edit"
+   />
+ </Modal>
+ </div>
+ );
 }

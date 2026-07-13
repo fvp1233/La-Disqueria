@@ -1,46 +1,40 @@
-import { useState } from "react";
-import RockHero  from "@/modules/artist/components/RockHero";
+import { useMemo, useState } from "react";
+import RockHero from "@/modules/artist/components/RockHero";
 import { ArtistsSearchBar } from "@/modules/artist/components/ArtistsSearchBar";
-import { ArtistsGrid, MOCK_ARTISTS } from "@/modules/artist/components/ArtistsGrid";
+import { ArtistsGrid } from "@/modules/artist/components/ArtistsGrid";
 import { Footer } from "@/global/components/Footer";
+import useArtists from "@/modules/artist/hooks/useArtists";
 
 function RockPage() {
-    const [filteredArtists, setFilteredArtists] = useState(MOCK_ARTISTS);
+    const { artists, loading, error } = useArtists();
+    const [search, setSearch] = useState("");
 
-    const handleSearch = (query) => {
-        if (!query.trim()) {
-            setFilteredArtists(MOCK_ARTISTS);
-            return;
-        }
-        setFilteredArtists(
-            MOCK_ARTISTS.filter((a) =>
-                a.name.toLowerCase().includes(query.toLowerCase()) ||
-                a.genres.some((g) => g.toLowerCase().includes(query.toLowerCase()))
-            )
-        );
-    };
+    const rockArtists = useMemo(
+        () => artists.filter((a) => a.genres.some((g) => g.toLowerCase().includes("rock"))),
+        [artists]
+    );
 
-    const handleGenreChange = (genre) => {
-        if (genre === "Rcok") {
-            setFilteredArtists(MOCK_ARTISTS);
-            return;
-        }
-        setFilteredArtists(
-            MOCK_ARTISTS.filter((a) =>
-                a.genres.some((g) => g.toLowerCase().includes(genre.toLowerCase()))
-            )
+    const filteredArtists = useMemo(() => {
+        if (!search.trim()) return rockArtists;
+        return rockArtists.filter((a) =>
+            a.name.toLowerCase().includes(search.toLowerCase()) ||
+            a.genres.some((g) => g.toLowerCase().includes(search.toLowerCase()))
         );
-    };
+    }, [rockArtists, search]);
 
     return (
         <>
-            <RockHero/>
+            <RockHero />
             <ArtistsSearchBar
-                onSearch={handleSearch}
-                onGenreChange={handleGenreChange}
-                totalArtists={1200}
+                onSearch={setSearch}
+                totalArtists={rockArtists.length}
             />
-            <ArtistsGrid artists={filteredArtists} />
+            {error && <p className="text-center text-red-500 text-sm py-4">{error}</p>}
+            {loading ? (
+                <p className="text-center text-gray-400 py-16">Cargando artistas...</p>
+            ) : (
+                <ArtistsGrid artists={filteredArtists} />
+            )}
             <Footer />
         </>
     );

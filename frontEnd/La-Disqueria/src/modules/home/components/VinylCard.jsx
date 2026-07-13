@@ -1,11 +1,6 @@
-//Si cuando guardemos las imagenes de los discos en la db solo va la portada, cambiar el metodo de animacion al de Album.jsx porque ahi esta para que salga el vinilo
-//Con la imagen de la portada, ahorita queda asi por que son imagenes quemadas
-
-
 import { Link } from 'react-router-dom';
 
 export function VinylCard({ product }) {
-  // Formateador de precio para que siempre tenga el símbolo de $ y dos decimales. esto lo usaremos cuando este conectado a la api
   const priceFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -37,9 +32,14 @@ export function VinylCard({ product }) {
 
         <div className="text-center space-y-2 mt-4">
           
-          {/* Artista y Título separados por guión */}
+          {/* Artista y Título separados por guión (si hay artista) */}
           <p className="text-sm font-light text-slate-800 tracking-tight leading-snug">
-            {product.artist} <span className="text-slate-500">—</span> <span className="font-medium text-slate-900">{product.album}</span>
+            {product.artist && (
+              <>
+                {product.artist} <span className="text-slate-500">—</span>{" "}
+              </>
+            )}
+            <span className="font-medium text-slate-900">{product.album}</span>
           </p>
           
           {/* Precio */}

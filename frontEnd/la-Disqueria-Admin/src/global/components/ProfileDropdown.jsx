@@ -18,13 +18,17 @@ import {
 } from "@/global/components/DropdownMenu"
 
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/context/AuthContext"
+import { notifySuccess } from "@/global/lib/notifications"
 
 export function DropdownMenuAvatar() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
 
-  const handleLogout = () => {
-    console.log("cerrando sesión...")
-      navigate("/")
+  const handleLogout = async () => {
+    await logout()
+    notifySuccess("Sesión cerrada correctamente")
+    navigate("/")
   }
 
   return (
