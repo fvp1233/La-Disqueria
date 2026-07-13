@@ -11,6 +11,9 @@ router.route("/")
 router.route("/manual")
 .post(validateAuthCookie(["admin"]), ordersController.insertManualOrder);
 
+router.route("/bestsellers")
+.get(ordersController.getBestSellers);
+
 router.route("/:id")
 .get(validateAuthCookie(["admin"]), ordersController.getOrderById)
 .put(validateAuthCookie(["admin"]), ordersController.updateOrder)

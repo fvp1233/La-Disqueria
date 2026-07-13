@@ -7,6 +7,7 @@ import { Label } from "@/global/components/Label";
 import { Button } from "@/global/components/button";
 import { FormDropdown } from "@/global/components/FormDropdown";
 import useDataCds from "@/modules/discs/hooks/useDataCds";
+import useGenres from "@/modules/genres/hooks/useGenres";
 
 const emptyValues = {
   title: "",
@@ -41,6 +42,26 @@ export function CdForm({ onClose, onSuccess, cd, mode = "edit" }) {
   const { fields, append, remove } = useFieldArray({ control, name: "tracks" });
 
   const isAvailable = watch("isAvailable");
+  const genreText = watch("genre") || "";
+
+  const { genres } = useGenres();
+  const [showGenreOptions, setShowGenreOptions] = useState(false);
+
+  const selectedGenreNames = genreText.split(",").map((g) => g.trim().toLowerCase()).filter(Boolean);
+  const currentGenreToken = genreText.split(",").pop().trim().toLowerCase();
+  const filteredGenres = genres.filter((g) =>
+    !selectedGenreNames.includes(g.name.toLowerCase()) &&
+    (currentGenreToken === "" || g.name.toLowerCase().includes(currentGenreToken))
+  );
+
+  const addGenre = (name) => {
+    const parts = genreText.split(",").map((p) => p.trim()).filter(Boolean);
+    if (!parts.some((p) => p.toLowerCase() === name.toLowerCase())) {
+      parts.push(name);
+    }
+    setValue("genre", parts.join(", "), { shouldDirty: true });
+    setShowGenreOptions(false);
+  };
 
   const [imageFile, setImageFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -167,9 +188,29 @@ export function CdForm({ onClose, onSuccess, cd, mode = "edit" }) {
             <Input {...register("label")} disabled={isReadOnly} className={inputClass(errors.label)} />
           </div>
 
-          <div>
+          <div className="relative">
             <Label>Género</Label>
-            <Input {...register("genre")} disabled={isReadOnly} placeholder="Ej: Pop, Rock" className={inputClass(errors.genre)} />
+            <Input
+              {...register("genre")}
+              disabled={isReadOnly}
+              placeholder="Ej: Pop, Rock"
+              className={inputClass(errors.genre)}
+              onFocus={() => setShowGenreOptions(true)}
+              onBlur={() => setTimeout(() => setShowGenreOptions(false), 150)}
+            />
+            {showGenreOptions && filteredGenres.length > 0 && (
+              <div className="absolute z-10 mt-1 w-full max-h-40 overflow-y-auto bg-white border rounded-lg shadow-lg">
+                {filteredGenres.map((g) => (
+                  <div
+                    key={g._id}
+                    className="px-3 py-2 text-sm hover:bg-gray-100 cursor-pointer"
+                    onMouseDown={() => addGenre(g.name)}
+                  >
+                    {g.name}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -197,7 +238,11 @@ export function CdForm({ onClose, onSuccess, cd, mode = "edit" }) {
             <Input
               type="number"
               step="0.01"
-              {...register("price", { required: "El precio es obligatorio" })}
+              min="0"
+              {...register("price", {
+                required: "El precio es obligatorio",
+                min: { value: 0, message: "El precio no puede ser negativo" },
+              })}
               disabled={isReadOnly}
               className={inputClass(errors.price)}
             />

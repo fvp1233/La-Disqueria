@@ -36,11 +36,11 @@ turntablesController.insertTurntable = async (req, res) => {
             model,
             type,
             description,
-            specs,
+            specs: JSON.parse(specs || "[]"),
             warranty,
             price,
             images,
-            tags,
+            tags: JSON.parse(tags || "[]"),
             isAvailable
         })
 
@@ -93,10 +93,10 @@ turntablesController.updateTurntable = async (req, res) => {
             model,
             type,
             description,
-            specs,
+            specs: JSON.parse(specs || "[]"),
             warranty,
             price,
-            tags,
+            tags: JSON.parse(tags || "[]"),
             isAvailable
         }
 

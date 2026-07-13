@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
 import { MainLayout } from '@/global/components/MainLayout';
 import Home from '@/modules/home/pages/Home';
 import Products from '@/modules/products/pages/Products'
@@ -10,14 +12,17 @@ import { Contact } from './modules/home/pages/Contact';
 import {About} from './modules/home/pages/About';
 import Artists from '@/modules/artist/pages/ArtistsPage';
 import Categories from "@/modules/categories/Page/CategoriesPage"
+import CategoryDetailPage from "@/modules/categories/pages/CategoryDetailPage"
 import Registro from "@/modules/login/pages/Register";
 import ForgotPassword from "@/modules/login/pages/ForgotPassword";
-import RockPage from "@/modules/artist/pages/RockPage";
+import OrderPage from "@/modules/cart/pages/OrderPage";
 
 
 function App() {
   return (
     <>
+      <AuthProvider>
+      <CartProvider>
       <Router>
         <Routes>
           {/*Sin Navbar */}
@@ -36,11 +41,14 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
             <Route path="/recuperar-contrasena" element={<ForgotPassword />} />
-            <Route path="/categorias/Rock" element={<RockPage />} />
+            <Route path="/categorias/:slug" element={<CategoryDetailPage />} />
+            <Route path="/pedido" element={<OrderPage />} />
             {/*seguir agregando más rutas de otros módulos */}
           </Route>
         </Routes>
       </Router>
+      </CartProvider>
+      </AuthProvider>
     </>
   )
 }

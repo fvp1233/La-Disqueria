@@ -16,6 +16,8 @@ import { Modal } from "@/global/components/Modal"
 import { EmployeeForm } from "@/modules/employees/components/EmployeeForm"
 import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown"
 import { StatusBadge } from "@/global/components/StatusBadge"
+import { Pagination } from "@/global/components/Pagination"
+import usePagination from "@/global/hooks/usePagination"
 import useEmployees from "@/modules/employees/hooks/useEmployees"
 
 export default function EmployeesPage() {
@@ -45,6 +47,7 @@ export default function EmployeesPage() {
     const handleFilterChange = (category, value) => {
         setFilterCategory(category)
         setFilterValue(value)
+        setPage(1)
     }
 
     const positions = [...new Set(employees.map((e) => e.position).filter(Boolean))]
@@ -81,6 +84,16 @@ export default function EmployeesPage() {
             (e.email || "").toLowerCase().includes(search.toLowerCase())
         )
 
+    const {
+        paginatedData: paginatedEmployees,
+        page,
+        setPage,
+        pageSize,
+        setPageSize,
+        totalPages,
+        totalItems,
+    } = usePagination(filteredEmployees, 10)
+
     if (loading) return <p className="p-6">Cargando empleados...</p>
 
     return (
@@ -100,7 +113,13 @@ export default function EmployeesPage() {
             {/* HEADER */}
             <div className="mt-8 flex justify-between items-center">
                 <div className="flex gap-4 items-center">
-                    <InputGroupInlineStart value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <InputGroupInlineStart
+                        value={search}
+                        onChange={(e) => {
+                            setSearch(e.target.value)
+                            setPage(1)
+                        }}
+                    />
 
                     <MultiFilterDropdown
                         filters={filterGroups}
@@ -140,7 +159,7 @@ export default function EmployeesPage() {
                     </TableHeader>
 
                     <TableBody>
-                        {filteredEmployees.map((e, index) => (
+                        {paginatedEmployees.map((e, index) => (
                             <TableRow
                                 key={e._id}
                                 className="cursor-pointer hover:bg-gray-50 transition"
@@ -158,7 +177,7 @@ export default function EmployeesPage() {
                                     })
                                 }}
                             >
-                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
                                 <TableCell>{e.name}</TableCell>
                                 <TableCell>{e.last_name}</TableCell>
                                 <TableCell>{e.email}</TableCell>
@@ -189,6 +208,15 @@ export default function EmployeesPage() {
                         ))}
                     </TableBody>
                 </Table>
+
+                <Pagination
+                    page={page}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
+                />
             </div>
 
             {/* MENU CONTEXTUAL */}

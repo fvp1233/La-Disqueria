@@ -18,7 +18,7 @@ vinylController.inserVinyl = async (req, res) => {
     try {
         const {
             tittle,
-            artist_id,
+            artistId,
             label,
             genre,
             year,
@@ -48,7 +48,7 @@ vinylController.inserVinyl = async (req, res) => {
 
         const newVinyl = new vinylModel({
             tittle,
-            artist_id,
+            artistId: artistId || undefined,
             label,
             genre,
             year,
@@ -57,7 +57,7 @@ vinylController.inserVinyl = async (req, res) => {
             size,
             color,
             condition,
-            trackList,
+            trackList: JSON.parse(trackList || "[]"),
             price,
             tags,
             isAvailable: true,
@@ -81,7 +81,7 @@ vinylController.updateVinyl = async (req, res) => {
 
         const {
             tittle,
-            artist_id,
+            artistId,
             label,
             genre,
             year,
@@ -98,7 +98,7 @@ vinylController.updateVinyl = async (req, res) => {
 
         const updatedData = {
             tittle,
-            artist_id,
+            artistId: artistId || undefined,
             label,
             genre,
             year,
@@ -107,7 +107,7 @@ vinylController.updateVinyl = async (req, res) => {
             size,
             color,
             condition,
-            tracklist,
+            trackList: JSON.parse(trackList || "[]"),
             price,
             tags,
             isAvailable
@@ -119,14 +119,13 @@ vinylController.updateVinyl = async (req, res) => {
                     await cloudinary.uploader.destroy(img.public_id);
                 }
             }
-        }
 
-        const newImagesArray = req.files.map((file, index) => ({
-            image: file.path,
-            public_id: file.filename,
-            isCover: index === 0
-        }))
-        updatedData.images = newImagesArray;
+            updatedData.images = req.files.map((file, index) => ({
+                image: file.path,
+                public_id: file.filename,
+                isCover: index === 0
+            }));
+        }
 
         const vinylUpdated = await vinylModel.findByIdAndUpdate(
             req.params.id,

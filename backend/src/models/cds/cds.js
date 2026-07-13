@@ -25,7 +25,7 @@ const cdsSchema = new Schema({
     },
     artistId: {
         type: Schema.Types.ObjectId,
-        ref:"artists",
+        ref: "Artists",
     },
     label: {
         type: String

@@ -92,12 +92,15 @@ function VinylSpecsForm() {
         <FormField
           control={control}
           name="price"
-          rules={{ required: "El precio es obligatorio" }}
+          rules={{
+            required: "El precio es obligatorio",
+            min: { value: 0, message: "El precio no puede ser negativo" },
+          }}
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-xs font-bold uppercase text-slate-500">Precio ($) *</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" placeholder="0.00" {...field} className="rounded-xl" />
+                <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} className="rounded-xl" />
               </FormControl>
               <FormMessage />
             </FormItem>

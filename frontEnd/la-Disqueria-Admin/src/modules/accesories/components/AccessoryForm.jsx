@@ -128,7 +128,11 @@ export function AccessoryForm({ onClose, onSuccess, accessory, mode = "edit" }) 
             <Input
               type="number"
               step="0.01"
-              {...register("price", { required: "El precio es requerido" })}
+              min="0"
+              {...register("price", {
+                required: "El precio es requerido",
+                min: { value: 0, message: "El precio no puede ser negativo" },
+              })}
               disabled={isReadOnly}
               className={inputClass(errors.price)}
             />

@@ -1,22 +1,46 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthBrand } from "./AuthBrand";
 import { AuthLayout } from "./AuthLayout";
+import { useAuth } from "@/context/AuthContext";
+
+const errorMessages = {
+  "Customer not found": "Usuario no encontrado",
+  "Wrong password": "Contraseña incorrecta",
+  "Blocked account": "Cuenta bloqueada temporalmente, intenta más tarde",
+  "Blocked account for many attemps": "Cuenta bloqueada por intentos fallidos, intenta en unos minutos",
+};
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    if (apiError) setApiError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: conectar con el backend
-    navigate("/");
+
+    setIsLoading(true);
+    setApiError("");
+
+    try {
+      await login(form.email, form.password);
+      navigate(location.state?.from || "/");
+    } catch (error) {
+      const message = error?.message || "Credenciales incorrectas. Por favor, intenta de nuevo.";
+      setApiError(errorMessages[message] || message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -24,7 +48,11 @@ export function LoginForm() {
       <AuthBrand subtitle="Iniciar Sesión" />
 
       {/* Formulario */}
-      <div className="flex flex-col gap-3">
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit} noValidate>
+        {apiError && (
+          <p className="text-center text-[11px] text-red-500 bg-red-50 rounded py-2 px-3">{apiError}</p>
+        )}
+
         {/* Email */}
         <div className="flex flex-col gap-1">
           <label className="text-[11px] font-semibold text-[#555] uppercase tracking-wide">
@@ -36,6 +64,7 @@ export function LoginForm() {
             placeholder="Correo electrónico"
             value={form.email}
             onChange={handleChange}
+            disabled={isLoading}
             className="w-full px-4 py-2.5 bg-[#ede8e0] border-none rounded text-sm text-[#444] outline-none focus:ring-2 focus:ring-[#E8602A]/30 placeholder:text-[#aaa] transition"
           />
         </div>
@@ -97,10 +126,11 @@ export function LoginForm() {
 
         {/* Botón Iniciar sesión */}
         <button
-          onClick={handleSubmit}
-          className="w-full py-2.5 bg-[#E8602A] text-white text-[12px] font-bold uppercase tracking-widest rounded hover:bg-[#cf4e1e] transition-colors mt-1"
+          type="submit"
+          disabled={isLoading}
+          className="w-full py-2.5 bg-[#E8602A] text-white text-[12px] font-bold uppercase tracking-widest rounded hover:bg-[#cf4e1e] transition-colors mt-1 disabled:opacity-60"
         >
-          Iniciar sesión
+          {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
         </button>
 
         {/* Separador */}
@@ -111,7 +141,7 @@ export function LoginForm() {
         </div>
 
         {/* Google */}
-        <button className="w-full py-2.5 bg-white border border-[#ddd] rounded text-[12px] text-[#444] font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
+        <button type="button" className="w-full py-2.5 bg-white border border-[#ddd] rounded text-[12px] text-[#444] font-medium flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
             <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z" fill="#4285F4" />
           </svg>
@@ -125,7 +155,7 @@ export function LoginForm() {
             regístrate ahora
           </Link>
         </p>
-      </div>
+      </form>
     </AuthLayout>
   );
 }

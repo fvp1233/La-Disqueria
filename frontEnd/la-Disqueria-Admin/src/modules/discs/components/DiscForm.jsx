@@ -12,6 +12,7 @@ import VinylTracklistForm from "./VinylTrackListForm";
 
 const emptyValues = {
   tittle: "",
+  artistId: "",
   label: "",
   genre: "",
   year: "",
@@ -23,7 +24,6 @@ const emptyValues = {
   price: "",
   tags: "",
   isAvailable: true,
-  images: [],
   trackList: [],
 };
 
@@ -35,17 +35,24 @@ export function DiscForm({ onClose, onSuccess, vinyl, mode = "edit", tipo = "vin
 
   const methods = useForm({ defaultValues: emptyValues });
 
+  const [imageFile, setImageFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+
   useEffect(() => {
     setInternalMode(mode);
   }, [mode]);
 
   useEffect(() => {
+    setImageFile(null);
+
     if (!vinyl) {
       methods.reset(emptyValues);
+      setPreview(null);
       return;
     }
     methods.reset({
       tittle: vinyl.tittle || "",
+      artistId: vinyl.artistId?._id || vinyl.artistId || "",
       label: vinyl.label || "",
       genre: vinyl.genre || "",
       year: vinyl.year ? new Date(vinyl.year).toISOString().substring(0, 10) : "",
@@ -57,13 +64,38 @@ export function DiscForm({ onClose, onSuccess, vinyl, mode = "edit", tipo = "vin
       price: vinyl.price || "",
       tags: vinyl.tags || "",
       isAvailable: vinyl.isAvailable ?? true,
-      images: vinyl.images || [],
       trackList: vinyl.trackList || [],
     });
+    const coverImage = vinyl.images?.find((img) => img.isCover)?.image || vinyl.images?.[0]?.image;
+    setPreview(coverImage || null);
   }, [vinyl, methods]);
 
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const onSubmit = async (data) => {
-    const success = await saveVinyl(vinyl?._id || null, data);
+    const formData = new FormData();
+
+    formData.append("tittle", data.tittle);
+    formData.append("artistId", data.artistId || "");
+    formData.append("label", data.label);
+    formData.append("genre", data.genre);
+    formData.append("year", data.year);
+    formData.append("format", data.format);
+    formData.append("speed", data.speed);
+    formData.append("size", data.size);
+    formData.append("color", data.color);
+    formData.append("condition", data.condition);
+    formData.append("price", data.price);
+    formData.append("tags", data.tags);
+    formData.append("isAvailable", data.isAvailable);
+    formData.append("trackList", JSON.stringify(data.trackList || []));
+
+    if (imageFile) formData.append("images", imageFile);
+
+    const success = await saveVinyl(vinyl?._id || null, formData);
     if (success) onSuccess();
   };
 
@@ -74,7 +106,7 @@ export function DiscForm({ onClose, onSuccess, vinyl, mode = "edit", tipo = "vin
       <Form {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
           <fieldset disabled={isReadOnly} className="space-y-8">
-            <VinylImageForm />
+            <VinylImageForm preview={preview} onFileChange={handleImageChange} />
             <VinylBasicForm />
             <VinylSpecsForm />
             <VinylTracklistForm />

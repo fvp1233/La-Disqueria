@@ -19,6 +19,43 @@ ordersController.getOrders = async (req, res) => {
   }
 };
 
+// SELECT - ranking de productos más vendidos, calculado a partir de las
+// cantidades pedidas en orders (se excluyen las canceladas). Es público
+// porque lo consume el home de la tienda, no el panel admin.
+ordersController.getBestSellers = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 12;
+
+    const bestSellers = await orderModel.aggregate([
+      { $match: { status: { $ne: "Cancelado" } } },
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: { productId: "$items.productId", type: "$items.type" },
+          totalSold: { $sum: "$items.quantity" },
+        },
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: limit },
+      {
+        $project: {
+          _id: 0,
+          productId: "$_id.productId",
+          type: "$_id.type",
+          totalSold: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json(bestSellers);
+  } catch (error) {
+    console.log("error " + error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+
 // SELECT BY ID
 ordersController.getOrderById = async (req, res) => {
   try {

@@ -33,7 +33,7 @@ const vinylsSchema = new Schema({
     },
     artistId: {
         type: mongoose.Types.ObjectId,
-        refer: "Artists"
+        ref: "Artists"
     },
     label: {
         type: String

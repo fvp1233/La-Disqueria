@@ -4,7 +4,7 @@ const cartSchema = new Schema(
   {
     customer_id: {
       type: mongoose.Types.ObjectId,
-      ref: "customers",
+      ref: "Customers",
       required: true,
     },
 
@@ -47,6 +47,51 @@ const cartSchema = new Schema(
         },
       },
     ],
+
+    // "active" mientras el cliente sigue agregando productos, "comprado"
+    // una vez que confirma la compra simulada desde /pedido.
+    status: {
+      type: String,
+      enum: ["active", "comprado"],
+      default: "active",
+    },
+
+    subtotal: {
+      type: Number,
+    },
+
+    shipping: {
+      type: Number,
+    },
+
+    total: {
+      type: Number,
+    },
+
+    shipping_address: {
+      street: {
+        type: String,
+      },
+      city: {
+        type: String,
+      },
+    },
+
+    payment_method: {
+      type: String,
+    },
+
+    notes: {
+      type: String,
+    },
+
+    order_number: {
+      type: String,
+    },
+
+    purchased_at: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

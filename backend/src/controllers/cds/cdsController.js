@@ -5,7 +5,7 @@ const cdsController = {}
 
 cdsController.getCds = async (req, res) => {
     try {
-        const response = await cdsModel.find()
+        const response = await cdsModel.find().populate("artistId")
         return res.status(200).json(response)
     } catch (error) {
         return res.status(500).json({ message: "Internal Server error", error: error.message })

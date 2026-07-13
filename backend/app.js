@@ -2,6 +2,7 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import registerCustomerRoutes from "./src/routes/customers/registerCustomer.js"
+import loginCustomerRoutes from "./src/routes/customers/loginCustomer.js"
 import customersRoutes from "./src/routes/customers/customer.js"
 import accessoriesRoutes from "./src/routes/accessories/accessories.js"
 import supplierRoues from './src/routes/suppliers/suppliers.js'
@@ -15,6 +16,11 @@ import adminRoute from "./src/routes/admin/admin.js"
 import loginRoute from "./src/routes/login/login.js"
 import logoutRoute from "./src/routes/login/logout.js"
 import adminRegister from "./src/routes/admin/registerAdmin.js"
+import artistsRoutes from "./src/routes/artists/artist.js"
+import categoriesRoutes from "./src/routes/categories/category.js"
+import genresRoutes from "./src/routes/genres/genre.js"
+import cartRoutes from "./src/routes/cart/cart.js"
+import productsRoutes from "./src/routes/products/products.js"
 const app = express();
 
 app.use(cors({
@@ -28,6 +34,7 @@ app.use(express.json({limit: "50mb"}));
 app.use(express.urlencoded({limit: "50mb" , extended: true}))
 
 app.use("/api/registerCustomer", registerCustomerRoutes);
+app.use("/api/customers/login", loginCustomerRoutes);
 app.use("/api/customers", customersRoutes)
 app.use("/api/accessories", accessoriesRoutes)
 app.use("/api/suppliers", supplierRoues)
@@ -41,4 +48,9 @@ app.use("/api/admin", adminRoute)
 app.use("/api/login", loginRoute)
 app.use("/api/logout", logoutRoute)
 app.use("/api/adminRegister", adminRegister)
+app.use("/api/artists", artistsRoutes)
+app.use("/api/categories", categoriesRoutes)
+app.use("/api/genres", genresRoutes)
+app.use("/api/cart", cartRoutes)
+app.use("/api/products", productsRoutes)
 export default app;

@@ -17,6 +17,8 @@ import { Modal } from "@/global/components/Modal";
 import { CustomerForm } from "@/modules/customers/components/CustomerForm";
 import { FilterDropdown } from "@/global/components/FilterDropdown";
 import { StatusBadge } from "@/global/components/StatusBadge";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
 
 // Hook con el GET/POST/PUT/DELETE reales de clientes
 import useCustomers from "@/modules/customers/hooks/useCustomers";
@@ -71,6 +73,16 @@ export default function CustomersPage() {
       (c.email || "").toLowerCase().includes(search.toLowerCase())
     );
 
+  const {
+    paginatedData: paginatedCustomers,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filteredCustomers, 10);
+
   if (loading) return <p className="p-6">Cargando clientes...</p>;
 
   return (
@@ -114,12 +126,21 @@ export default function CustomersPage() {
         <div className="flex gap-4 items-center">
 
           {/* Barra de búsqueda */}
-          <InputGroupInlineStart value={search} onChange={(e) => setSearch(e.target.value)} />
+          <InputGroupInlineStart
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
 
           {/* Filtro por estado */}
           <FilterDropdown
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => {
+              setStatusFilter(value);
+              setPage(1);
+            }}
             options={[
               { label: "Todos", value: "all" },
               { label: "Activo", value: "Activo" },
@@ -163,7 +184,7 @@ export default function CustomersPage() {
 
           <TableBody>
 
-            {filteredCustomers.map((c, index) => (
+            {paginatedCustomers.map((c, index) => (
 
               <TableRow
                 key={c._id}
@@ -187,7 +208,7 @@ export default function CustomersPage() {
                   });
                 }}
               >
-                <TableCell>{index + 1}</TableCell>
+                <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
                 <TableCell>{c.name}</TableCell>
                 <TableCell>{c.last_name}</TableCell>
                 <TableCell>{c.email}</TableCell>
@@ -225,6 +246,15 @@ export default function CustomersPage() {
           </TableBody>
 
         </Table>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
 
       </div>
 

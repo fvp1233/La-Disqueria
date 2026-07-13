@@ -1,16 +1,10 @@
 import { Link } from "react-router-dom";
 import { CategoryCard } from "./CategoryCard";
-
-const GENRES = [
-  { genre: "Rock", albumCount: 450, slug: "rock" },
-  { genre: "Hip-Hop", albumCount: 380, slug: "hip-hop" },
-  { genre: "Pop", albumCount: 520, slug: "pop" },
-  { genre: "Jazz", albumCount: 260, slug: "jazz" },
-  { genre: "Electrónica", albumCount: 310, slug: "electronica" },
-  { genre: "Indie", albumCount: 290, slug: "indie" },
-];
+import useCategories from "@/modules/categories/hooks/useCategories";
 
 export function CategoriesGrid() {
+  const { categories, loading, error } = useCategories();
+
   return (
     <section className="px-12 py-12 bg-[#f8f8f8]">
       {/* Título sección */}
@@ -29,12 +23,18 @@ export function CategoriesGrid() {
         </p>
       </div>
 
+      {error && <p className="text-center text-red-500 text-sm mb-6">{error}</p>}
+
       {/* Grid de categorías 3x2 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {GENRES.map((cat) => (
-          <CategoryCard key={cat.slug} {...cat} />
-        ))}
-      </div>
+      {loading ? (
+        <p className="text-center text-gray-400 py-10">Cargando categorías...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((cat) => (
+            <CategoryCard key={cat.slug} genre={cat.name} albumCount={cat.albumCount} slug={cat.slug} />
+          ))}
+        </div>
+      )}
 
       {/* Botón ver todas */}
       <div className="flex justify-center mt-10">

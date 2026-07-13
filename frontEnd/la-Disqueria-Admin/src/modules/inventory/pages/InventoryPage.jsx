@@ -7,6 +7,8 @@ import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
 import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
 import { InventoryForm } from "@/modules/inventory/components/InventoryForm";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
 import useInventory from "@/modules/inventory/hooks/useInventory";
 
 import {
@@ -41,6 +43,7 @@ export default function InventoryPage() {
   const handleFilterChange = (category, value) => {
     setFilterCategory(category);
     setFilterValue(value);
+    setPage(1);
   };
 
   const getEstado = (stock) => {
@@ -96,6 +99,16 @@ export default function InventoryPage() {
       item?.sku?.toLowerCase().includes(search.toLowerCase())
     );
 
+  const {
+    paginatedData: paginated,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filtered, 10);
+
   if (loading) return <p className="p-6">Cargando inventario...</p>;
 
   return (
@@ -144,7 +157,10 @@ export default function InventoryPage() {
             <div className="flex gap-4 items-center">
               <InputGroupInlineStart
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
               />
               <MultiFilterDropdown
                 filters={filterGroups}
@@ -182,7 +198,7 @@ export default function InventoryPage() {
               </TableHeader>
 
               <TableBody>
-                {filtered.map((item, i) => {
+                {paginated.map((item, i) => {
                   const estado = getEstado(item.stock);
                   const isOpen = openRow === i;
 
@@ -251,6 +267,21 @@ export default function InventoryPage() {
                 })}
               </TableBody>
             </Table>
+
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={(p) => {
+                setPage(p);
+                setOpenRow(null);
+              }}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setOpenRow(null);
+              }}
+            />
           </div>
 
         </div>

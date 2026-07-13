@@ -36,20 +36,13 @@ const useDataVinyls = () => {
       setError("");
       setMessage("");
 
-      const payload = {
-        ...formData,
-        price: Number(formData.price) || 0,
-        year: formData.year ? new Date(formData.year) : null,
-      };
-
       const url = id ? `${API_URL}/${id}` : API_URL;
       const method = id ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(payload),
+        body: formData, // FormData para imágenes
       });
 
       if (!response.ok) {

@@ -3,12 +3,17 @@ import jsonwebToken from "jsonwebtoken"
 import { config } from "../../../config.js"
 import customersModel from "../../models/customers/customer.js"
 
-const loginCustomers = {};
+const loginCustomersController = {};
 
 loginCustomersController.login = async (req, res) => {
     try {
         //#1 Solicitar los datos
         const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required." })
+        }
+
         //Verificar si el correo existe en la base de datos
         const customerFound = await customersModel.findOne({ email })
         //Si no existe el correo
@@ -22,7 +27,7 @@ loginCustomersController.login = async (req, res) => {
         }
 
         //Validar la contraseña
-        const isMatch = bcrypt.compare(password, customerFound.password)
+        const isMatch = await bcrypt.compare(password, customerFound.password)
 
         //Si la contraseña es incorrecta
         if (!isMatch) {
@@ -42,6 +47,7 @@ loginCustomersController.login = async (req, res) => {
         //Reseteamos intentos si login es correcto
         customerFound.loginAttemps = 0;
         customerFound.timeOut = null;
+        await customerFound.save();
 
         //Generar el token
         const token = jsonwebToken.sign(
@@ -54,10 +60,20 @@ loginCustomersController.login = async (req, res) => {
 
         )
 
-        //El token lo guardamos en una cookie
-        res.cookie("AuthCookie", token);
+        //El token lo guardamos en una cookie (mismo nombre que valida el middleware authMiddleware)
+        res.cookie("authCookie", token);
 
-        return res.status(200).json({ message: "Login successfully" })
+        return res.status(200).json({
+            message: "Login successful",
+            token,
+            userType: "customer",
+            user: {
+                id: customerFound._id,
+                email: customerFound.email,
+                name: customerFound.name,
+                last_name: customerFound.last_name,
+            },
+        })
 
     } catch (error) {
         console.log("error" + error)

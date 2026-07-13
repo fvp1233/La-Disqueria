@@ -9,6 +9,8 @@ import { Button } from "@/global/components/button";
 import { Modal } from "@/global/components/Modal";
 import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
 import { AccessoryForm } from "@/modules/accesories/components/AccessoryForm";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
 
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
@@ -61,6 +63,7 @@ export default function AccessoriesPage() {
  const handleFilterChange = (category, value) => {
    setFilterCategory(category);
    setFilterValue(value);
+   setPage(1);
  };
 
  const types = [...new Set(data.map((item) => item.subtype).filter(Boolean))];
@@ -99,6 +102,16 @@ export default function AccessoriesPage() {
    .filter((item) =>
      item?.name?.toLowerCase().includes(search.toLowerCase())
    );
+
+ const {
+   paginatedData: paginated,
+   page,
+   setPage,
+   pageSize,
+   setPageSize,
+   totalPages,
+   totalItems,
+ } = usePagination(filtered, 10);
 
  //Devuelve el estado visual de disponibilidad
  const getEstado = (isAvailable) => {
@@ -171,7 +184,10 @@ export default function AccessoriesPage() {
  {/*Campo de busqueda*/}
  <InputGroupInlineStart
  value={search}
- onChange={(e) => setSearch(e.target.value)}
+ onChange={(e) => {
+   setSearch(e.target.value);
+   setPage(1);
+ }}
  />
 
  {/*Filtro por estado o tipo*/}
@@ -215,7 +231,7 @@ export default function AccessoriesPage() {
  <TableBody>
 
  {/*Recorrer accesorios filtrados*/}
- {filtered.map((item, i) => {
+ {paginated.map((item, i) => {
 
  //Estado visual del accesorio
  const estado = getEstado(item.isAvailable);
@@ -321,6 +337,21 @@ export default function AccessoriesPage() {
  })}
  </TableBody>
  </Table>
+
+ <Pagination
+   page={page}
+   totalPages={totalPages}
+   totalItems={totalItems}
+   pageSize={pageSize}
+   onPageChange={(p) => {
+     setPage(p);
+     setOpenRow(null);
+   }}
+   onPageSizeChange={(size) => {
+     setPageSize(size);
+     setOpenRow(null);
+   }}
+ />
  </div>
  </div>
  </div>

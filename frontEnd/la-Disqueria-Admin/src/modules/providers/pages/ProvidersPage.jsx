@@ -12,6 +12,8 @@ import { Modal } from "@/global/components/Modal";
 import { ProviderForm } from "@/modules/providers/components/ProviderForm";
 import { MultiFilterDropdown } from "@/global/components/MultiFilterDropdown";
 import { StatusBadge } from "@/global/components/StatusBadge";
+import { Pagination } from "@/global/components/Pagination";
+import usePagination from "@/global/hooks/usePagination";
 import useSuppliers from "@/modules/providers/hooks/useSuppliers";
 
 export default function ProvidersPage() {
@@ -41,6 +43,7 @@ export default function ProvidersPage() {
   const handleFilterChange = (category, value) => {
     setFilterCategory(category);
     setFilterValue(value);
+    setPage(1);
   };
 
   const countries = [...new Set(suppliers.map(s => s.country).filter(Boolean))];
@@ -76,6 +79,16 @@ export default function ProvidersPage() {
       (s.companny || s.company || "").toLowerCase().includes(search.toLowerCase()) ||
       (s.contact_name || "").toLowerCase().includes(search.toLowerCase())
     );
+
+  const {
+    paginatedData: paginated,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filtered, 10);
 
   if (loading) return <p className="p-6">Cargando proveedores...</p>;
 
@@ -114,7 +127,10 @@ export default function ProvidersPage() {
         <div className="flex gap-4 items-center">
           <InputGroupInlineStart
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
           />
           <MultiFilterDropdown
             filters={filterGroups}
@@ -154,7 +170,7 @@ export default function ProvidersPage() {
           </TableHeader>
 
           <TableBody>
-            {filtered.map((s) => (
+            {paginated.map((s) => (
               <TableRow
                 key={s._id}
                 className="cursor-pointer hover:bg-gray-50 transition"
@@ -200,6 +216,15 @@ export default function ProvidersPage() {
             ))}
           </TableBody>
         </Table>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
 
       {/* Menú contextual */}

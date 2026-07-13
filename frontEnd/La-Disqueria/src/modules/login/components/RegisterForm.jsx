@@ -1,11 +1,16 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthBrand } from "./AuthBrand";
 import { AuthLayout } from "./AuthLayout";
+import useRegisterCustomer from "@/modules/login/hooks/useRegisterCustomer";
 
 export function RegisterForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { registerCustomer, verifyCode, submitting, error } = useRegisterCustomer();
   const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState("form"); // "form" | "verify"
+  const [code, setCode] = useState("");
   const [form, setForm] = useState({
     nombre: "",
     apellido: "",
@@ -18,10 +23,25 @@ export function RegisterForm() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: conectar con el backend
-    navigate("/login");
+
+    const success = await registerCustomer({
+      name: form.nombre,
+      last_name: form.apellido,
+      phone: form.numero,
+      email: form.email,
+      password: form.password,
+    });
+
+    if (success) setStep("verify");
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+
+    const success = await verifyCode(code);
+    if (success) navigate("/login", { state: { from: location.state?.from } });
   };
 
   const fields = [
@@ -31,11 +51,54 @@ export function RegisterForm() {
     { name: "email", label: "Email", type: "email", placeholder: "Correo electrónico" },
   ];
 
+  if (step === "verify") {
+    return (
+      <AuthLayout>
+        <AuthBrand subtitle="Verifica tu correo" />
+
+        <form className="flex flex-col gap-3" onSubmit={handleVerify}>
+          {error && (
+            <p className="text-center text-[11px] text-red-500 bg-red-50 rounded py-2 px-3">{error}</p>
+          )}
+
+          <p className="text-center text-[11px] text-[#888]">
+            Enviamos un código de verificación a {form.email}
+          </p>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] font-semibold text-[#555] uppercase tracking-wide">
+              Código
+            </label>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Código de verificación"
+              className="w-full px-4 py-2.5 bg-[#ede8e0] border-none rounded text-sm text-[#444] outline-none focus:ring-2 focus:ring-[#E8602A]/30 placeholder:text-[#aaa] tracking-widest transition"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-2.5 bg-[#E8602A] text-white text-[12px] font-bold uppercase tracking-widest rounded hover:bg-[#cf4e1e] transition-colors mt-1 disabled:opacity-60"
+          >
+            {submitting ? "Verificando..." : "Verificar cuenta"}
+          </button>
+        </form>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout>
       <AuthBrand subtitle="Crear Usuario" />
 
-      <div className="flex flex-col gap-3">
+      <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+        {error && (
+          <p className="text-center text-[11px] text-red-500 bg-red-50 rounded py-2 px-3">{error}</p>
+        )}
+
         {fields.map(({ name, label, type, placeholder }) => (
           <div key={name} className="flex flex-col gap-1">
             <label className="text-[11px] font-semibold text-[#555] uppercase tracking-wide">
@@ -81,10 +144,11 @@ export function RegisterForm() {
 
         {/* Botón crear */}
         <button
-          onClick={handleSubmit}
-          className="w-full py-2.5 bg-[#E8602A] text-white text-[12px] font-bold uppercase tracking-widest rounded hover:bg-[#cf4e1e] transition-colors mt-2"
+          type="submit"
+          disabled={submitting}
+          className="w-full py-2.5 bg-[#E8602A] text-white text-[12px] font-bold uppercase tracking-widest rounded hover:bg-[#cf4e1e] transition-colors mt-2 disabled:opacity-60"
         >
-          Crear
+          {submitting ? "Creando..." : "Crear"}
         </button>
 
         <p className="text-center text-[11px] text-[#888] mt-1">
@@ -93,7 +157,7 @@ export function RegisterForm() {
             Inicia sesión
           </Link>
         </p>
-      </div>
+      </form>
     </AuthLayout>
   );
 }

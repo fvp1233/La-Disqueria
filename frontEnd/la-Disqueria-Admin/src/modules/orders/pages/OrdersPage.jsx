@@ -17,6 +17,8 @@ import { Button } from "@/global/components/button"
 import { Modal } from "@/global/components/Modal"
 import { OrderForm } from "@/modules/orders/components/OrderForm"
 import { FilterDropdown } from "@/global/components/FilterDropdown"
+import { Pagination } from "@/global/components/Pagination"
+import usePagination from "@/global/hooks/usePagination"
 import useOrders from "@/modules/orders/hooks/useOrders"
 
 export default function OrdersPage() {
@@ -50,6 +52,16 @@ export default function OrdersPage() {
       order.customerId?.name?.toLowerCase().includes(search.toLowerCase())
     )
 
+  const {
+    paginatedData: paginatedOrders,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalItems,
+  } = usePagination(filteredOrders, 10)
+
   const totalIngresos = orders.reduce((acc, order) => acc + (order.total || 0), 0)
   const pendientes = orders.filter((o) => o.status === "Pendiente" || o.status === "pendiente").length
   const entregadas = orders.filter((o) => o.status === "Entregado").length
@@ -74,11 +86,20 @@ export default function OrdersPage() {
       {/* HEADER */}
       <div className="mt-8 flex justify-between items-center">
         <div className="flex gap-4 items-center">
-          <InputGroupInlineStart value={search} onChange={(e) => setSearch(e.target.value)} />
+          <InputGroupInlineStart
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
 
           <FilterDropdown
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(value) => {
+              setStatusFilter(value)
+              setPage(1)
+            }}
             options={[
               { label: "Todos", value: "all" },
               { label: "Pendiente", value: "Pendiente" },
@@ -118,7 +139,7 @@ export default function OrdersPage() {
           </TableHeader>
 
           <TableBody>
-            {filteredOrders.map((order) => (
+            {paginatedOrders.map((order) => (
               <TableRow
                 key={order._id}
                 className="cursor-pointer hover:bg-gray-50 transition"
@@ -168,6 +189,15 @@ export default function OrdersPage() {
             ))}
           </TableBody>
         </Table>
+
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+        />
       </div>
 
       {/* MENU CONTEXTUAL */}
