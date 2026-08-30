@@ -226,4 +226,112 @@ productsController.getProducts = async (req, res) => {
   }
 };
 
+const firstCoverImage = (images) => {
+  if (!Array.isArray(images) || images.length === 0) return null;
+  const cover = images.find((img) => img?.isCover) || images[0];
+  return typeof cover === "string" ? cover : cover?.image || null;
+};
+
+const joinGenre = (genre) =>
+  Array.isArray(genre) ? genre.filter(Boolean).join(", ") : genre || "";
+
+// SELECT - detalle de un producto individual resuelto contra la coleccion que
+// corresponda a su id. Publico: lo usa la ficha de producto de la tienda.
+productsController.getProductById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Id inválido" });
+    }
+
+    const [vinyl, cd, turntable, accessory] = await Promise.all([
+      vinylModel.findById(id).populate("artistId", "name").lean(),
+      cdsModel.findById(id).populate("artistId", "name").lean(),
+      turntablesModel.findById(id).lean(),
+      accessoriesModel.findById(id).lean(),
+    ]);
+
+    if (vinyl) {
+      return res.status(200).json({
+        id: vinyl._id,
+        type: "vinyl",
+        album: vinyl.tittle || vinyl.title || "Sin título",
+        artist: vinyl.artistId?.name || "",
+        artistId: vinyl.artistId?._id || vinyl.artistId || "",
+        genre: joinGenre(vinyl.genre),
+        label: vinyl.label || "",
+        year: vinyl.year || null,
+        format: vinyl.format || "",
+        color: vinyl.color || "",
+        price: vinyl.price ?? 0,
+        coverImage: firstCoverImage(vinyl.images),
+        images: (vinyl.images || []).map((img) => img.image).filter(Boolean),
+        trackList: vinyl.trackList || [],
+        isAvailable: vinyl.isAvailable ?? true,
+      });
+    }
+
+    if (cd) {
+      return res.status(200).json({
+        id: cd._id,
+        type: "cd",
+        album: cd.title || "Sin título",
+        artist: cd.artistId?.name || "",
+        artistId: cd.artistId?._id || cd.artistId || "",
+        genre: joinGenre(cd.genre),
+        label: cd.label || "",
+        year: cd.year || "",
+        format: cd.format || "",
+        price: cd.price ?? 0,
+        coverImage: firstCoverImage(cd.images),
+        images: (cd.images || []).map((img) => img.image).filter(Boolean),
+        trackList: cd.tracks || [],
+        isAvailable: cd.isAvailable ?? true,
+      });
+    }
+
+    if (turntable) {
+      return res.status(200).json({
+        id: turntable._id,
+        type: "turntable",
+        album: `${turntable.brand || ""} ${turntable.model || ""}`.trim() || "Sin título",
+        artist: "",
+        artistId: "",
+        genre: "Tocadiscos",
+        description: turntable.description || "",
+        specs: turntable.specs || [],
+        warranty: turntable.warranty || "",
+        price: turntable.price ?? 0,
+        coverImage: firstCoverImage(turntable.images),
+        images: (turntable.images || []).map((img) => img.image).filter(Boolean),
+        isAvailable: turntable.isAvailable ?? true,
+      });
+    }
+
+    if (accessory) {
+      return res.status(200).json({
+        id: accessory._id,
+        type: "accessory",
+        album: accessory.name || "Sin título",
+        artist: accessory.brand || "",
+        artistId: "",
+        genre: "Accesorio",
+        description: accessory.description || "",
+        material: accessory.material || "",
+        compatibleWith: accessory.compatibleWith || [],
+        price: accessory.price ?? 0,
+        coverImage: firstCoverImage(accessory.images),
+        images: (accessory.images || []).filter(Boolean),
+        isAvailable: accessory.isAvailable ?? true,
+      });
+    }
+
+    return res.status(404).json({ message: "Producto no encontrado" });
+  } catch (error) {
+    console.log("error " + error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export default productsController;

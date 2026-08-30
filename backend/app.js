@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import registerCustomerRoutes from "./src/routes/customers/registerCustomer.js"
 import loginCustomerRoutes from "./src/routes/customers/loginCustomer.js"
+import passwordRecoveryRoutes from "./src/routes/customers/passwordRecovery.js"
 import customersRoutes from "./src/routes/customers/customer.js"
 import accessoriesRoutes from "./src/routes/accessories/accessories.js"
 import supplierRoues from './src/routes/suppliers/suppliers.js'
@@ -21,10 +22,11 @@ import categoriesRoutes from "./src/routes/categories/category.js"
 import genresRoutes from "./src/routes/genres/genre.js"
 import cartRoutes from "./src/routes/cart/cart.js"
 import productsRoutes from "./src/routes/products/products.js"
+import dashboardRoutes from "./src/routes/dashboard/dashboard.js"
 const app = express();
 
 app.use(cors({
-    origin: ["http://localhost:5173", "http://localhost:5174" , "http://localhost:5175"],
+    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
     credentials: true
 }));
 
@@ -35,6 +37,7 @@ app.use(express.urlencoded({limit: "50mb" , extended: true}))
 
 app.use("/api/registerCustomer", registerCustomerRoutes);
 app.use("/api/customers/login", loginCustomerRoutes);
+app.use("/api/customers/passwordRecovery", passwordRecoveryRoutes)
 app.use("/api/customers", customersRoutes)
 app.use("/api/accessories", accessoriesRoutes)
 app.use("/api/suppliers", supplierRoues)
@@ -53,4 +56,5 @@ app.use("/api/categories", categoriesRoutes)
 app.use("/api/genres", genresRoutes)
 app.use("/api/cart", cartRoutes)
 app.use("/api/products", productsRoutes)
+app.use("/api/dashboard", dashboardRoutes)
 export default app;

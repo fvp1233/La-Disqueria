@@ -23,6 +23,9 @@ const customerSchema = new Schema(
     email: {
       type: String,
     },
+    dui: {
+      type: String,
+    },
     password: {
       type: String,
     },

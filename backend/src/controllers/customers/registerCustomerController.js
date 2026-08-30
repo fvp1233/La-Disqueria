@@ -7,34 +7,31 @@ import customerModel from "../../models/customers/customer.js";
 
 const registerCustomerController = {};
 
+const DUI_REGEX = /^\d{8}-\d$/;
+const PHONE_REGEX = /^\d{4}-\d{4}$/;
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._])[A-Za-z\d@$!%*?&#._]{8,20}$/;
+
+// Deja el telefono en el formato ####-#### aunque llegue con el prefijo del pais.
+const normalizePhone = (value = "") => value.replace(/^\+?503\s*/, "").trim();
+
 registerCustomerController.registerCustomer = async (req, res) => {
   try {
-    let {
-      name,
-      last_name,
-      email,
-      password,
-      phone,
-      adreesses,
-      isActive,
-      isVerified,
-      loginAttemps,
-      timeOut,
-    } = req.body;
+    let { name, last_name, email, dui, password, phone, addresses } = req.body;
 
-    //Validaciones
     name = name?.trim();
     last_name = last_name?.trim();
-    email = email?.trim();
+    email = email?.trim().toLowerCase();
+    dui = dui?.trim();
     password = password?.trim();
-    phone = phone?.trim();
+    phone = normalizePhone(phone || "");
 
-    if (Array.isArray(adreesses) && adreesses[0]) {
-      adreesses[0].street = adreesses[0].street?.trim();
-      adreesses[0].city = adreesses[0].city?.trim();
+    if (Array.isArray(addresses) && addresses[0]) {
+      addresses[0].street = addresses[0].street?.trim();
+      addresses[0].city = addresses[0].city?.trim();
     }
 
-    if (!name || !last_name || !email || !phone || !password) {
+    if (!name || !last_name || !email || !dui || !phone || !password) {
       return res.status(400).json({ message: "Fields required" });
     }
 
@@ -43,9 +40,15 @@ registerCustomerController.registerCustomer = async (req, res) => {
     }
 
     if (last_name.length < 3 || last_name.length > 15) {
-      return res
-        .status(400)
-        .json({ message: "Please insert a valid last name" });
+      return res.status(400).json({ message: "Please insert a valid last name" });
+    }
+
+    if (!DUI_REGEX.test(dui)) {
+      return res.status(400).json({ message: "Invalid DUI format" });
+    }
+
+    if (!PHONE_REGEX.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone format" });
     }
 
     if (password.length < 8 || password.length > 20) {
@@ -54,25 +57,28 @@ registerCustomerController.registerCustomer = async (req, res) => {
       });
     }
 
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#._])[A-Za-z\d@$!%*?&#._]{8,20}$/;
-
-    if (!passwordRegex.test(password)) {
+    if (!PASSWORD_REGEX.test(password)) {
       return res.status(400).json({
         message:
           "The password must include at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
       });
     }
 
-    const existCustomer = await customerModel.findOne({ email });
-    if (existCustomer) {
-      return res.status(400).json({ message: "Customer already exists" });
+    const duplicate = await customerModel.findOne({
+      $or: [{ email }, { dui }, { phone }],
+    });
+
+    if (duplicate) {
+      if (duplicate.email === email) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+      if (duplicate.dui === dui) {
+        return res.status(400).json({ message: "DUI already registered" });
+      }
+      return res.status(400).json({ message: "Phone already registered" });
     }
 
-    //Si pasa todas las validaciones encripta la contraseña y sigue con su proceso
-
     const passwordHashed = await bcryptjs.hash(password, 10);
-
     const randomCode = crypto.randomBytes(3).toString("hex");
 
     const token = jsonwebtoken.sign(
@@ -81,11 +87,10 @@ registerCustomerController.registerCustomer = async (req, res) => {
         name,
         last_name,
         email,
+        dui,
         password: passwordHashed,
         phone,
-        adreesses,
-        isActive,
-        isVerified,
+        addresses,
       },
       config.JWT.secret,
       { expiresIn: "15m" },
@@ -105,13 +110,10 @@ registerCustomerController.registerCustomer = async (req, res) => {
       from: config.email.user_email,
       to: email,
       subject: "Verificación de cuenta",
-      text:
-        "Para verificar tu cuenta, usa este código" +
-        randomCode +
-        "expira en 15 minutos",
+      text: `Para verificar tu cuenta usa este código: ${randomCode}. Expira en 15 minutos.`,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
+    transporter.sendMail(mailOptions, (error) => {
       if (error) {
         console.log("error" + error);
         return res.status(500).json({ message: "Error sending email" });
@@ -127,36 +129,48 @@ registerCustomerController.registerCustomer = async (req, res) => {
 registerCustomerController.verifyCode = async (req, res) => {
   try {
     const { verificationCodeRequest } = req.body;
-
     const token = req.cookies.registrationCookie;
 
-    const decoded = jsonwebtoken.verify(token, config.JWT.secret);
+    if (!token) {
+      return res.status(400).json({ message: "Expired registration" });
+    }
 
+    const decoded = jsonwebtoken.verify(token, config.JWT.secret);
     const {
       randomCode: storedCode,
       name,
       last_name,
       email,
+      dui,
       password,
       phone,
-      adreesses,
-      isActive,
-      isVerified,
+      addresses,
     } = decoded;
 
     if (verificationCodeRequest !== storedCode) {
       return res.status(400).json({ message: "Invalid code" });
     }
 
-    const newCustomer = customerModel({
+    const duplicate = await customerModel.findOne({
+      $or: [{ email }, { dui }, { phone }],
+    });
+
+    if (duplicate) {
+      return res.status(400).json({ message: "Customer already exists" });
+    }
+
+    const newCustomer = new customerModel({
       name,
       last_name,
       email,
+      dui,
       password,
       phone,
-      adreesses,
-      isActive: true,
+      addresses,
+      is_active: true,
       isVerified: true,
+      loginAttemps: 0,
+      timeOut: null,
     });
     await newCustomer.save();
 
@@ -168,4 +182,5 @@ registerCustomerController.verifyCode = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 export default registerCustomerController;
