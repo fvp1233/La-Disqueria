@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import TypeTabs from './components/TypeTabs';
 import ProductCard from '../../components/ProductCard';
 import TopBarIcons from '../../components/TopBarIcons';
-import { getProductsByType, sampleCartItems } from '../../data/catalog';
+import useProducts from '../../hooks/products/useProducts';
+import { useCart } from '../../context/CartContext';
 import { colors, fonts, radii, spacing } from '../../theme';
 
-const cartCount = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
+const productTypes = ['Vinilos', 'CDs', 'Tocadiscos', 'Accesorios'];
 
 // Catálogo separado por tipo de producto con una cuadrícula de resultados.
 export default function CatalogScreen({ navigation, route }) {
   const [activeType, setActiveType] = useState(route.params?.type || 'Vinilos');
+  const { products, loading } = useProducts();
+  const { rows: cartRows } = useCart();
 
   useEffect(() => {
     if (route.params?.type) {
@@ -20,7 +23,16 @@ export default function CatalogScreen({ navigation, route }) {
     }
   }, [route.params?.type]);
 
-  const results = getProductsByType(activeType);
+  const results = products.filter((p) => p.type === activeType);
+  const cartCount = cartRows.reduce((total, item) => total + item.quantity, 0);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
