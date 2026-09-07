@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import HomeHeader from './components/HomeHeader';
@@ -7,17 +7,29 @@ import SectionHeader from './components/SectionHeader';
 import CategoryChips from './components/CategoryChips';
 import BestSellerRow from './components/BestSellerRow';
 import ProductCard from '../../components/ProductCard';
-import { products, sampleCartItems } from '../../data/catalog';
+import useProducts from '../../hooks/products/useProducts';
+import { useCart } from '../../context/CartContext';
 import { colors, radii, spacing } from '../../theme';
-
-const cartCount = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
-const newReleases = products.slice(0, 4);
-const bestSellers = [products[4], products[2], products[7]];
 
 // Pantalla de inicio con novedades, categorías y productos destacados.
 export default function HomeScreen({ navigation }) {
+  const { products, loading } = useProducts();
+  const { rows: cartRows } = useCart();
+
+  const cartCount = cartRows.reduce((total, item) => total + item.quantity, 0);
+  const newReleases = products.slice(0, 4);
+  const bestSellers = products.slice(4, 7);
+
   const openProduct = (productId) => navigation.navigate('ProductDetail', { productId });
   const openCatalog = (type) => navigation.navigate('Catalog', { type });
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -77,6 +89,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxxl,
+  },
+  loader: {
+    marginTop: 60,
   },
   search: {
     flexDirection: 'row',

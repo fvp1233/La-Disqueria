@@ -1,9 +1,10 @@
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import ProfileMenuRow from './components/ProfileMenuRow';
 import StatCard from './components/StatCard';
 import AppButton from '../../components/AppButton';
+import useOrders from '../../hooks/orders/useOrders';
 import { colors, fonts, radii, shadow, spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 
@@ -21,8 +22,11 @@ const initialsOf = (name = '', lastName = '') =>
 // Perfil del cliente con datos, estadísticas y accesos de la cuenta.
 export default function ProfileScreen({ navigation }) {
   const { user, signOut } = useAuth();
+  const { orders, loading } = useOrders();
 
   const fullName = [user?.name, user?.last_name].filter(Boolean).join(' ') || 'Cliente';
+  const orderCount = orders.length;
+  const favoriteCount = 0;
 
   // Al cerrar la sesión, RootNavigator vuelve solo a la pila de inicio de sesión.
   const logout = () => signOut();
@@ -45,10 +49,14 @@ export default function ProfileScreen({ navigation }) {
           </Pressable>
         </View>
 
-        <View style={styles.stats}>
-          <StatCard value="3" label="Pedidos" />
-          <StatCard value="12" label="Favoritos" />
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+        ) : (
+          <View style={styles.stats}>
+            <StatCard value={String(orderCount)} label="Pedidos" />
+            <StatCard value={String(favoriteCount)} label="Favoritos" />
+          </View>
+        )}
 
         <View style={styles.menu}>
           {menuItems.map((item, index) => (
@@ -140,5 +148,8 @@ const styles = StyleSheet.create({
   },
   logout: {
     marginTop: spacing.sm,
+  },
+  loader: {
+    marginVertical: spacing.lg,
   },
 });

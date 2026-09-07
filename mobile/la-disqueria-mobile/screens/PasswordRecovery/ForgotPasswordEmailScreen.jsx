@@ -1,22 +1,38 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import AuthScreen from '../../components/AuthScreen';
 import BackBar from '../../components/BackBar';
 import StepDots from '../../components/StepDots';
 import TextField from '../../components/TextField';
 import AppButton from '../../components/AppButton';
+import usePasswordRecovery from '../../hooks/password/usePasswordRecovery';
 import { colors, fonts, spacing } from '../../theme';
 
 // Primer paso de la recuperación. Solicita el correo de la cuenta.
 export default function ForgotPasswordEmailScreen({ navigation }) {
   const [email, setEmail] = useState('');
+  const { requestRecovery, loading, error, setError } = usePasswordRecovery();
+
+  const handleSendCode = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Por favor ingresa tu correo electrónico');
+      return;
+    }
+    const ok = await requestRecovery(email);
+    if (ok) {
+      navigation.navigate('ForgotPasswordCode', { email });
+    }
+  };
 
   return (
     <AuthScreen
       header={
         <BackBar
           title="Recuperar contraseña"
-          onBack={() => navigation.navigate('Login')}
+          onBack={() => {
+            navigation.navigate('Login');
+            setError(null);
+          }}
           rightSlot={<StepDots total={3} current={1} />}
         />
       }
@@ -30,12 +46,21 @@ export default function ForgotPasswordEmailScreen({ navigation }) {
         <TextField
           label="Correo electrónico"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            setError(null);
+          }}
           placeholder="correo@ejemplo.com"
           keyboardType="email-address"
           autoCapitalize="none"
+          editable={!loading}
         />
-        <AppButton label="Enviar código" onPress={() => navigation.navigate('ForgotPasswordCode')} />
+        {error && <Text style={styles.error}>{error}</Text>}
+        <AppButton
+          label={loading ? 'Enviando código…' : 'Enviar código'}
+          onPress={handleSendCode}
+          disabled={loading}
+        />
         <Text style={styles.footer}>
           ¿Recordaste tu contraseña?{' '}
           <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
@@ -73,5 +98,11 @@ const styles = StyleSheet.create({
   link: {
     color: colors.primary,
     fontWeight: '700',
+  },
+  error: {
+    fontFamily: fonts.body,
+    fontSize: 12.5,
+    color: colors.danger,
+    lineHeight: 18,
   },
 });

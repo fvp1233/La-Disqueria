@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackBar from '../../components/BackBar';
 import IconButton from '../../components/IconButton';
@@ -7,15 +7,45 @@ import Pill from '../../components/Pill';
 import QuantityStepper from '../../components/QuantityStepper';
 import AppButton from '../../components/AppButton';
 import TrackList from './components/TrackList';
-import { findProductById, formatPrice, sampleCartItems } from '../../data/catalog';
+import useProductById from '../../hooks/products/useProductById';
+import { useCart } from '../../context/CartContext';
 import { colors, fonts, radii, shadow, spacing } from '../../theme';
 
-const cartCount = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
+const formatPrice = (amount) => `$${amount.toFixed(2)}`;
 
 // Ficha de un producto con opciones de cantidad y acción de compra.
 export default function ProductDetailScreen({ navigation, route }) {
-  const product = findProductById(route.params?.productId);
+  const { product, loading } = useProductById(route.params?.productId);
+  const { rows: cartRows, addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
+
+  const cartCount = cartRows.reduce((total, item) => total + item.quantity, 0);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <BackBar title="Cargando..." onBack={() => navigation.goBack()} />
+        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!product) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <BackBar title="Error" onBack={() => navigation.goBack()} />
+        <View style={styles.content}>
+          <Text style={styles.errorText}>Producto no encontrado</Text>
+          <AppButton label="Volver" onPress={() => navigation.goBack()} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const handleAddToCart = () => {
+    addItem(product, quantity);
+    navigation.navigate('Cart');
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -38,14 +68,14 @@ export default function ProductDetailScreen({ navigation, route }) {
               <View style={styles.vinylLabel} />
             </View>
           ) : null}
-          <View style={[styles.cover, { backgroundColor: product.colors[1] }, !product.isDisc && styles.coverFlat]}>
+          <View style={[styles.cover, { backgroundColor: product.color || product.colors?.[1] || '#999' }, !product.isDisc && styles.coverFlat]}>
             <Text style={styles.coverText} numberOfLines={3}>
               {product.title}
             </Text>
           </View>
         </View>
 
-        <Text style={styles.sub}>{product.sub}</Text>
+        <Text style={styles.sub}>{product.artist || product.sub}</Text>
         <Text style={styles.title}>{product.title}</Text>
 
         <View style={styles.pills}>
@@ -64,7 +94,7 @@ export default function ProductDetailScreen({ navigation, route }) {
           <View>
             <Text style={styles.sectionHeading}>Descripción</Text>
             <Text style={styles.description}>
-              Descripción, materiales y especificaciones del producto pendientes de la tienda pública.
+              {product.description || 'Descripción, materiales y especificaciones del producto pendientes de la tienda pública.'}
             </Text>
           </View>
         )}
@@ -77,7 +107,7 @@ export default function ProductDetailScreen({ navigation, route }) {
         </View>
         <AppButton
           label="Añadir al carrito"
-          onPress={() => navigation.navigate('Cart')}
+          onPress={handleAddToCart}
           style={styles.addButton}
         />
       </View>
@@ -94,6 +124,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
     paddingTop: spacing.md,
     paddingBottom: 120,
+  },
+  loader: {
+    marginTop: 60,
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.ink,
+    textAlign: 'center',
+    marginVertical: spacing.xl,
   },
   hero: {
     height: 260,

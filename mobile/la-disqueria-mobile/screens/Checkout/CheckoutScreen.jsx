@@ -1,23 +1,22 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BackBar from '../../components/BackBar';
 import TextField from '../../components/TextField';
 import OrderSummary from '../../components/OrderSummary';
 import AppButton from '../../components/AppButton';
-import { findProductById, sampleCartItems } from '../../data/catalog';
+import useCreateOrder from '../../hooks/orders/useCreateOrder';
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const paymentMethods = ['Tarjeta de crédito o débito', 'Efectivo contra entrega'];
 
-const itemCount = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
-const subtotal = sampleCartItems.reduce(
-  (total, item) => total + findProductById(item.productId).price * item.quantity,
-  0
-);
-
 // Datos de envío y confirmación del pedido.
 export default function CheckoutScreen({ navigation }) {
+  const { rows: cartRows, subtotal, clear: clearCart } = useCart();
+  const { user } = useAuth();
+  const { createOrder, loading } = useCreateOrder();
   const [form, setForm] = useState({
     address: '',
     city: '',
@@ -27,6 +26,45 @@ export default function CheckoutScreen({ navigation }) {
 
   const updateField = (key) => (value) =>
     setForm((current) => ({ ...current, [key]: value }));
+
+  const itemCount = cartRows.reduce((total, item) => total + item.quantity, 0);
+
+  const handleConfirmOrder = async () => {
+    if (!form.address.trim()) {
+      Alert.alert('Error', 'Por favor ingresa una dirección');
+      return;
+    }
+    if (!form.city.trim()) {
+      Alert.alert('Error', 'Por favor ingresa una ciudad');
+      return;
+    }
+    if (cartRows.length === 0) {
+      Alert.alert('Error', 'Tu carrito está vacío');
+      return;
+    }
+
+    try {
+      const orderData = {
+        customerId: user?.id,
+        items: cartRows.map((row) => ({
+          productId: row.productId,
+          quantity: row.quantity,
+          price: row.product?.price,
+        })),
+        address: form.address,
+        city: form.city,
+        notes: form.notes,
+        paymentMethod: form.payment,
+        total: subtotal,
+      };
+
+      await createOrder(orderData);
+      clearCart();
+      navigation.navigate('OrderConfirmed', { orderId: new Date().getTime().toString() });
+    } catch (err) {
+      Alert.alert('Error', err.message || 'No se pudo crear la orden');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -81,10 +119,12 @@ export default function CheckoutScreen({ navigation }) {
 
       <View style={styles.bottomBar}>
         <AppButton
-          label="Confirmar compra"
-          onPress={() => navigation.navigate('OrderConfirmed')}
+          label={loading ? 'Procesando...' : 'Confirmar compra'}
+          onPress={handleConfirmOrder}
+          disabled={loading}
           style={styles.confirmButton}
         />
+        {loading && <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />}
       </View>
     </SafeAreaView>
   );
@@ -159,5 +199,9 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     width: '100%',
+  },
+  spinner: {
+    position: 'absolute',
+    right: spacing.xl,
   },
 });

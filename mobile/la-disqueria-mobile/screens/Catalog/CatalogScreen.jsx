@@ -83,6 +83,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxxl,
   },
+  loader: {
+    marginTop: 60,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
