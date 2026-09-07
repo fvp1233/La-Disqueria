@@ -6,7 +6,8 @@ import TextField from '../../components/TextField';
 import PasswordField from '../../components/PasswordField';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, spacing } from '../../theme';
-import { useRegister } from './hooks';
+import useRegisterCustomer from '../../hooks/login/useRegisterCustomer';
+import { buildRegisterPayload } from './registerForm';
 
 // Formulario de registro de un nuevo cliente.
 export default function RegisterScreen({ navigation }) {
@@ -18,18 +19,26 @@ export default function RegisterScreen({ navigation }) {
     email: '',
     password: '',
   });
+  const [formError, setFormError] = useState(null);
 
-  const { register, loading, error, setError } = useRegister();
+  const { registerCustomer, submitting, error: apiError } = useRegisterCustomer();
+  const error = formError || apiError;
 
   const updateField = (key) => (value) => {
-    setError(null);
+    setFormError(null);
     setForm((current) => ({ ...current, [key]: value }));
   };
 
   const onSubmit = async () => {
-    const result = await register(form);
-    if (result) {
-      navigation.navigate('VerifyCode', { email: result.email });
+    setFormError(null);
+    const { payload, error: validationError } = buildRegisterPayload(form);
+    if (validationError) {
+      setFormError(validationError);
+      return;
+    }
+    const ok = await registerCustomer(payload);
+    if (ok) {
+      navigation.navigate('VerifyCode', { email: payload.email });
     }
   };
 
@@ -81,9 +90,9 @@ export default function RegisterScreen({ navigation }) {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <AppButton
-          label={loading ? 'Creando cuenta…' : 'Crear cuenta'}
+          label={submitting ? 'Creando cuenta…' : 'Crear cuenta'}
           onPress={onSubmit}
-          disabled={loading}
+          disabled={submitting}
         />
 
         <Text style={styles.footer}>

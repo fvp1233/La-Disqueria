@@ -1,6 +1,20 @@
 import { useState } from "react";
 
-import apiClient, { tokenStorage } from "../lib/apiClient";
+import apiClient, { tokenStorage } from "../../lib/apiClient";
+
+// Traduce los mensajes del backend (en ingles) a algo mostrable al usuario.
+const friendlyMessage = (message = "") => {
+  const map = {
+    "Fields required": "Completa todos los campos.",
+    "Email already registered": "Ese correo ya tiene una cuenta.",
+    "DUI already registered": "Ese DUI ya esta registrado.",
+    "Phone already registered": "Ese telefono ya esta registrado.",
+    "Invalid code": "El codigo no es correcto. Verificalo e intentalo de nuevo.",
+    "Expired registration": "El registro expiro. Vuelve a crear tu cuenta.",
+    "Customer already exists": "Esta cuenta ya fue verificada. Inicia sesion.",
+  };
+  return map[message] || message || "Ocurrio un error inesperado.";
+};
 
 // Versión para React Native del hook de la web. Tres cambios de fondo:
 //   1. La URL sale de config/api.js: dentro del teléfono "localhost" es el teléfono mismo.
@@ -27,7 +41,7 @@ const useRegisterCustomer = () => {
         body: data,
       });
 
-      // El backend debe devolver este token en el body (además de la cookie que usa la web).
+      // El backend devuelve este token en el body (además de la cookie que usa la web).
       // Sin él, verifyCode no tiene forma de identificar el registro pendiente.
       const token = result?.verificationToken || result?.token;
       if (token) await tokenStorage.set(token);
@@ -35,7 +49,7 @@ const useRegisterCustomer = () => {
       setMessage(result?.message || "Código de verificación enviado");
       return true;
     } catch (err) {
-      setError(err.message || "Error al registrar el usuario");
+      setError(friendlyMessage(err.message));
       return false;
     } finally {
       setSubmitting(false);
@@ -43,7 +57,7 @@ const useRegisterCustomer = () => {
   };
 
   const verifyCode = async (verificationCodeRequest) => {
-    if (submitting) return false;
+    if (submitting) return null;
 
     setSubmitting(true);
     setError("");
@@ -56,15 +70,17 @@ const useRegisterCustomer = () => {
         body: { verificationCodeRequest },
       });
 
-      // Si la verificación devuelve el token de sesión definitivo, reemplaza al temporal
-      // y el usuario queda logueado sin pasar por la pantalla de login
+      // La verificación devuelve el token de sesión definitivo: reemplaza al
+      // temporal para que el usuario quede logueado sin pasar por el login.
       if (result?.token) await tokenStorage.set(result.token);
 
       setMessage(result?.message || "Cuenta verificada con éxito");
-      return true;
+      // Se devuelve el resultado (token + user) para que la pantalla active
+      // la sesión en AuthContext.
+      return result ?? {};
     } catch (err) {
-      setError(err.message || "Error al verificar el código");
-      return false;
+      setError(friendlyMessage(err.message));
+      return null;
     } finally {
       setSubmitting(false);
     }

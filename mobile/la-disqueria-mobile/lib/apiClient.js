@@ -1,13 +1,29 @@
 import * as SecureStore from "expo-secure-store";
 import { API_URL } from "../config/api";
 
-const TOKEN_KEY = "patient_token";
+const TOKEN_KEY = "customer_token";
+const USER_KEY = "customer_user";
 
 // SecureStore cifra con Keychain (iOS) y Keystore (Android). Todo es asíncrono
 export const tokenStorage = {
     get: () => SecureStore.getItemAsync(TOKEN_KEY),
     set: (token) => SecureStore.setItemAsync(TOKEN_KEY, token),
     remove: () => SecureStore.deleteItemAsync(TOKEN_KEY),
+};
+
+// No hay endpoint /me: se guarda el usuario devuelto por el login para poder
+// restaurar la sesión al abrir la app sin volver a pedir credenciales.
+export const userStorage = {
+    get: async () => {
+        const raw = await SecureStore.getItemAsync(USER_KEY);
+        try {
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    },
+    set: (user) => SecureStore.setItemAsync(USER_KEY, JSON.stringify(user)),
+    remove: () => SecureStore.deleteItemAsync(USER_KEY),
 };
 
 // El contexto registra aquí su cierre de sesión. Se usa callback y no import

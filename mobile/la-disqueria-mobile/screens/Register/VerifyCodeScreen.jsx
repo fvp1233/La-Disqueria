@@ -6,24 +6,22 @@ import BackBar from '../../components/BackBar';
 import CodeField from '../../components/CodeField';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, radii, spacing } from '../../theme';
-import { useVerifyCode } from './hooks';
+import { useAuth } from '../../context/AuthContext';
+import useRegisterCustomer from '../../hooks/login/useRegisterCustomer';
 
 // Verificación del correo tras el registro mediante un código de seis caracteres.
 export default function VerifyCodeScreen({ navigation, route }) {
   const [code, setCode] = useState('');
   const email = route?.params?.email;
 
-  const { verifyCode, loading, error, setError } = useVerifyCode();
-
-  const onChangeCode = (value) => {
-    setError(null);
-    setCode(value);
-  };
+  const { signIn } = useAuth();
+  const { verifyCode, submitting, error } = useRegisterCustomer();
 
   const onSubmit = async () => {
-    const ok = await verifyCode(code);
-    if (ok) {
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    const result = await verifyCode(code.trim().toLowerCase());
+    if (result) {
+      // La verificación deja la sesión iniciada: RootNavigator entra a la app.
+      await signIn(result.user, result.token);
     }
   };
 
@@ -38,14 +36,14 @@ export default function VerifyCodeScreen({ navigation, route }) {
       </Text>
 
       <View style={styles.form}>
-        <CodeField value={code} onChangeText={onChangeCode} />
+        <CodeField value={code} onChangeText={setCode} />
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <AppButton
-          label={loading ? 'Verificando…' : 'Verificar cuenta'}
+          label={submitting ? 'Verificando…' : 'Verificar cuenta'}
           onPress={onSubmit}
-          disabled={loading}
+          disabled={submitting}
         />
         <Text style={styles.resend}>¿No lo recibiste? Vuelve a crear tu cuenta para reenviarlo.</Text>
       </View>

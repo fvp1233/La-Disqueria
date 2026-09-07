@@ -7,7 +7,7 @@ import PasswordField from '../../components/PasswordField';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
-import { useLogin } from './hooks';
+import useLoginCustomer from '../../hooks/login/useLoginCustomer';
 
 // Inicio de sesión directo con correo y contraseña.
 export default function LoginScreen({ navigation }) {
@@ -15,7 +15,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
 
   const { signIn } = useAuth();
-  const { login, loading, error, setError } = useLogin();
+  const { login, loading, error, setError } = useLoginCustomer();
 
   const onChangeEmail = (value) => {
     setError(null);
