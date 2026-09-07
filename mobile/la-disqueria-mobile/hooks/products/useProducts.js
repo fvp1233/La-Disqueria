@@ -18,7 +18,17 @@ const useProducts = (type = null) => {
         }
 
         const data = await apiClient(path);
-        setProducts(Array.isArray(data) ? data : data?.data || []);
+
+        let products = [];
+        if (Array.isArray(data)) {
+          products = data;
+        } else if (data?.data && Array.isArray(data.data)) {
+          products = data.data;
+        } else if (data?.products && Array.isArray(data.products)) {
+          products = data.products;
+        }
+
+        setProducts(products);
       } catch (err) {
         setError(err.message || "Error al cargar productos");
         setProducts([]);

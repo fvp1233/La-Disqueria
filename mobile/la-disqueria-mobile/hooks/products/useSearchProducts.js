@@ -17,15 +17,24 @@ const useSearchProducts = () => {
       setError(null);
 
       const params = {
-        search: query,
+        q: query.trim(),
         ...filters,
       };
 
-      const data = await apiClient("/products/search", {
+      const data = await apiClient("/products", {
         params,
       });
 
-      setResults(Array.isArray(data) ? data : data?.data || []);
+      let products = [];
+      if (Array.isArray(data)) {
+        products = data;
+      } else if (data?.data && Array.isArray(data.data)) {
+        products = data.data;
+      } else if (data?.products && Array.isArray(data.products)) {
+        products = data.products;
+      }
+
+      setResults(products);
     } catch (err) {
       setError(err.message || "Error en la búsqueda");
       setResults([]);

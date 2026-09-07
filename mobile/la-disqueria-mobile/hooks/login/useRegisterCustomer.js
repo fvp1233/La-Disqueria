@@ -29,7 +29,12 @@ const useRegisterCustomer = () => {
   const [message, setMessage] = useState("");
 
   const registerCustomer = async (data) => {
-    if (submitting) return false; // un doble tap crearía dos registros
+    if (submitting) return false;
+
+    if (!data?.email || !data?.password) {
+      setError("Email y contraseña son requeridos");
+      return false;
+    }
 
     setSubmitting(true);
     setError("");
@@ -39,10 +44,9 @@ const useRegisterCustomer = () => {
       const result = await apiClient("/registerCustomer", {
         method: "POST",
         body: data,
+        timeout: 20000,
       });
 
-      // El backend devuelve este token en el body (además de la cookie que usa la web).
-      // Sin él, verifyCode no tiene forma de identificar el registro pendiente.
       const token = result?.verificationToken || result?.token;
       if (token) await tokenStorage.set(token);
 

@@ -75,12 +75,12 @@ export default function ProductDetailScreen({ navigation, route }) {
           </View>
         </View>
 
-        <Text style={styles.sub}>{product.artist || product.sub}</Text>
-        <Text style={styles.title}>{product.title}</Text>
+        <Text style={styles.sub}>{product.artist || product.sub || 'Artista'}</Text>
+        <Text style={styles.title}>{product.title || 'Sin título'}</Text>
 
         <View style={styles.pills}>
-          <Pill label={product.genre} tone="neutral" />
-          <Pill label="Disponible" tone="success" icon="check" />
+          {product.genre && <Pill label={product.genre} tone="neutral" />}
+          <Pill label={product.stock > 0 ? "Disponible" : "Agotado"} tone={product.stock > 0 ? "success" : "danger"} icon={product.stock > 0 ? "check" : "x"} />
         </View>
 
         <View style={styles.quantityRow}>

@@ -80,23 +80,31 @@ async function apiClient(path, { method = "GET", body, params, signal, timeout =
     }
 
     // Se parsea siempre porque la API devuelve { message } también en los errores
-    const data = await response.json().catch(() => null);
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        data = null;
+    }
 
     // Token vencido o inválido: se limpia y se avisa al contexto
     if (response.status === 401 && token) {
         await tokenStorage.remove();
+        await userStorage.remove();
         onUnauthorized?.();
     }
 
     if (!response.ok) {
-        const error = new Error(data?.message || `Error ${response.status}`);
-        // Se expone el status para poder distinguir casos puntuales (ej. 403 = cuenta
-        // desactivada) sin depender del texto exacto del mensaje.
+        const errorMessage =
+            data?.message ||
+            data?.error ||
+            `Error ${response.status}`;
+        const error = new Error(errorMessage);
         error.status = response.status;
         throw error;
     }
 
-    return data;
+    return data || {};
 }
 
 export default apiClient;

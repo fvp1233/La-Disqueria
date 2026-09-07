@@ -42,14 +42,19 @@ export function CartProvider({ children }) {
 
   const addItem = useCallback(
     (product, quantity = 1) => {
+      if (!product || !product.id) {
+        console.warn('Producto inválido');
+        return;
+      }
+
       setRows((current) => {
         const existing = current.find((r) => r.productId === product.id);
         if (existing) {
           return current.map((r) =>
-            r.productId === product.id ? { ...r, quantity: r.quantity + quantity } : r
+            r.productId === product.id ? { ...r, quantity: Math.max(1, r.quantity + quantity) } : r
           );
         }
-        return [...current, { productId: product.id, product, quantity }];
+        return [...current, { productId: product.id, product, quantity: Math.max(1, quantity) }];
       });
     },
     []

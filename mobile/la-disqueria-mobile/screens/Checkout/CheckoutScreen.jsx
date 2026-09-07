@@ -42,20 +42,34 @@ export default function CheckoutScreen({ navigation }) {
       Alert.alert('Error', 'Tu carrito está vacío');
       return;
     }
+    if (!user?.id) {
+      Alert.alert('Error', 'Debes estar autenticado para crear una orden');
+      return;
+    }
 
     try {
-      const orderData = {
-        customerId: user?.id,
-        items: cartRows.map((row) => ({
+      const orderItems = cartRows
+        .filter((row) => row.product && row.productId)
+        .map((row) => ({
           productId: row.productId,
-          quantity: row.quantity,
-          price: row.product?.price,
-        })),
-        address: form.address,
-        city: form.city,
-        notes: form.notes,
+          quantity: Math.max(1, row.quantity),
+          price: row.product?.price || 0,
+        }));
+
+      if (orderItems.length === 0) {
+        Alert.alert('Error', 'El carrito contiene productos inválidos');
+        return;
+      }
+
+      const orderData = {
+        customerId: user.id,
+        items: orderItems,
+        address: form.address.trim(),
+        city: form.city.trim(),
+        notes: form.notes.trim(),
         paymentMethod: form.payment,
         total: subtotal,
+        status: 'pending',
       };
 
       await createOrder(orderData);
