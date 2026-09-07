@@ -5,6 +5,7 @@ import ProfileMenuRow from './components/ProfileMenuRow';
 import StatCard from './components/StatCard';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, radii, shadow, spacing } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
   { icon: 'file-text', label: 'Mis pedidos' },
@@ -14,9 +15,17 @@ const menuItems = [
   { icon: 'help-circle', label: 'Ayuda y soporte' },
 ];
 
+const initialsOf = (name = '', lastName = '') =>
+  `${name.trim()[0] ?? ''}${lastName.trim()[0] ?? ''}`.toUpperCase() || '·';
+
 // Perfil del cliente con datos, estadísticas y accesos de la cuenta.
 export default function ProfileScreen({ navigation }) {
-  const logout = () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  const { user, signOut } = useAuth();
+
+  const fullName = [user?.name, user?.last_name].filter(Boolean).join(' ') || 'Cliente';
+
+  // Al cerrar la sesión, RootNavigator vuelve solo a la pila de inicio de sesión.
+  const logout = () => signOut();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -25,11 +34,11 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.card}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>SR</Text>
+            <Text style={styles.avatarText}>{initialsOf(user?.name, user?.last_name)}</Text>
           </View>
           <View style={styles.identity}>
-            <Text style={styles.name}>Sofía Ramírez</Text>
-            <Text style={styles.email}>sofia.r@correo.com</Text>
+            <Text style={styles.name}>{fullName}</Text>
+            <Text style={styles.email}>{user?.email ?? ''}</Text>
           </View>
           <Pressable style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
             <Feather name="edit-2" size={16} color={colors.ink} />

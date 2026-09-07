@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, Pressable, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
 import VinylLogo from '../../components/VinylLogo';
 import TopoLines from '../../components/TopoLines';
 import { colors, fonts } from '../../theme';
 
-// Pantalla de apertura. Gira el disco y avanza al inicio de sesión.
-export default function SplashScreen({ navigation }) {
+// Pantalla de apertura. Se muestra mientras AuthContext restaura la sesión;
+// cuando termina, RootNavigator cambia solo a la pila de sesión o de invitado.
+export default function SplashScreen() {
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -19,15 +20,8 @@ export default function SplashScreen({ navigation }) {
     );
     rotation.start();
 
-    const timer = setTimeout(() => {
-      navigation.replace('Login');
-    }, 2200);
-
-    return () => {
-      rotation.stop();
-      clearTimeout(timer);
-    };
-  }, [navigation, spin]);
+    return () => rotation.stop();
+  }, [spin]);
 
   const rotate = spin.interpolate({
     inputRange: [0, 1],
@@ -35,7 +29,7 @@ export default function SplashScreen({ navigation }) {
   });
 
   return (
-    <Pressable style={styles.screen} onPress={() => navigation.replace('Login')}>
+    <View style={styles.screen}>
       <TopoLines placement="topLeft" tint={colors.primary} />
       <TopoLines placement="bottomRight" tint={colors.salmon} />
 
@@ -45,7 +39,7 @@ export default function SplashScreen({ navigation }) {
       <Text style={styles.wordmark}>La disquería</Text>
       <Text style={styles.caption}>Vinilos · CDs · Tocadiscos</Text>
       <Text style={styles.footer}>La tienda de música · El Salvador</Text>
-    </Pressable>
+    </View>
   );
 }
 

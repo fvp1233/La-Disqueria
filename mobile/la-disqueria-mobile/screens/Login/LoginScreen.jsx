@@ -6,13 +6,34 @@ import TextField from '../../components/TextField';
 import PasswordField from '../../components/PasswordField';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, spacing } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
+import { useLogin } from './hooks';
 
 // Inicio de sesión directo con correo y contraseña.
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const goToApp = () => navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
+  const { signIn } = useAuth();
+  const { login, loading, error, setError } = useLogin();
+
+  const onChangeEmail = (value) => {
+    setError(null);
+    setEmail(value);
+  };
+
+  const onChangePassword = (value) => {
+    setError(null);
+    setPassword(value);
+  };
+
+  const onSubmit = async () => {
+    const result = await login({ email, password });
+    if (result) {
+      // Al activar la sesión, RootNavigator cambia solo a la pila principal.
+      await signIn(result.user, result.token);
+    }
+  };
 
   return (
     <AuthScreen>
@@ -22,7 +43,7 @@ export default function LoginScreen({ navigation }) {
         <TextField
           label="Correo electrónico"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={onChangeEmail}
           placeholder="correo@ejemplo.com"
           keyboardType="email-address"
           autoCapitalize="none"
@@ -30,7 +51,7 @@ export default function LoginScreen({ navigation }) {
         <PasswordField
           label="Contraseña"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={onChangePassword}
           placeholder="Tu contraseña"
         />
 
@@ -38,7 +59,13 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </Pressable>
 
-        <AppButton label="Iniciar sesión" onPress={goToApp} />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <AppButton
+          label={loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
+          onPress={onSubmit}
+          disabled={loading}
+        />
 
         <Text style={styles.footer}>
           ¿No tienes una cuenta?{' '}
@@ -63,6 +90,12 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '600',
     color: colors.muted,
+  },
+  error: {
+    fontFamily: fonts.body,
+    fontSize: 12.5,
+    color: colors.danger,
+    lineHeight: 18,
   },
   footer: {
     textAlign: 'center',
