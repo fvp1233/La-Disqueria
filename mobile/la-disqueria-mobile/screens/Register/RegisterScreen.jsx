@@ -6,19 +6,32 @@ import TextField from '../../components/TextField';
 import PasswordField from '../../components/PasswordField';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, spacing } from '../../theme';
+import { useRegister } from './hooks';
 
 // Formulario de registro de un nuevo cliente.
 export default function RegisterScreen({ navigation }) {
   const [form, setForm] = useState({
     name: '',
     lastName: '',
+    dui: '',
     phone: '',
     email: '',
     password: '',
   });
 
-  const updateField = (key) => (value) =>
+  const { register, loading, error, setError } = useRegister();
+
+  const updateField = (key) => (value) => {
+    setError(null);
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const onSubmit = async () => {
+    const result = await register(form);
+    if (result) {
+      navigation.navigate('VerifyCode', { email: result.email });
+    }
+  };
 
   return (
     <AuthScreen header={<BackBar title="Crear cuenta" onBack={() => navigation.navigate('Login')} />}>
@@ -37,10 +50,17 @@ export default function RegisterScreen({ navigation }) {
           </View>
         </View>
         <TextField
+          label="DUI"
+          value={form.dui}
+          onChangeText={updateField('dui')}
+          placeholder="01234567-8"
+          keyboardType="number-pad"
+        />
+        <TextField
           label="Teléfono"
           value={form.phone}
           onChangeText={updateField('phone')}
-          placeholder="+503 7000 0000"
+          placeholder="7000-0000"
           keyboardType="phone-pad"
         />
         <TextField
@@ -58,7 +78,13 @@ export default function RegisterScreen({ navigation }) {
           placeholder="Mínimo 8 caracteres"
         />
 
-        <AppButton label="Crear cuenta" onPress={() => navigation.navigate('VerifyCode')} />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <AppButton
+          label={loading ? 'Creando cuenta…' : 'Crear cuenta'}
+          onPress={onSubmit}
+          disabled={loading}
+        />
 
         <Text style={styles.footer}>
           ¿Ya tienes cuenta?{' '}
@@ -94,6 +120,12 @@ const styles = StyleSheet.create({
   },
   half: {
     flex: 1,
+  },
+  error: {
+    fontFamily: fonts.body,
+    fontSize: 12.5,
+    color: colors.danger,
+    lineHeight: 18,
   },
   footer: {
     textAlign: 'center',

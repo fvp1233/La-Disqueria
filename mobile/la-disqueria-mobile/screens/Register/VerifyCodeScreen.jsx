@@ -6,10 +6,26 @@ import BackBar from '../../components/BackBar';
 import CodeField from '../../components/CodeField';
 import AppButton from '../../components/AppButton';
 import { colors, fonts, radii, spacing } from '../../theme';
+import { useVerifyCode } from './hooks';
 
 // Verificación del correo tras el registro mediante un código de seis caracteres.
-export default function VerifyCodeScreen({ navigation }) {
+export default function VerifyCodeScreen({ navigation, route }) {
   const [code, setCode] = useState('');
+  const email = route?.params?.email;
+
+  const { verifyCode, loading, error, setError } = useVerifyCode();
+
+  const onChangeCode = (value) => {
+    setError(null);
+    setCode(value);
+  };
+
+  const onSubmit = async () => {
+    const ok = await verifyCode(code);
+    if (ok) {
+      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }
+  };
 
   return (
     <AuthScreen header={<BackBar title="Verifica tu correo" onBack={() => navigation.navigate('Register')} />}>
@@ -18,13 +34,20 @@ export default function VerifyCodeScreen({ navigation }) {
       </View>
       <Text style={styles.title}>Ingresa el código</Text>
       <Text style={styles.lede}>
-        Enviamos un código de 6 caracteres a sofia.r@correo.com. Vence en 15 minutos.
+        Enviamos un código de 6 caracteres a {email || 'tu correo'}. Vence en 15 minutos.
       </Text>
 
       <View style={styles.form}>
-        <CodeField value={code} onChangeText={setCode} />
-        <AppButton label="Verificar cuenta" onPress={() => navigation.navigate('Login')} />
-        <Text style={styles.resend}>¿No lo recibiste? Reenviar código en 0:42</Text>
+        <CodeField value={code} onChangeText={onChangeCode} />
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        <AppButton
+          label={loading ? 'Verificando…' : 'Verificar cuenta'}
+          onPress={onSubmit}
+          disabled={loading}
+        />
+        <Text style={styles.resend}>¿No lo recibiste? Vuelve a crear tu cuenta para reenviarlo.</Text>
       </View>
     </AuthScreen>
   );
@@ -55,6 +78,12 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.lg,
+  },
+  error: {
+    fontFamily: fonts.body,
+    fontSize: 12.5,
+    color: colors.danger,
+    lineHeight: 18,
   },
   resend: {
     textAlign: 'center',
