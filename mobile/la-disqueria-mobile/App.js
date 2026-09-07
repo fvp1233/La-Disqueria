@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import RootNavigator from './navigation/RootNavigator';
+import { CartProvider } from './context/CartContext';
 import { colors } from './theme';
 
 const navigationTheme = {
@@ -20,10 +21,12 @@ const navigationTheme = {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme}>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </NavigationContainer>
+      <CartProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </NavigationContainer>
+      </CartProvider>
     </SafeAreaProvider>
   );
 }
