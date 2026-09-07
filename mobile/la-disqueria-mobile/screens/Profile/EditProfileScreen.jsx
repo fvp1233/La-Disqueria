@@ -1,23 +1,57 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import BackBar from '../../components/BackBar';
 import TextField from '../../components/TextField';
 import AppButton from '../../components/AppButton';
+import useProfile from '../../hooks/profile/useProfile';
+import { useAuth } from '../../context/AuthContext';
 import { colors, spacing } from '../../theme';
+
+const initialsOf = (name = '', lastName = '') =>
+  `${name.trim()[0] ?? ''}${lastName.trim()[0] ?? ''}`.toUpperCase() || '·';
 
 // Edición de los datos personales del cliente.
 export default function EditProfileScreen({ navigation }) {
+  const { user } = useAuth();
+  const { profile, updateProfile, loading } = useProfile(user?.id);
   const [form, setForm] = useState({
-    name: 'Sofía',
-    lastName: 'Ramírez',
-    phone: '+503 7000 0000',
-    email: 'sofia.r@correo.com',
+    name: user?.name || '',
+    lastName: user?.last_name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
   });
 
   const updateField = (key) => (value) =>
     setForm((current) => ({ ...current, [key]: value }));
+
+  const handleSave = async () => {
+    if (!form.name.trim()) {
+      Alert.alert('Error', 'Por favor ingresa tu nombre');
+      return;
+    }
+    if (!form.lastName.trim()) {
+      Alert.alert('Error', 'Por favor ingresa tu apellido');
+      return;
+    }
+    if (!form.phone.trim()) {
+      Alert.alert('Error', 'Por favor ingresa tu teléfono');
+      return;
+    }
+
+    try {
+      await updateProfile({
+        name: form.name.trim(),
+        last_name: form.lastName.trim(),
+        phone: form.phone.trim(),
+      });
+      Alert.alert('Éxito', 'Perfil actualizado correctamente');
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert('Error', err.message || 'No se pudo actualizar el perfil');
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -26,9 +60,9 @@ export default function EditProfileScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.avatarWrap}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>SR</Text>
+            <Text style={styles.avatarText}>{initialsOf(form.name, form.lastName)}</Text>
           </View>
-          <Pressable style={styles.cameraButton}>
+          <Pressable style={styles.cameraButton} onPress={() => Alert.alert('Info', 'Cambio de foto próximamente')}>
             <Feather name="camera" size={14} color={colors.primary} />
           </Pressable>
         </View>
@@ -58,10 +92,12 @@ export default function EditProfileScreen({ navigation }) {
         />
 
         <AppButton
-          label="Guardar cambios"
-          onPress={() => navigation.goBack()}
+          label={loading ? 'Guardando…' : 'Guardar cambios'}
+          onPress={handleSave}
+          disabled={loading}
           style={styles.saveButton}
         />
+        {loading && <ActivityIndicator size="small" color={colors.primary} style={styles.spinner} />}
       </ScrollView>
     </SafeAreaView>
   );
@@ -119,5 +155,8 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     marginTop: spacing.xl,
+  },
+  spinner: {
+    marginTop: spacing.md,
   },
 });
