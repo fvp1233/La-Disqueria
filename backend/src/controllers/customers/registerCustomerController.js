@@ -118,9 +118,11 @@ registerCustomerController.registerCustomer = async (req, res) => {
         console.log("error" + error);
         return res.status(500).json({ message: "Error sending email" });
       }
+      // El token tambien se devuelve en el body: los clientes moviles no manejan
+      // la cookie de registro y lo reenvian al verificar.
       return res
         .status(200)
-        .json({ message: "Email sent", registrationToken: token });
+        .json({ message: "Email sent", registrationToken: token, token });
     });
   } catch (error) {
     console.log("error" + error);
@@ -131,7 +133,15 @@ registerCustomerController.registerCustomer = async (req, res) => {
 registerCustomerController.verifyCode = async (req, res) => {
   try {
     const { verificationCodeRequest, registrationToken } = req.body;
-    const token = req.cookies.registrationCookie || registrationToken;
+
+    // Web: cookie de registro. Movil: el mismo token reenviado en el body o en
+    // el header Authorization.
+    const authHeader = req.headers.authorization || "";
+    const bearerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+    const token =
+      req.cookies.registrationCookie || registrationToken || bearerToken;
 
     if (!token) {
       return res.status(400).json({ message: "Expired registration" });
@@ -178,8 +188,33 @@ registerCustomerController.verifyCode = async (req, res) => {
 
     res.clearCookie("registrationCookie");
 
-    return res.status(200).json({ message: "Customer registered" });
+    // Se emite ya la sesion definitiva para que el cliente quede autenticado
+    // sin pasar de nuevo por el login (mismo formato que loginCustomer).
+    const sessionToken = jsonwebtoken.sign(
+      { id: newCustomer._id, userType: "customer" },
+      config.JWT.secret,
+      { expiresIn: "30d" },
+    );
+
+    res.cookie("authCookie", sessionToken);
+
+    return res.status(200).json({
+      message: "Customer registered",
+      token: sessionToken,
+      user: {
+        id: newCustomer._id,
+        email: newCustomer.email,
+        name: newCustomer.name,
+        last_name: newCustomer.last_name,
+      },
+    });
   } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      return res.status(400).json({ message: "Expired registration" });
+    }
     console.log("error" + error);
     return res.status(500).json({ message: "Internal server error" });
   }
