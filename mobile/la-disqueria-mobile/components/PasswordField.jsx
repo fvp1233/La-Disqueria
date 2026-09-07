@@ -5,7 +5,7 @@ import TextField from './TextField';
 import { colors } from '../theme';
 
 // Campo de contraseña con botón para mostrar u ocultar el valor.
-export default function PasswordField({ label, value, onChangeText, placeholder }) {
+export default function PasswordField({ label, value, onChangeText, placeholder, error }) {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -14,6 +14,7 @@ export default function PasswordField({ label, value, onChangeText, placeholder 
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
+      error={error}
       autoCapitalize="none"
       secureTextEntry={!visible}
       rightSlot={

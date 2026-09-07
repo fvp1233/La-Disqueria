@@ -1,33 +1,25 @@
 import { useEffect, useRef } from 'react';
-import { View, Text, Pressable, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
 import VinylLogo from '../../components/VinylLogo';
 import TopoLines from '../../components/TopoLines';
 import { colors, fonts } from '../../theme';
 
-// Pantalla de apertura. Gira el disco y avanza al inicio de sesión.
-export default function SplashScreen({ navigation }) {
+// Pantalla de carga que se muestra mientras la aplicación restaura la sesión.
+export default function LoadingScreen() {
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const rotation = Animated.loop(
+    const animation = Animated.loop(
       Animated.timing(spin, {
         toValue: 1,
-        duration: 2400,
+        duration: 2000,
         easing: Easing.linear,
         useNativeDriver: true,
       })
     );
-    rotation.start();
-
-    const timer = setTimeout(() => {
-      navigation.replace('Login');
-    }, 2200);
-
-    return () => {
-      rotation.stop();
-      clearTimeout(timer);
-    };
-  }, [navigation, spin]);
+    animation.start();
+    return () => animation.stop();
+  }, [spin]);
 
   const rotate = spin.interpolate({
     inputRange: [0, 1],
@@ -35,7 +27,7 @@ export default function SplashScreen({ navigation }) {
   });
 
   return (
-    <Pressable style={styles.screen} onPress={() => navigation.replace('Login')}>
+    <View style={styles.screen}>
       <TopoLines placement="topLeft" tint={colors.primary} />
       <TopoLines placement="bottomRight" tint={colors.salmon} />
 
@@ -43,9 +35,8 @@ export default function SplashScreen({ navigation }) {
         <VinylLogo size={104} />
       </Animated.View>
       <Text style={styles.wordmark}>La disquería</Text>
-      <Text style={styles.caption}>Vinilos · CDs · Tocadiscos</Text>
-      <Text style={styles.footer}>La tienda de música · El Salvador</Text>
-    </Pressable>
+      <Text style={styles.caption}>Cargando tu tienda de música</Text>
+    </View>
   );
 }
 
@@ -65,19 +56,11 @@ const styles = StyleSheet.create({
     marginTop: 26,
   },
   caption: {
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-    color: colors.muted,
-    marginTop: 10,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 54,
     fontSize: 11,
+    fontWeight: '700',
     letterSpacing: 2,
     textTransform: 'uppercase',
     color: colors.muted,
+    marginTop: 10,
   },
 });

@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -6,43 +5,19 @@ import BackBar from '../../components/BackBar';
 import OrderSummary from '../../components/OrderSummary';
 import AppButton from '../../components/AppButton';
 import CartRow from './components/CartRow';
-import { findProductById, sampleCartItems } from '../../data/catalog';
+import { useCart } from '../../context/CartContext';
 import { colors, spacing } from '../../theme';
 
 // Carrito de compras con edición de cantidades y acceso al pago.
 export default function CartScreen({ navigation }) {
-  const [items, setItems] = useState(sampleCartItems);
-
-  const rows = useMemo(
-    () => items.map((item) => ({ ...item, product: findProductById(item.productId) })),
-    [items]
-  );
-
-  const subtotal = rows.reduce(
-    (total, row) => total + row.product.price * row.quantity,
-    0
-  );
-
-  const changeQuantity = (productId, nextQuantity) => {
-    setItems((current) =>
-      current
-        .map((item) =>
-          item.productId === productId ? { ...item, quantity: nextQuantity } : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
-  };
-
-  const removeItem = (productId) => {
-    setItems((current) => current.filter((item) => item.productId !== productId));
-  };
+  const { items, subtotal, setQuantity, removeItem } = useCart();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BackBar title="Tu carrito" onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {rows.length === 0 ? (
+        {items.length === 0 ? (
           <View style={styles.empty}>
             <View style={styles.emptyCircle}>
               <Feather name="shopping-cart" size={32} color={colors.muted} />
@@ -57,13 +32,12 @@ export default function CartScreen({ navigation }) {
           </View>
         ) : (
           <View>
-            {rows.map((row) => (
+            {items.map((item) => (
               <CartRow
-                key={row.productId}
-                product={row.product}
-                quantity={row.quantity}
-                onQuantityChange={(next) => changeQuantity(row.productId, next)}
-                onRemove={() => removeItem(row.productId)}
+                key={item.productId}
+                item={item}
+                onQuantityChange={(next) => setQuantity(item.productId, next)}
+                onRemove={() => removeItem(item.productId)}
               />
             ))}
 

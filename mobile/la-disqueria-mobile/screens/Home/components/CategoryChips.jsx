@@ -1,5 +1,5 @@
 import { ScrollView, Pressable, Text, StyleSheet } from 'react-native';
-import { productTypes } from '../../../data/catalog';
+import { productTypes } from '../../../utils/format';
 import { colors, radii, spacing } from '../../../theme';
 
 // Fila de accesos a cada tipo de producto del catálogo.

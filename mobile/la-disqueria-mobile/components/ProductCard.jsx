@@ -1,8 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { colors, fonts, radii, shadow } from '../theme';
-import { formatPrice } from '../data/catalog';
+import { formatPrice } from '../utils/format';
 
-// Tarjeta de producto usada tanto en el inicio como en el catálogo.
+// Tarjeta de producto usada en el inicio y en el catálogo.
 export default function ProductCard({ product, onPress, style }) {
   return (
     <Pressable onPress={onPress} style={[styles.card, style]}>
@@ -12,14 +12,10 @@ export default function ProductCard({ product, onPress, style }) {
             <View style={styles.vinylLabel} />
           </View>
         ) : null}
-        <View style={[styles.cover, { backgroundColor: product.colors[1] }]}>
-          <Text style={styles.coverText} numberOfLines={2}>
-            {product.title}
-          </Text>
-        </View>
+        <Image source={{ uri: product.cover }} style={styles.cover} resizeMode="cover" />
       </View>
-      <Text style={styles.sub} numberOfLines={1}>
-        {product.sub}
+      <Text style={styles.subtitle} numberOfLines={1}>
+        {product.subtitle || product.genre}
       </Text>
       <Text style={styles.title} numberOfLines={1}>
         {product.title}
@@ -31,7 +27,7 @@ export default function ProductCard({ product, onPress, style }) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 140,
+    width: 150,
   },
   sleeve: {
     width: '100%',
@@ -39,7 +35,7 @@ const styles = StyleSheet.create({
     marginBottom: 34,
   },
   sleeveFlat: {
-    marginBottom: 14,
+    marginBottom: 12,
   },
   cover: {
     position: 'absolute',
@@ -48,18 +44,9 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     borderRadius: radii.md,
-    padding: 10,
-    justifyContent: 'flex-end',
+    backgroundColor: colors.field,
     zIndex: 2,
     ...shadow.card,
-  },
-  coverText: {
-    fontFamily: fonts.display,
-    fontWeight: '700',
-    fontSize: 13,
-    lineHeight: 14,
-    color: 'rgba(255,255,255,0.92)',
-    textTransform: 'uppercase',
   },
   vinyl: {
     position: 'absolute',
@@ -79,7 +66,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: colors.salmon,
   },
-  sub: {
+  subtitle: {
     fontSize: 12,
     color: colors.inkSoft,
   },

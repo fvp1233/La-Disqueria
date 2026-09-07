@@ -136,6 +136,83 @@ customersController.createCustomer = async (req, res) => {
   }
 };
 
+// SELECT - datos del cliente autenticado, sin exponer la contraseña.
+customersController.getOwnProfile = async (req, res) => {
+  try {
+    const customer = await customerModel
+      .findById(req.user.id)
+      .select("-password");
+
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    return res.status(200).json(customer);
+  } catch (error) {
+    console.log("error" + error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// UPDATE - el cliente autenticado edita sus propios datos de contacto.
+customersController.updateOwnProfile = async (req, res) => {
+  try {
+    let { name, last_name, phone, addresses } = req.body;
+
+    name = name?.trim();
+    last_name = last_name?.trim();
+    phone = phone ? normalizePhone(phone) : phone;
+
+    if (name && (name.length < 3 || name.length > 15)) {
+      return res.status(400).json({ message: "Please insert a valid name" });
+    }
+
+    if (last_name && (last_name.length < 3 || last_name.length > 15)) {
+      return res.status(400).json({ message: "Please insert a valid last name" });
+    }
+
+    if (phone && !PHONE_REGEX.test(phone)) {
+      return res.status(400).json({ message: "Invalid phone format" });
+    }
+
+    if (phone) {
+      const duplicate = await customerModel.findOne({
+        _id: { $ne: req.user.id },
+        phone,
+      });
+      if (duplicate) {
+        return res.status(400).json({ message: "Phone already registered" });
+      }
+    }
+
+    if (Array.isArray(addresses)) {
+      addresses = addresses.map((address) => ({
+        street: address.street?.trim(),
+        city: address.city?.trim(),
+      }));
+    }
+
+    const updates = {};
+    if (name) updates.name = name;
+    if (last_name) updates.last_name = last_name;
+    if (phone) updates.phone = phone;
+    if (Array.isArray(addresses)) updates.addresses = addresses;
+
+    const customer = await customerModel
+      .findByIdAndUpdate(req.user.id, updates, { new: true })
+      .select("-password");
+
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    return res.status(200).json({ message: "Profile updated", customer });
+  } catch (error) {
+    console.log("error" + error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 customersController.updateCustomers = async (req, res) => {
   try {
     let { name, last_name, email, dui, password, phone, addresses, is_active, isVerified } =

@@ -4,16 +4,20 @@ import { config } from "../../config.js";
 export const validateAuthCookie = (allowedTypes = []) => {
   return (req, res, next) => {
     try {
-      //#1 Extraer el token que esta en la cookie
-      const { authCookie } = req.cookies;
-      if (!authCookie) {
+      //#1 Extraer el token de la cookie o del encabezado Authorization (clientes móviles)
+      const bearer = req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.slice(7)
+        : null;
+      const token = req.cookies.authCookie || bearer;
+
+      if (!token) {
         return res
           .status(403)
           .json({ message: "No cookie found, Authorization required" });
       }
 
-      //#2 Extraer toda la informacion de la cookie
-      const decoded = jsonwebToken.verify(authCookie, config.JWT.secret);
+      //#2 Extraer toda la informacion del token
+      const decoded = jsonwebToken.verify(token, config.JWT.secret);
 
       //#3 Verificar si el rol de la cookie puede pasar o no
       if (allowedTypes.length > 0 && !allowedTypes.includes(decoded.userType)) {

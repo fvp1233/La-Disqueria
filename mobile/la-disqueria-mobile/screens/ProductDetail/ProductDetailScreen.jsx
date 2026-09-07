@@ -1,32 +1,70 @@
-import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather } from '@expo/vector-icons';
 import BackBar from '../../components/BackBar';
 import IconButton from '../../components/IconButton';
 import Pill from '../../components/Pill';
 import QuantityStepper from '../../components/QuantityStepper';
 import AppButton from '../../components/AppButton';
+import StateView from '../../components/StateView';
 import TrackList from './components/TrackList';
-import { findProductById, formatPrice, sampleCartItems } from '../../data/catalog';
-import { colors, fonts, radii, shadow, spacing } from '../../theme';
-
-const cartCount = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
+import { useCart } from '../../context/CartContext';
+import { getProductById } from '../../api/catalog';
+import { formatPrice } from '../../utils/format';
+import { colors, fonts, shadow, spacing } from '../../theme';
 
 // Ficha de un producto con opciones de cantidad y acción de compra.
 export default function ProductDetailScreen({ navigation, route }) {
-  const product = findProductById(route.params?.productId);
+  const productId = route.params?.productId;
+  const { addItem, count } = useCart();
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      setProduct(await getProductById(productId));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const handleAdd = () => {
+    addItem(product, quantity);
+    setAdded(true);
+  };
+
+  if (loading || error || !product) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <BackBar title="Producto" onBack={() => navigation.goBack()} />
+        <StateView loading={loading} error={error} onRetry={load} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <BackBar
-        title={product.type}
+        title={product.genre || 'Producto'}
         onBack={() => navigation.goBack()}
         rightSlot={
           <IconButton
             name="shopping-cart"
             onPress={() => navigation.navigate('Cart')}
-            badge={cartCount ? String(cartCount) : undefined}
+            badge={count ? String(count) : undefined}
           />
         }
       />
@@ -38,19 +76,23 @@ export default function ProductDetailScreen({ navigation, route }) {
               <View style={styles.vinylLabel} />
             </View>
           ) : null}
-          <View style={[styles.cover, { backgroundColor: product.colors[1] }, !product.isDisc && styles.coverFlat]}>
-            <Text style={styles.coverText} numberOfLines={3}>
-              {product.title}
-            </Text>
-          </View>
+          <Image
+            source={{ uri: product.cover }}
+            style={[styles.cover, !product.isDisc && styles.coverFlat]}
+            resizeMode="cover"
+          />
         </View>
 
-        <Text style={styles.sub}>{product.sub}</Text>
+        {product.subtitle ? <Text style={styles.subtitle}>{product.subtitle}</Text> : null}
         <Text style={styles.title}>{product.title}</Text>
 
         <View style={styles.pills}>
-          <Pill label={product.genre} tone="neutral" />
-          <Pill label="Disponible" tone="success" icon="check" />
+          {product.genre ? <Pill label={product.genre} tone="neutral" /> : null}
+          <Pill
+            label={product.available ? 'Disponible' : 'Agotado'}
+            tone={product.available ? 'success' : 'neutral'}
+            icon={product.available ? 'check' : 'x'}
+          />
         </View>
 
         <View style={styles.quantityRow}>
@@ -59,12 +101,12 @@ export default function ProductDetailScreen({ navigation, route }) {
         </View>
 
         {product.isDisc ? (
-          <TrackList />
+          <TrackList tracks={product.trackList} />
         ) : (
           <View>
             <Text style={styles.sectionHeading}>Descripción</Text>
             <Text style={styles.description}>
-              Descripción, materiales y especificaciones del producto pendientes de la tienda pública.
+              {product.description || 'Este producto todavía no tiene una descripción cargada.'}
             </Text>
           </View>
         )}
@@ -75,11 +117,21 @@ export default function ProductDetailScreen({ navigation, route }) {
           <Text style={styles.price}>{formatPrice(product.price)}</Text>
           <Text style={styles.priceCaption}>Precio unitario</Text>
         </View>
-        <AppButton
-          label="Añadir al carrito"
-          onPress={() => navigation.navigate('Cart')}
-          style={styles.addButton}
-        />
+        {added ? (
+          <AppButton
+            label="Ver carrito"
+            variant="teal"
+            onPress={() => navigation.navigate('Cart')}
+            style={styles.addButton}
+          />
+        ) : (
+          <AppButton
+            label="Añadir al carrito"
+            onPress={handleAdd}
+            disabled={!product.available}
+            style={styles.addButton}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -108,9 +160,8 @@ const styles = StyleSheet.create({
     top: '8%',
     width: '70%',
     height: '84%',
-    borderRadius: radii.md,
-    padding: 14,
-    justifyContent: 'flex-end',
+    borderRadius: 14,
+    backgroundColor: colors.field,
     zIndex: 2,
     ...shadow.card,
   },
@@ -119,14 +170,7 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     width: '72%',
-  },
-  coverText: {
-    fontFamily: fonts.display,
-    fontWeight: '700',
-    fontSize: 20,
-    lineHeight: 21,
-    textTransform: 'uppercase',
-    color: colors.white,
+    height: '100%',
   },
   vinyl: {
     position: 'absolute',
@@ -147,7 +191,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: colors.salmon,
   },
-  sub: {
+  subtitle: {
     fontSize: 13,
     color: colors.inkSoft,
   },

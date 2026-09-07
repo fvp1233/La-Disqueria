@@ -118,7 +118,9 @@ registerCustomerController.registerCustomer = async (req, res) => {
         console.log("error" + error);
         return res.status(500).json({ message: "Error sending email" });
       }
-      return res.status(200).json({ message: "Email sent" });
+      return res
+        .status(200)
+        .json({ message: "Email sent", registrationToken: token });
     });
   } catch (error) {
     console.log("error" + error);
@@ -128,8 +130,8 @@ registerCustomerController.registerCustomer = async (req, res) => {
 
 registerCustomerController.verifyCode = async (req, res) => {
   try {
-    const { verificationCodeRequest } = req.body;
-    const token = req.cookies.registrationCookie;
+    const { verificationCodeRequest, registrationToken } = req.body;
+    const token = req.cookies.registrationCookie || registrationToken;
 
     if (!token) {
       return res.status(400).json({ message: "Expired registration" });

@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, radii, spacing } from '../theme';
-import { formatPrice } from '../data/catalog';
+import { formatPrice } from '../utils/format';
 
 // Resumen de importes compartido entre el carrito y la pantalla de pago.
 export default function OrderSummary({ subtotal, itemCount }) {

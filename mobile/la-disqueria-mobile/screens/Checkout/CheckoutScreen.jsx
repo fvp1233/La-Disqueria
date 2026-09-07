@@ -5,48 +5,95 @@ import BackBar from '../../components/BackBar';
 import TextField from '../../components/TextField';
 import OrderSummary from '../../components/OrderSummary';
 import AppButton from '../../components/AppButton';
-import { findProductById, sampleCartItems } from '../../data/catalog';
+import FormBanner from '../../components/FormBanner';
+import { useCart } from '../../context/CartContext';
+import { checkout } from '../../api/orders';
+import { isNotEmpty } from '../../utils/validators';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const paymentMethods = ['Tarjeta de crédito o débito', 'Efectivo contra entrega'];
 
-const itemCount = sampleCartItems.reduce((total, item) => total + item.quantity, 0);
-const subtotal = sampleCartItems.reduce(
-  (total, item) => total + findProductById(item.productId).price * item.quantity,
-  0
-);
-
-// Datos de envío y confirmación del pedido.
+// Datos de envío y registro del pedido en el backend.
 export default function CheckoutScreen({ navigation }) {
+  const { items, subtotal, count, clearCart } = useCart();
+
   const [form, setForm] = useState({
     address: '',
     city: '',
     notes: '',
     payment: paymentMethods[0],
   });
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const updateField = (key) => (value) =>
+  const setField = (key) => (value) =>
     setForm((current) => ({ ...current, [key]: value }));
+
+  const validate = () => {
+    const next = {};
+    if (!isNotEmpty(form.address)) next.address = 'Ingresa una dirección';
+    if (!isNotEmpty(form.city)) next.city = 'Ingresa una ciudad';
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    setApiError('');
+    if (!validate()) return;
+
+    setSubmitting(true);
+    try {
+      const result = await checkout({
+        items,
+        shippingAddress: { street: form.address.trim(), city: form.city.trim() },
+        paymentMethod: form.payment,
+        notes: form.notes.trim(),
+      });
+      clearCart();
+      navigation.reset({
+        index: 1,
+        routes: [
+          { name: 'Main' },
+          {
+            name: 'OrderConfirmed',
+            params: {
+              orderNumber: result.order?.order_number || result.cart?.order_number,
+              total: result.order?.total ?? result.cart?.total ?? subtotal,
+            },
+          },
+        ],
+      });
+    } catch (error) {
+      setApiError(error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BackBar title="Finalizar compra" onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <FormBanner message={apiError} />
+
         <Text style={styles.heading}>Datos de envío</Text>
 
         <TextField
           label="Dirección"
           value={form.address}
-          onChangeText={updateField('address')}
+          onChangeText={setField('address')}
           placeholder="Calle, número, colonia"
+          error={errors.address}
         />
         <View style={styles.gap} />
         <TextField
           label="Ciudad"
           value={form.city}
-          onChangeText={updateField('city')}
+          onChangeText={setField('city')}
           placeholder="San Salvador"
+          error={errors.city}
         />
 
         <Text style={styles.fieldLabel}>Método de pago</Text>
@@ -71,18 +118,20 @@ export default function CheckoutScreen({ navigation }) {
         <TextField
           label="Notas (opcional)"
           value={form.notes}
-          onChangeText={updateField('notes')}
+          onChangeText={setField('notes')}
           placeholder="Indicaciones para la entrega"
           multiline
         />
 
-        <OrderSummary subtotal={subtotal} itemCount={itemCount} />
+        <OrderSummary subtotal={subtotal} itemCount={count} />
       </ScrollView>
 
       <View style={styles.bottomBar}>
         <AppButton
           label="Confirmar compra"
-          onPress={() => navigation.navigate('OrderConfirmed')}
+          onPress={handleSubmit}
+          loading={submitting}
+          disabled={items.length === 0}
           style={styles.confirmButton}
         />
       </View>
@@ -107,6 +156,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.ink,
     marginBottom: 14,
+    marginTop: spacing.md,
   },
   gap: {
     height: spacing.lg,

@@ -1,3 +1,9 @@
+# Integrantes del proytecto
+ - Fernando Miguel Velásquez Pérez - 20240216
+ - Gabriela Isabel Castillo Mena - 20240153
+ - Daniela Elizabet Villalta Sorto - 20240286
+ - Natalie Abigail Navarro Góchez - 20230301
+ - Freddy Ricardo Pérez Alvarenga - 20220502
 # Repositorio de Tienda en linea La disqueria
 
 La aplicación web esta creado con React y esta estilizada con Tailwind y el framework de shadCn

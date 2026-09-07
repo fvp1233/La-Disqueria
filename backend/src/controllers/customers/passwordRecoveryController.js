@@ -87,7 +87,7 @@ passwordRecoveryController.requestCode = async (req, res) => {
         console.log("error" + error);
         return res.status(500).json({ message: "Error sending email" });
       }
-      return res.status(200).json({ message: "Code sent" });
+      return res.status(200).json({ message: "Code sent", recoveryToken: token });
     });
   } catch (error) {
     console.log("error" + error);
@@ -98,7 +98,7 @@ passwordRecoveryController.requestCode = async (req, res) => {
 passwordRecoveryController.verifyCode = async (req, res) => {
   try {
     const code = req.body.code?.trim();
-    const token = req.cookies[RECOVERY_COOKIE];
+    const token = req.cookies[RECOVERY_COOKIE] || req.body.recoveryToken;
 
     if (!token) {
       return res.status(400).json({ message: "Recovery session expired" });
@@ -120,7 +120,9 @@ passwordRecoveryController.verifyCode = async (req, res) => {
       maxAge: CODE_TTL_MINUTES * 60 * 1000,
     });
 
-    return res.status(200).json({ message: "Code verified" });
+    return res
+      .status(200)
+      .json({ message: "Code verified", recoveryToken: verifiedToken });
   } catch (error) {
     if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
       return res.status(400).json({ message: "Recovery session expired" });
@@ -132,8 +134,8 @@ passwordRecoveryController.verifyCode = async (req, res) => {
 
 passwordRecoveryController.resetPassword = async (req, res) => {
   try {
-    const { password, confirmPassword } = req.body;
-    const token = req.cookies[RECOVERY_COOKIE];
+    const { password, confirmPassword, recoveryToken } = req.body;
+    const token = req.cookies[RECOVERY_COOKIE] || recoveryToken;
 
     if (!token) {
       return res.status(400).json({ message: "Recovery session expired" });

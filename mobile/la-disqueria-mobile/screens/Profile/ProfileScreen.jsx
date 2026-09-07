@@ -2,21 +2,21 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import ProfileMenuRow from './components/ProfileMenuRow';
-import StatCard from './components/StatCard';
 import AppButton from '../../components/AppButton';
+import { useAuth } from '../../context/AuthContext';
 import { colors, fonts, radii, shadow, spacing } from '../../theme';
 
-const menuItems = [
-  { icon: 'file-text', label: 'Mis pedidos' },
-  { icon: 'map-pin', label: 'Mis direcciones' },
-  { icon: 'credit-card', label: 'Métodos de pago' },
-  { icon: 'bell', label: 'Notificaciones' },
-  { icon: 'help-circle', label: 'Ayuda y soporte' },
-];
-
-// Perfil del cliente con datos, estadísticas y accesos de la cuenta.
+// Perfil del cliente autenticado con sus datos y accesos de la cuenta.
 export default function ProfileScreen({ navigation }) {
-  const logout = () => navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  const { user, signOut } = useAuth();
+
+  const fullName = `${user?.name || ''} ${user?.last_name || ''}`.trim() || 'Cliente';
+  const initials = fullName
+    .split(' ')
+    .map((part) => part.charAt(0))
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -25,34 +25,53 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.card}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>SR</Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={styles.identity}>
-            <Text style={styles.name}>Sofía Ramírez</Text>
-            <Text style={styles.email}>sofia.r@correo.com</Text>
+            <Text style={styles.name}>{fullName}</Text>
+            <Text style={styles.email}>{user?.email}</Text>
           </View>
           <Pressable style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
             <Feather name="edit-2" size={16} color={colors.ink} />
           </Pressable>
         </View>
 
-        <View style={styles.stats}>
-          <StatCard value="3" label="Pedidos" />
-          <StatCard value="12" label="Favoritos" />
+        <View style={styles.dataCard}>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Teléfono</Text>
+            <Text style={styles.dataValue}>{user?.phone || 'Sin registrar'}</Text>
+          </View>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>DUI</Text>
+            <Text style={styles.dataValue}>{user?.dui || 'Sin registrar'}</Text>
+          </View>
         </View>
 
         <View style={styles.menu}>
-          {menuItems.map((item, index) => (
-            <ProfileMenuRow
-              key={item.label}
-              icon={item.icon}
-              label={item.label}
-              last={index === menuItems.length - 1}
-            />
-          ))}
+          <ProfileMenuRow
+            icon="file-text"
+            label="Mis pedidos"
+            onPress={() => navigation.navigate('Orders')}
+          />
+          <ProfileMenuRow
+            icon="edit-2"
+            label="Editar perfil"
+            onPress={() => navigation.navigate('EditProfile')}
+          />
+          <ProfileMenuRow
+            icon="help-circle"
+            label="Ayuda y soporte"
+            onPress={() => navigation.navigate('Help')}
+            last
+          />
         </View>
 
-        <AppButton label="Cerrar sesión" variant="ghost" onPress={logout} style={styles.logout} />
+        <AppButton
+          label="Cerrar sesión"
+          variant="ghost"
+          onPress={signOut}
+          style={styles.logout}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -97,7 +116,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: colors.white,
     fontWeight: '800',
-    fontSize: 20,
+    fontSize: 18,
   },
   identity: {
     flex: 1,
@@ -120,11 +139,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...shadow.soft,
   },
-  stats: {
-    flexDirection: 'row',
-    gap: 10,
+  dataCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radii.lg,
+    paddingHorizontal: spacing.lg,
     marginTop: 14,
     marginBottom: spacing.xl,
+  },
+  dataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 13,
+  },
+  dataLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.muted,
+  },
+  dataValue: {
+    fontSize: 13.5,
+    color: colors.ink,
   },
   menu: {
     marginBottom: spacing.xl,

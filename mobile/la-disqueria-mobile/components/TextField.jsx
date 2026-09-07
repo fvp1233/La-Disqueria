@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { colors, radii, fonts } from '../theme';
 
-// Campo de texto con etiqueta superior en mayúsculas.
+// Campo de texto con etiqueta superior, mensaje de ayuda y estado de error.
 export default function TextField({
   label,
   value,
@@ -13,13 +13,22 @@ export default function TextField({
   secureTextEntry = false,
   rightSlot,
   multiline = false,
+  error,
+  maxLength,
 }) {
   const [focused, setFocused] = useState(false);
 
   return (
     <View style={styles.group}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={[styles.field, focused && styles.fieldFocused, multiline && styles.multiline]}>
+      <View
+        style={[
+          styles.field,
+          multiline && styles.multiline,
+          focused && styles.fieldFocused,
+          error && styles.fieldError,
+        ]}
+      >
         <TextInput
           style={styles.input}
           value={value}
@@ -30,11 +39,13 @@ export default function TextField({
           autoCapitalize={autoCapitalize}
           secureTextEntry={secureTextEntry}
           multiline={multiline}
+          maxLength={maxLength}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         />
         {rightSlot}
       </View>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -69,11 +80,19 @@ const styles = StyleSheet.create({
   fieldFocused: {
     borderColor: 'rgba(232,96,42,0.4)',
   },
+  fieldError: {
+    borderColor: colors.primary,
+  },
   input: {
     flex: 1,
     fontFamily: fonts.body,
     fontSize: 15,
     color: colors.ink,
     paddingVertical: 0,
+  },
+  errorText: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: colors.primaryPress,
   },
 });

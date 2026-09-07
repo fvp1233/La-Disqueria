@@ -1,21 +1,34 @@
-import { Pressable, Text, StyleSheet } from 'react-native';
+import { Pressable, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { colors, radii, fonts } from '../theme';
 
 // Botón principal de la aplicación con variantes primary, teal y ghost.
-export default function AppButton({ label, onPress, variant = 'primary', style, disabled = false }) {
+export default function AppButton({
+  label,
+  onPress,
+  variant = 'primary',
+  style,
+  disabled = false,
+  loading = false,
+}) {
+  const isDisabled = disabled || loading;
+
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled}
+      disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
         variantStyles[variant],
         pressed && styles.pressed,
-        disabled && styles.disabled,
+        isDisabled && styles.disabled,
         style,
       ]}
     >
-      <Text style={[styles.label, labelStyles[variant]]}>{label}</Text>
+      {loading ? (
+        <ActivityIndicator color={variant === 'ghost' ? colors.primary : colors.white} />
+      ) : (
+        <Text style={[styles.label, labelStyles[variant]]}>{label}</Text>
+      )}
     </Pressable>
   );
 }

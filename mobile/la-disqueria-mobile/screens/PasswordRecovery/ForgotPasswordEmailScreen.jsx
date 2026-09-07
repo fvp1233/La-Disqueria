@@ -5,11 +5,39 @@ import BackBar from '../../components/BackBar';
 import StepDots from '../../components/StepDots';
 import TextField from '../../components/TextField';
 import AppButton from '../../components/AppButton';
+import FormBanner from '../../components/FormBanner';
+import { requestPasswordCode } from '../../api/auth';
+import { isEmail } from '../../utils/validators';
 import { colors, fonts, spacing } from '../../theme';
 
 // Primer paso de la recuperación. Solicita el correo de la cuenta.
 export default function ForgotPasswordEmailScreen({ navigation }) {
   const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setError('');
+    setApiError('');
+    if (!isEmail(email)) {
+      setError('Ingresa un correo válido');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const data = await requestPasswordCode(email.trim());
+      navigation.navigate('ForgotPasswordCode', {
+        email: email.trim(),
+        recoveryToken: data.recoveryToken,
+      });
+    } catch (apiErr) {
+      setApiError(apiErr.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <AuthScreen
@@ -27,6 +55,7 @@ export default function ForgotPasswordEmailScreen({ navigation }) {
       </Text>
 
       <View style={styles.form}>
+        <FormBanner message={apiError} />
         <TextField
           label="Correo electrónico"
           value={email}
@@ -34,8 +63,9 @@ export default function ForgotPasswordEmailScreen({ navigation }) {
           placeholder="correo@ejemplo.com"
           keyboardType="email-address"
           autoCapitalize="none"
+          error={error}
         />
-        <AppButton label="Enviar código" onPress={() => navigation.navigate('ForgotPasswordCode')} />
+        <AppButton label="Enviar código" onPress={handleSubmit} loading={submitting} />
         <Text style={styles.footer}>
           ¿Recordaste tu contraseña?{' '}
           <Text style={styles.link} onPress={() => navigation.navigate('Login')}>

@@ -4,14 +4,16 @@ import TopBarIcons from '../../../components/TopBarIcons';
 import { colors, spacing } from '../../../theme';
 
 // Cabecera del inicio con el saludo, la ubicación y los accesos rápidos.
-export default function HomeHeader({ onCartPress, onBellPress, cartCount }) {
+export default function HomeHeader({ onCartPress, onBellPress, cartCount, name }) {
+  const initial = (name || 'A').trim().charAt(0).toUpperCase();
+
   return (
     <View style={styles.wrap}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>S</Text>
+        <Text style={styles.avatarText}>{initial}</Text>
       </View>
       <View>
-        <Text style={styles.greeting}>Hola, Sofía</Text>
+        <Text style={styles.greeting}>Hola, {name || 'bienvenido'}</Text>
         <View style={styles.locationRow}>
           <Feather name="map-pin" size={11} color={colors.muted} />
           <Text style={styles.location}>San Salvador</Text>

@@ -1,65 +1,105 @@
 import { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
 import BackBar from '../../components/BackBar';
 import TextField from '../../components/TextField';
 import AppButton from '../../components/AppButton';
+import FormBanner from '../../components/FormBanner';
+import { useAuth } from '../../context/AuthContext';
+import { maskName, maskPhone } from '../../utils/masks';
+import { isValidName, isPhone } from '../../utils/validators';
 import { colors, spacing } from '../../theme';
 
-// Edición de los datos personales del cliente.
+// Edición de los datos de contacto del cliente.
 export default function EditProfileScreen({ navigation }) {
-  const [form, setForm] = useState({
-    name: 'Sofía',
-    lastName: 'Ramírez',
-    phone: '+503 7000 0000',
-    email: 'sofia.r@correo.com',
-  });
+  const { user, updateProfile } = useAuth();
 
-  const updateField = (key) => (value) =>
-    setForm((current) => ({ ...current, [key]: value }));
+  const [form, setForm] = useState({
+    name: user?.name || '',
+    lastName: user?.last_name || '',
+    phone: user?.phone || '',
+  });
+  const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const setField = (key, transform) => (value) =>
+    setForm((current) => ({ ...current, [key]: transform ? transform(value) : value }));
+
+  const validate = () => {
+    const next = {};
+    if (!isValidName(form.name)) next.name = 'Entre 3 y 15 caracteres';
+    if (!isValidName(form.lastName)) next.lastName = 'Entre 3 y 15 caracteres';
+    if (!isPhone(form.phone)) next.phone = 'Formato ####-####';
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    setApiError('');
+    setSuccess('');
+    if (!validate()) return;
+
+    setSubmitting(true);
+    try {
+      await updateProfile({
+        name: form.name.trim(),
+        last_name: form.lastName.trim(),
+        phone: form.phone.trim(),
+      });
+      setSuccess('Datos actualizados');
+      setTimeout(() => navigation.goBack(), 600);
+    } catch (error) {
+      setApiError(error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <BackBar title="Editar perfil" onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.avatarWrap}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>SR</Text>
-          </View>
-          <Pressable style={styles.cameraButton}>
-            <Feather name="camera" size={14} color={colors.primary} />
-          </Pressable>
-        </View>
+        <FormBanner message={apiError} />
+        <FormBanner message={success} tone="success" />
 
         <View style={styles.row}>
           <View style={styles.half}>
-            <TextField label="Nombre" value={form.name} onChangeText={updateField('name')} />
+            <TextField
+              label="Nombre"
+              value={form.name}
+              onChangeText={setField('name', maskName)}
+              error={errors.name}
+            />
           </View>
           <View style={styles.half}>
-            <TextField label="Apellido" value={form.lastName} onChangeText={updateField('lastName')} />
+            <TextField
+              label="Apellido"
+              value={form.lastName}
+              onChangeText={setField('lastName', maskName)}
+              error={errors.lastName}
+            />
           </View>
         </View>
         <View style={styles.gap} />
         <TextField
           label="Teléfono"
           value={form.phone}
-          onChangeText={updateField('phone')}
-          keyboardType="phone-pad"
+          onChangeText={setField('phone', maskPhone)}
+          keyboardType="number-pad"
+          maxLength={9}
+          error={errors.phone}
         />
         <View style={styles.gap} />
-        <TextField
-          label="Correo electrónico"
-          value={form.email}
-          onChangeText={updateField('email')}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <TextField label="Correo electrónico" value={user?.email || ''} onChangeText={() => {}} />
+        <Text style={styles.hint}>El correo y el DUI no se pueden modificar desde la app.</Text>
 
         <AppButton
           label="Guardar cambios"
-          onPress={() => navigation.goBack()}
+          onPress={handleSubmit}
+          loading={submitting}
           style={styles.saveButton}
         />
       </ScrollView>
@@ -76,36 +116,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xxl,
     paddingTop: spacing.md,
     paddingBottom: spacing.xxxl,
-  },
-  avatarWrap: {
-    alignSelf: 'center',
-    marginBottom: spacing.xl,
-  },
-  avatar: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: colors.white,
-    fontWeight: '800',
-    fontSize: 26,
-  },
-  cameraButton: {
-    position: 'absolute',
-    right: -4,
-    bottom: -4,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.line,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing.md,
   },
   row: {
     flexDirection: 'row',
@@ -115,9 +126,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gap: {
-    height: spacing.lg,
+    height: spacing.xs,
+  },
+  hint: {
+    fontSize: 12,
+    color: colors.muted,
   },
   saveButton: {
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
 });

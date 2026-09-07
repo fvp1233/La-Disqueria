@@ -1,22 +1,22 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import QuantityStepper from '../../../components/QuantityStepper';
 import { colors, radii, shadow } from '../../../theme';
-import { formatPrice } from '../../../data/catalog';
+import { formatPrice } from '../../../utils/format';
 
 // Fila de un producto dentro del carrito con control de cantidad y eliminación.
-export default function CartRow({ product, quantity, onQuantityChange, onRemove }) {
+export default function CartRow({ item, onQuantityChange, onRemove }) {
   return (
     <View style={styles.row}>
-      <View style={[styles.thumb, { backgroundColor: product.colors[1] }]} />
+      <Image source={{ uri: item.image }} style={styles.thumb} resizeMode="cover" />
       <View style={styles.info}>
-        <Text style={styles.sub}>{product.sub}</Text>
+        {item.subtitle ? <Text style={styles.subtitle}>{item.subtitle}</Text> : null}
         <Text style={styles.title} numberOfLines={1}>
-          {product.title}
+          {item.title}
         </Text>
-        <Text style={styles.price}>{formatPrice(product.price)}</Text>
+        <Text style={styles.price}>{formatPrice(item.price)}</Text>
         <View style={styles.stepper}>
-          <QuantityStepper value={quantity} onChange={onQuantityChange} size="sm" />
+          <QuantityStepper value={item.quantity} onChange={onQuantityChange} size="sm" />
         </View>
       </View>
       <Pressable onPress={onRemove} hitSlop={8} style={styles.trash}>
@@ -38,12 +38,13 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: radii.md,
+    backgroundColor: colors.field,
     ...shadow.soft,
   },
   info: {
     flex: 1,
   },
-  sub: {
+  subtitle: {
     fontSize: 11.5,
     color: colors.muted,
   },

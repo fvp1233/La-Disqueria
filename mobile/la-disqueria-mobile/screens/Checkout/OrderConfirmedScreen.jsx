@@ -2,16 +2,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import AppButton from '../../components/AppButton';
-import { findProductById, formatPrice, sampleCartItems } from '../../data/catalog';
+import { formatPrice } from '../../utils/format';
 import { colors, fonts, spacing } from '../../theme';
 
-const total = sampleCartItems.reduce(
-  (sum, item) => sum + findProductById(item.productId).price * item.quantity,
-  0
-);
-
 // Confirmación del pedido con el número de referencia y el total pagado.
-export default function OrderConfirmedScreen({ navigation }) {
+export default function OrderConfirmedScreen({ navigation, route }) {
+  const orderNumber = route.params?.orderNumber || 'ORD';
+  const total = route.params?.total ?? 0;
+
   const backToStore = () => navigation.reset({ index: 0, routes: [{ name: 'Main' }] });
 
   return (
@@ -21,7 +19,7 @@ export default function OrderConfirmedScreen({ navigation }) {
           <Feather name="check" size={36} color={colors.ok} />
         </View>
         <Text style={styles.title}>¡Pedido confirmado!</Text>
-        <Text style={styles.line}>Pedido #LD-2048</Text>
+        <Text style={styles.line}>Pedido {orderNumber}</Text>
         <Text style={styles.line}>Total pagado {formatPrice(total)}</Text>
         <AppButton label="Seguir comprando" onPress={backToStore} style={styles.button} />
       </View>

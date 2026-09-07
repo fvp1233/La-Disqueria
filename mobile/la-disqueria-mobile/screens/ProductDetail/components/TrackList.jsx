@@ -1,23 +1,27 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fonts } from '../../../theme';
 
-const tracks = [
-  { number: '1', name: 'Cara A · Apertura', length: '3:48' },
-  { number: '2', name: 'Tema principal', length: '4:12' },
-  { number: '3', name: 'Interludio', length: '2:05' },
-  { number: '4', name: 'Cierre', length: '5:30' },
-];
+// Lista de canciones del disco. Acepta el formato de vinilos y el de CDs.
+export default function TrackList({ tracks = [] }) {
+  if (tracks.length === 0) {
+    return (
+      <View>
+        <Text style={styles.heading}>Lista de canciones</Text>
+        <Text style={styles.empty}>Este disco todavía no tiene canciones cargadas.</Text>
+      </View>
+    );
+  }
 
-// Lista de canciones de muestra para vinilos y discos compactos.
-export default function TrackList() {
   return (
     <View>
       <Text style={styles.heading}>Lista de canciones</Text>
-      {tracks.map((track) => (
-        <View key={track.number} style={styles.row}>
-          <Text style={styles.number}>{track.number}</Text>
-          <Text style={styles.name}>{track.name}</Text>
-          <Text style={styles.length}>{track.length}</Text>
+      {tracks.map((track, index) => (
+        <View key={track._id || index} style={styles.row}>
+          <Text style={styles.number}>{track.position || index + 1}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {track.song_name || track.title || 'Pista sin título'}
+          </Text>
+          {track.duration ? <Text style={styles.duration}>{track.duration}</Text> : null}
         </View>
       ))}
     </View>
@@ -33,6 +37,11 @@ const styles = StyleSheet.create({
     color: colors.ink,
     marginBottom: 4,
   },
+  empty: {
+    fontSize: 13,
+    color: colors.muted,
+    paddingVertical: 8,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -42,7 +51,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
   },
   number: {
-    width: 18,
+    width: 22,
     fontSize: 12,
     color: colors.muted,
   },
@@ -51,7 +60,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.ink,
   },
-  length: {
+  duration: {
     fontSize: 12,
     color: colors.muted,
   },

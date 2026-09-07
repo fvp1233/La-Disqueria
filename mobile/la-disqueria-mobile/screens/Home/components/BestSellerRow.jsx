@@ -1,14 +1,16 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { colors, radii, shadow } from '../../../theme';
-import { formatPrice } from '../../../data/catalog';
+import { formatPrice } from '../../../utils/format';
 
 // Fila compacta de un producto dentro de la lista de más vendidos.
 export default function BestSellerRow({ product, onPress }) {
   return (
     <Pressable style={styles.row} onPress={onPress}>
-      <View style={[styles.thumb, { backgroundColor: product.colors[1] }]} />
+      <Image source={{ uri: product.cover }} style={styles.thumb} resizeMode="cover" />
       <View style={styles.info}>
-        <Text style={styles.sub}>{product.sub}</Text>
+        <Text style={styles.subtitle} numberOfLines={1}>
+          {product.subtitle || product.genre}
+        </Text>
         <Text style={styles.title} numberOfLines={1}>
           {product.title}
         </Text>
@@ -31,12 +33,13 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: radii.sm,
+    backgroundColor: colors.field,
     ...shadow.soft,
   },
   info: {
     flex: 1,
   },
-  sub: {
+  subtitle: {
     fontSize: 12,
     color: colors.muted,
   },
