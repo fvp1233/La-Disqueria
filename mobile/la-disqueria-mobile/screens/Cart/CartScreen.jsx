@@ -1,41 +1,29 @@
-import { useMemo, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import BackBar from '../../components/BackBar';
 import OrderSummary from '../../components/OrderSummary';
 import AppButton from '../../components/AppButton';
 import CartRow from './components/CartRow';
-import { findProductById, sampleCartItems } from '../../data/catalog';
+import { useCart } from '../../context/CartContext';
 import { colors, spacing } from '../../theme';
 
 // Carrito de compras con edición de cantidades y acceso al pago.
+// El estado vive en CartContext y no aquí: Checkout necesita los mismos items para
+// enviarlos, y con useState local esa pantalla no tendría forma de leerlos.
 export default function CartScreen({ navigation }) {
-  const [items, setItems] = useState(sampleCartItems);
+  const { rows, subtotal, hydrated, changeQuantity, removeItem } = useCart();
 
-  const rows = useMemo(
-    () => items.map((item) => ({ ...item, product: findProductById(item.productId) })),
-    [items]
-  );
-
-  const subtotal = rows.reduce(
-    (total, row) => total + row.product.price * row.quantity,
-    0
-  );
-
-  const changeQuantity = (productId, nextQuantity) => {
-    setItems((current) =>
-      current
-        .map((item) =>
-          item.productId === productId ? { ...item, quantity: nextQuantity } : item
-        )
-        .filter((item) => item.quantity > 0)
+  // Mientras se lee el carrito guardado, mostrar el estado vacío sería un parpadeo
+  // que hace creer al usuario que perdió sus productos
+  if (!hydrated) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <BackBar title="Tu carrito" onBack={() => navigation.goBack()} />
+        <ActivityIndicator size="large" color={colors.primary} style={styles.loader} />
+      </SafeAreaView>
     );
-  };
-
-  const removeItem = (productId) => {
-    setItems((current) => current.filter((item) => item.productId !== productId));
-  };
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -91,6 +79,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxxl,
+  },
+  loader: {
+    marginTop: 60,
   },
   empty: {
     alignItems: 'center',
