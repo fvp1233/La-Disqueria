@@ -52,7 +52,7 @@ const cartSchema = new Schema(
     // una vez que confirma la compra simulada desde /pedido.
     status: {
       type: String,
-      enum: ["active", "comprado"],
+      enum: ["active", "comprado", "cancelado"],
       default: "active",
     },
 

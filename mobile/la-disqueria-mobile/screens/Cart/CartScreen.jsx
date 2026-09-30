@@ -1,16 +1,28 @@
+import { useCallback, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import BackBar from '../../components/BackBar';
 import OrderSummary from '../../components/OrderSummary';
 import AppButton from '../../components/AppButton';
 import CartRow from './components/CartRow';
-import { useCart } from '../../context/CartContext';
+import FormBanner from '../../components/FormBanner';
+import { useCart, cartIssue } from '../../context/CartContext';
 import { colors, spacing } from '../../theme';
 
 // Carrito de compras con edición de cantidades y acceso al pago.
 export default function CartScreen({ navigation }) {
-  const { items, subtotal, setQuantity, removeItem } = useCart();
+  const { items, subtotal, hasIssues, setQuantity, removeItem, refreshStock } = useCart();
+  const [checking, setChecking] = useState(false);
+
+  // Cada vez que se abre el carrito se confirma stock y precio con la API.
+  useFocusEffect(
+    useCallback(() => {
+      setChecking(true);
+      refreshStock().finally(() => setChecking(false));
+    }, [refreshStock])
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -32,10 +44,18 @@ export default function CartScreen({ navigation }) {
           </View>
         ) : (
           <View>
+            <FormBanner
+              message={
+                hasIssues
+                  ? 'Algunos productos cambiaron de stock. Revisa las cantidades para continuar.'
+                  : ''
+              }
+            />
             {items.map((item) => (
               <CartRow
                 key={item.productId}
                 item={item}
+                issue={cartIssue(item)}
                 onQuantityChange={(next) => setQuantity(item.productId, next)}
                 onRemove={() => removeItem(item.productId)}
               />
@@ -47,6 +67,8 @@ export default function CartScreen({ navigation }) {
               label="Tramitar pedido"
               variant="teal"
               onPress={() => navigation.navigate('Checkout')}
+              disabled={hasIssues || checking}
+              loading={checking}
               style={styles.checkoutButton}
             />
           </View>

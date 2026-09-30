@@ -4,11 +4,16 @@ import { Feather } from '@expo/vector-icons';
 import ProfileMenuRow from './components/ProfileMenuRow';
 import AppButton from '../../components/AppButton';
 import { useAuth } from '../../context/AuthContext';
+import { isoToDisplayDate, displayDateToIso, ageFromIso } from '../../utils/validators';
 import { colors, fonts, radii, shadow, spacing } from '../../theme';
 
 // Perfil del cliente autenticado con sus datos y accesos de la cuenta.
 export default function ProfileScreen({ navigation }) {
   const { user, signOut } = useAuth();
+
+  const birthdate = isoToDisplayDate(user?.birthdate);
+  const birthdateIso = birthdate ? displayDateToIso(birthdate) : null;
+  const address = user?.addresses?.[0]?.street ? user.addresses[0] : null;
 
   const fullName = `${user?.name || ''} ${user?.last_name || ''}`.trim() || 'Cliente';
   const initials = fullName
@@ -44,6 +49,18 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.dataRow}>
             <Text style={styles.dataLabel}>DUI</Text>
             <Text style={styles.dataValue}>{user?.dui || 'Sin registrar'}</Text>
+          </View>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Nacimiento</Text>
+            <Text style={styles.dataValue}>
+              {birthdate ? `${birthdate} (${ageFromIso(birthdateIso)} años)` : 'Sin registrar'}
+            </Text>
+          </View>
+          <View style={styles.dataRow}>
+            <Text style={styles.dataLabel}>Dirección</Text>
+            <Text style={[styles.dataValue, styles.dataWrap]} numberOfLines={2}>
+              {address ? `${address.street}, ${address.city}` : 'Sin registrar'}
+            </Text>
           </View>
         </View>
 
@@ -163,6 +180,11 @@ const styles = StyleSheet.create({
   dataValue: {
     fontSize: 13.5,
     color: colors.ink,
+  },
+  dataWrap: {
+    flex: 1,
+    textAlign: 'right',
+    marginLeft: spacing.lg,
   },
   menu: {
     marginBottom: spacing.xl,

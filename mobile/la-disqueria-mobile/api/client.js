@@ -10,6 +10,13 @@ export const saveToken = (token) => AsyncStorage.setItem(tokenKey, token);
 export const readToken = () => AsyncStorage.getItem(tokenKey);
 export const clearToken = () => AsyncStorage.removeItem(tokenKey);
 
+let unauthorizedHandler = null;
+
+// Permite al contexto de sesión reaccionar cuando la API rechaza el token.
+export const setUnauthorizedHandler = (handler) => {
+  unauthorizedHandler = handler;
+};
+
 export class ApiError extends Error {
   constructor(message, status) {
     super(translateApiError(message));
@@ -56,6 +63,10 @@ export async function request(path, options = {}) {
   const data = parseBody(await response.text());
 
   if (!response.ok) {
+    // Token vencido o inválido en una ruta protegida: se avisa para cerrar la sesión.
+    if (auth && (response.status === 401 || response.status === 403)) {
+      unauthorizedHandler?.();
+    }
     throw new ApiError(data.message, response.status);
   }
 

@@ -9,6 +9,8 @@ router
   .get(validateAuthCookie(["customer"], ["admin"]), cartController.getCartsByCustomer)
   .post(validateAuthCookie(["customer"]), cartController.insertCart);
 
+router.route("/:id/cancel").patch(validateAuthCookie(["customer"]), cartController.cancelOwnOrder);
+
 router.route("/:id").get(validateAuthCookie(["customer"]), cartController.getCartById);
 
 export default router;

@@ -8,11 +8,29 @@ import PasswordCriteria from '../../components/PasswordCriteria';
 import AppButton from '../../components/AppButton';
 import FormBanner from '../../components/FormBanner';
 import { registerCustomer } from '../../api/auth';
-import { maskName, maskDui, maskPhone } from '../../utils/masks';
-import { isEmail, isDui, isPhone, isValidName, isStrongPassword } from '../../utils/validators';
+import { maskName, maskDui, maskPhone, maskDate } from '../../utils/masks';
+import {
+  isEmail,
+  isDui,
+  isPhone,
+  isValidName,
+  isStrongPassword,
+  birthdateError,
+  displayDateToIso,
+  MIN_AGE,
+} from '../../utils/validators';
 import { colors, fonts, spacing } from '../../theme';
 
-const emptyForm = { name: '', lastName: '', dui: '', phone: '', email: '', password: '' };
+const emptyForm = {
+  name: '',
+  lastName: '',
+  birthdate: '',
+  dui: '',
+  phone: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+};
 
 // Formulario de registro de un nuevo cliente con validaciones y máscaras.
 export default function RegisterScreen({ navigation }) {
@@ -26,12 +44,24 @@ export default function RegisterScreen({ navigation }) {
 
   const validate = () => {
     const next = {};
-    if (!isValidName(form.name)) next.name = 'Entre 3 y 15 caracteres';
-    if (!isValidName(form.lastName)) next.lastName = 'Entre 3 y 15 caracteres';
-    if (!isDui(form.dui)) next.dui = 'Formato ########-#';
-    if (!isPhone(form.phone)) next.phone = 'Formato ####-####';
-    if (!isEmail(form.email)) next.email = 'Correo no válido';
-    if (!isStrongPassword(form.password)) next.password = 'No cumple los requisitos';
+    if (!form.name.trim()) next.name = 'Campo obligatorio';
+    else if (!isValidName(form.name)) next.name = 'Entre 3 y 15 caracteres';
+    if (!form.lastName.trim()) next.lastName = 'Campo obligatorio';
+    else if (!isValidName(form.lastName)) next.lastName = 'Entre 3 y 15 caracteres';
+    const birthdate = birthdateError(form.birthdate);
+    if (birthdate) next.birthdate = birthdate;
+    if (!form.dui.trim()) next.dui = 'Campo obligatorio';
+    else if (!isDui(form.dui)) next.dui = 'Formato ########-#';
+    if (!form.phone.trim()) next.phone = 'Campo obligatorio';
+    else if (!isPhone(form.phone)) next.phone = 'Formato ####-####';
+    if (!form.email.trim()) next.email = 'Campo obligatorio';
+    else if (!isEmail(form.email)) next.email = 'Correo no válido';
+    if (!form.password) next.password = 'Campo obligatorio';
+    else if (!isStrongPassword(form.password)) next.password = 'No cumple los requisitos';
+    if (!form.confirmPassword) next.confirmPassword = 'Confirma tu contraseña';
+    else if (form.confirmPassword !== form.password) {
+      next.confirmPassword = 'Las contraseñas no coinciden';
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -42,7 +72,13 @@ export default function RegisterScreen({ navigation }) {
 
     setSubmitting(true);
     try {
-      const data = await registerCustomer(form);
+      const data = await registerCustomer({
+        ...form,
+        name: form.name.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim().toLowerCase(),
+        birthdate: displayDateToIso(form.birthdate),
+      });
       navigation.navigate('VerifyCode', {
         email: form.email.trim(),
         registrationToken: data.registrationToken,
@@ -86,6 +122,18 @@ export default function RegisterScreen({ navigation }) {
         </View>
 
         <TextField
+          label="Fecha de nacimiento"
+          value={form.birthdate}
+          onChangeText={setField('birthdate', maskDate)}
+          placeholder="DD/MM/AAAA"
+          keyboardType="number-pad"
+          maxLength={10}
+          error={errors.birthdate}
+        />
+        {!errors.birthdate ? (
+          <Text style={styles.hint}>Debes ser mayor de {MIN_AGE} años para comprar.</Text>
+        ) : null}
+        <TextField
           label="DUI"
           value={form.dui}
           onChangeText={setField('dui', maskDui)}
@@ -120,6 +168,13 @@ export default function RegisterScreen({ navigation }) {
           error={errors.password}
         />
         <PasswordCriteria password={form.password} />
+        <PasswordField
+          label="Confirmar contraseña"
+          value={form.confirmPassword}
+          onChangeText={setField('confirmPassword')}
+          placeholder="Repite tu contraseña"
+          error={errors.confirmPassword}
+        />
 
         <AppButton label="Crear cuenta" onPress={handleSubmit} loading={submitting} />
 
@@ -157,6 +212,11 @@ const styles = StyleSheet.create({
   },
   half: {
     flex: 1,
+  },
+  hint: {
+    fontSize: 11.5,
+    color: colors.muted,
+    marginTop: -spacing.sm,
   },
   footer: {
     textAlign: 'center',

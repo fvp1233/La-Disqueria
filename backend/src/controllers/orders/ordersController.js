@@ -1,5 +1,6 @@
 import orderModel from "../../models/orders/orders.js";
 import cartModel from "../../models/cart/cart.js";
+import { isCancelledStatus, restoreOrderStock, reserveOrderStock } from "../../utils/orderStock.js";
 
 const ordersController = {};
 
@@ -234,6 +235,37 @@ ordersController.updateOrder = async (req, res) => {
       notes,
     } = req.body;
 
+    const currentOrder = await orderModel.findById(req.params.id);
+
+    if (!currentOrder) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    // Al cancelar se repone el stock; al reactivar un pedido cancelado se
+    // vuelve a descontar, siempre que todavía haya unidades disponibles.
+    const wasCancelled = isCancelledStatus(currentOrder.status);
+    const willCancel = status !== undefined ? isCancelledStatus(status) : wasCancelled;
+
+    if (!wasCancelled && willCancel) {
+      await restoreOrderStock(currentOrder.items);
+    } else if (wasCancelled && !willCancel) {
+      const reserved = await reserveOrderStock(currentOrder.items);
+      if (!reserved) {
+        return res.status(400).json({
+          message: "No hay stock suficiente para reactivar el pedido",
+        });
+      }
+    }
+
+    if (wasCancelled !== willCancel && currentOrder.order_number) {
+      await cartModel.updateOne(
+        { order_number: currentOrder.order_number },
+        { status: willCancel ? "cancelado" : "comprado" },
+      );
+    }
+
     const updatedOrder = await orderModel.findByIdAndUpdate(
       req.params.id,
       {
@@ -275,6 +307,17 @@ ordersController.deleteOrder = async (req, res) => {
       return res.status(404).json({
         message: "Order not found",
       });
+    }
+
+    // Un pedido eliminado sin haberse cancelado libera sus unidades.
+    if (!isCancelledStatus(deletedOrder.status)) {
+      await restoreOrderStock(deletedOrder.items);
+      if (deletedOrder.order_number) {
+        await cartModel.updateOne(
+          { order_number: deletedOrder.order_number },
+          { status: "cancelado" },
+        );
+      }
     }
 
     return res.status(200).json({

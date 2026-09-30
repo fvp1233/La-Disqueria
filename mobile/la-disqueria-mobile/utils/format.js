@@ -25,3 +25,15 @@ export const apiTypeToUi = (apiType) => apiToUi[apiType] || apiType;
 export const isDiscType = (apiType) => apiType === 'vinyl' || apiType === 'cd';
 
 export const FALLBACK_COVER = 'https://placehold.co/600x600/ece5db/9c9587?text=La+Disquer%C3%ADa';
+
+// Un producto se puede comprar si está disponible y, cuando maneja inventario, le queda stock.
+export const isInStock = (product) =>
+  Boolean(product?.available) && (product?.stock == null || product.stock > 0);
+
+// Texto corto sobre la existencia de un producto.
+export const stockLabel = (product) => {
+  if (!isInStock(product)) return 'Agotado';
+  if (product.stock == null) return 'Disponible';
+  if (product.stock <= 5) return `Últimas ${product.stock} unidades`;
+  return `${product.stock} en stock`;
+};

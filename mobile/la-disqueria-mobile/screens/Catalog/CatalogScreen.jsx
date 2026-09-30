@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import TypeTabs from './components/TypeTabs';
@@ -25,13 +25,21 @@ export default function CatalogScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (route.params?.type) setActiveType(route.params.type);
   }, [route.params?.type]);
 
+  // Espera a que el usuario deje de escribir antes de consultar la API.
+  useEffect(() => {
+    const timer = setTimeout(() => setSearch(searchInput.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   const load = useCallback(
-    async (type, nextPage) => {
+    async (type, nextPage, query) => {
       const first = nextPage === 1;
       first ? setLoading(true) : setLoadingMore(true);
       setError('');
@@ -40,6 +48,7 @@ export default function CatalogScreen({ navigation, route }) {
           type: uiTypeToApi(type),
           page: nextPage,
           limit: pageSize,
+          search: query,
         });
         setProducts((current) =>
           first ? result.products : [...current, ...result.products]
@@ -58,8 +67,8 @@ export default function CatalogScreen({ navigation, route }) {
   );
 
   useEffect(() => {
-    load(activeType, 1);
-  }, [activeType, load]);
+    load(activeType, 1, search);
+  }, [activeType, search, load]);
 
   const canLoadMore = page < totalPages;
 
@@ -80,10 +89,24 @@ export default function CatalogScreen({ navigation, route }) {
           />
         </View>
 
-        <Pressable style={styles.search}>
+        <View style={styles.search}>
           <Feather name="search" size={17} color={colors.muted} />
-          <Text style={styles.searchText}>Buscar en el catálogo</Text>
-        </Pressable>
+          <TextInput
+            value={searchInput}
+            onChangeText={(value) => setSearchInput(value.replace(/\s{2,}/g, ' ').slice(0, 60))}
+            placeholder="Buscar por título, artista o género"
+            placeholderTextColor={colors.muted}
+            returnKeyType="search"
+            onSubmitEditing={() => setSearch(searchInput.trim())}
+            style={styles.searchInput}
+            maxLength={60}
+          />
+          {searchInput ? (
+            <Pressable onPress={() => setSearchInput('')} hitSlop={8}>
+              <Feather name="x" size={16} color={colors.muted} />
+            </Pressable>
+          ) : null}
+        </View>
 
         <TypeTabs value={activeType} onChange={setActiveType} />
 
@@ -92,8 +115,12 @@ export default function CatalogScreen({ navigation, route }) {
             loading={loading}
             error={error}
             empty={!loading && !error && products.length === 0}
-            emptyText={`No hay ${activeType.toLowerCase()} disponibles todavía`}
-            onRetry={() => load(activeType, 1)}
+            emptyText={
+              search
+                ? `No encontramos resultados para "${search}"`
+                : `No hay ${activeType.toLowerCase()} disponibles todavía`
+            }
+            onRetry={() => load(activeType, 1, search)}
           />
         ) : (
           <>
@@ -113,7 +140,7 @@ export default function CatalogScreen({ navigation, route }) {
                 label="Cargar más"
                 variant="ghost"
                 loading={loadingMore}
-                onPress={() => load(activeType, page + 1)}
+                onPress={() => load(activeType, page + 1, search)}
                 style={styles.more}
               />
             ) : null}
@@ -164,9 +191,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: spacing.xl,
   },
-  searchText: {
-    color: colors.muted,
+  searchInput: {
+    flex: 1,
+    fontFamily: fonts.body,
     fontSize: 14,
+    color: colors.ink,
+    paddingVertical: 0,
   },
   grid: {
     flexDirection: 'row',

@@ -27,13 +27,42 @@ el panel administrativo.
 - **@expo/vector-icons** (Feather) para la iconografía
 - API REST del proyecto (Express + MongoDB) en `../../backend`
 
+## Dependencias
+
+Instaladas en `package.json`. Las que dependen de la versión de Expo se instalaron
+con `npx expo install` para que sean compatibles con el SDK.
+
+| Paquete | Versión | Para qué se usa |
+|---|---|---|
+| `expo` | ^57.0.0 | SDK base de la aplicación. |
+| `react` | 19.2.3 | Librería de interfaz. |
+| `react-native` | 0.86.3 | Componentes nativos de Android e iOS. |
+| `@react-navigation/native` | ^7.3.18 | Contenedor y tema de la navegación. |
+| `@react-navigation/native-stack` | ^7.18.10 | Navegación por pila entre pantallas. |
+| `@react-navigation/bottom-tabs` | ^7.18.18 | Menú inferior por pestañas (Inicio, Catálogo, Perfil). |
+| `react-native-screens` | ~4.26.0 | Pantallas nativas que requiere React Navigation. |
+| `react-native-safe-area-context` | ~5.7.0 | Respeta la muesca y las barras del sistema. |
+| `@react-native-async-storage/async-storage` | 2.2.0 | Guarda la sesión, el carrito y si ya se vio el onboarding. |
+| `expo-constants` | ~57.0.17 | Detecta la IP del equipo para llegar al backend. |
+| `expo-splash-screen` | ~57.0.8 | Splash screen personalizado. |
+| `expo-status-bar` | ~57.0.1 | Estilo de la barra de estado. |
+| `expo-font` | ~57.0.3 | Carga de las fuentes de los iconos. |
+| `@expo/vector-icons` | ^15.0.3 | Iconos Feather y las estrellas de las valoraciones (FontAwesome). |
+| `@expo/ngrok` | ^4.1.3 | Permite correr Metro con `--tunnel` cuando el teléfono no está en la misma red. |
+
+Para instalarlas todas:
+
+```bash
+npm install
+```
+
 ## Estructura de carpetas
 
 ```
 App.js                 Punto de entrada. Solo monta los providers y la navegación.
 api/                   config.js resuelve la URL del backend; client.js es el
                        cliente HTTP; el resto son funciones por recurso
-                       (auth, catalog, orders).
+                       (auth, catalog, orders, reviews).
 context/               AuthContext (sesión) y CartContext (carrito persistido).
 navigation/            RootNavigator, MainTabs y el tema de navegación.
 screens/               Una subcarpeta por funcionalidad. Cada pantalla usa
@@ -150,3 +179,14 @@ Debe existir información en la base de datos para demostrar el funcionamiento:
   pantallas.
 - **Variables, funciones y constantes:** camelCase.
 - **Estilos:** `StyleSheet.create` al final de cada archivo.
+
+## Licencia
+
+Este proyecto está bajo la licencia
+[Creative Commons Atribución-NoComercial-CompartirIgual 4.0 Internacional (CC BY-NC-SA 4.0)](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es).
+
+Se permite copiar, compartir y adaptar el proyecto siempre que:
+
+- **Atribución (BY):** se dé crédito a los integrantes del equipo.
+- **No comercial (NC):** no se use con fines comerciales.
+- **Compartir igual (SA):** las versiones modificadas se compartan con esta misma licencia.

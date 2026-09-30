@@ -18,6 +18,7 @@ export const registerCustomer = (form) =>
       dui: form.dui,
       phone: form.phone,
       password: form.password,
+      birthdate: form.birthdate,
     },
   });
 

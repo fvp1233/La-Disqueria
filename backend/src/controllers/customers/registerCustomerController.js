@@ -4,6 +4,7 @@ import jsonwebtoken from "jsonwebtoken";
 import bcryptjs from "bcryptjs";
 import { config } from "../../../config.js";
 import customerModel from "../../models/customers/customer.js";
+import { parseBirthdate } from "../../utils/birthdate.js";
 
 const registerCustomerController = {};
 
@@ -17,7 +18,7 @@ const normalizePhone = (value = "") => value.replace(/^\+?503\s*/, "").trim();
 
 registerCustomerController.registerCustomer = async (req, res) => {
   try {
-    let { name, last_name, email, dui, password, phone, addresses } = req.body;
+    let { name, last_name, email, dui, password, phone, addresses, birthdate } = req.body;
 
     name = name?.trim();
     last_name = last_name?.trim();
@@ -41,6 +42,17 @@ registerCustomerController.registerCustomer = async (req, res) => {
 
     if (last_name.length < 3 || last_name.length > 15) {
       return res.status(400).json({ message: "Please insert a valid last name" });
+    }
+
+    // La fecha de nacimiento es opcional para la web y obligatoria en la app móvil;
+    // si llega, se valida el formato y la edad mínima.
+    let birthdateValue;
+    if (birthdate) {
+      const parsed = parseBirthdate(birthdate);
+      if (parsed.message) {
+        return res.status(400).json({ message: parsed.message });
+      }
+      birthdateValue = parsed.date.toISOString();
     }
 
     if (!DUI_REGEX.test(dui)) {
@@ -91,6 +103,7 @@ registerCustomerController.registerCustomer = async (req, res) => {
         password: passwordHashed,
         phone,
         addresses,
+        birthdate: birthdateValue,
       },
       config.JWT.secret,
       { expiresIn: "15m" },
@@ -157,6 +170,7 @@ registerCustomerController.verifyCode = async (req, res) => {
       password,
       phone,
       addresses,
+      birthdate,
     } = decoded;
 
     if (verificationCodeRequest !== storedCode) {
@@ -179,6 +193,7 @@ registerCustomerController.verifyCode = async (req, res) => {
       password,
       phone,
       addresses,
+      birthdate: birthdate ? new Date(birthdate) : undefined,
       is_active: true,
       isVerified: true,
       loginAttemps: 0,

@@ -23,3 +23,11 @@ export const maskPhone = (value = '') => {
 // Deja un código alfanumérico de seis caracteres en minúscula.
 export const maskCode = (value = '') =>
   value.replace(/[^A-Za-z0-9]/g, '').toLowerCase().slice(0, 6);
+
+// Aplica el formato DD/MM/AAAA a una fecha escrita a mano.
+export const maskDate = (value = '') => {
+  const digits = onlyDigits(value).slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+};

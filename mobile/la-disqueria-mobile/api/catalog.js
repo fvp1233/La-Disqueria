@@ -12,18 +12,23 @@ export const normalizeProduct = (item) => ({
   price: item.price ?? 0,
   cover: item.coverImage || FALLBACK_COVER,
   available: item.isAvailable ?? true,
+  // null significa que el producto no tiene inventario registrado (sin límite).
+  stock: typeof item.stock === 'number' ? Math.max(0, item.stock) : null,
+  ratingAverage: Number(item.ratingAverage) || 0,
+  ratingCount: Number(item.ratingCount) || 0,
   trackList: item.trackList || [],
   description: item.description || '',
   images: item.images || [],
 });
 
 // Listado paginado del catálogo. type acepta la clave de la API o queda vacío.
-export const getProducts = ({ type, page = 1, limit = 12, sort } = {}) => {
+export const getProducts = ({ type, page = 1, limit = 12, sort, search } = {}) => {
   const params = new URLSearchParams();
   params.set('page', String(page));
   params.set('limit', String(limit));
   if (type) params.set('type', type);
   if (sort) params.set('sort', sort);
+  if (search && search.trim()) params.set('search', search.trim());
 
   return request(`/products?${params.toString()}`).then((result) => ({
     products: (result.data || []).map(normalizeProduct),

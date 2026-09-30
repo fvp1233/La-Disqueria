@@ -3,6 +3,8 @@ import vinylModel from "../../models/vinyls/vinyl.js";
 import cdsModel from "../../models/cds/cds.js";
 import turntablesModel from "../../models/turntables/turntables.js";
 import accessoriesModel from "../../models/accessories/accessories.js";
+import reviewModel from "../../models/reviews/review.js";
+import { getStock } from "../../utils/productLookup.js";
 
 const productsController = {};
 
@@ -140,6 +142,43 @@ const TYPE_BUILDERS = {
   accessory: { model: accessoriesModel, build: buildAccessoryPipeline, supportsGenreArtist: false },
 };
 
+// Agrega a cada producto su stock (suma de sus registros de inventario, o null
+// si no tiene inventario) y el promedio y número de valoraciones.
+const stockAndRatingStages = [
+  {
+    $lookup: {
+      from: "inventory",
+      localField: "_id",
+      foreignField: "productId",
+      as: "inventoryDocs",
+    },
+  },
+  {
+    $lookup: {
+      from: reviewModel.collection.name,
+      localField: "_id",
+      foreignField: "productId",
+      as: "reviewDocs",
+    },
+  },
+  {
+    $addFields: {
+      stock: {
+        $cond: [
+          { $gt: [{ $size: "$inventoryDocs" }, 0] },
+          { $sum: "$inventoryDocs.stock" },
+          null,
+        ],
+      },
+      ratingCount: { $size: "$reviewDocs" },
+      ratingAverage: { $ifNull: [{ $round: [{ $avg: "$reviewDocs.rating" }, 1] }, 0] },
+    },
+  },
+  { $project: { inventoryDocs: 0, reviewDocs: 0 } },
+];
+
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 const SORT_MAP = {
   az: { album: 1 },
   za: { album: -1 },
@@ -161,10 +200,11 @@ productsController.getProducts = async (req, res) => {
       artistId,
       isAvailable,
       sort = "az",
+      search,
     } = req.query;
 
     const pageNum = Math.max(1, parseInt(page) || 1);
-    const limitNum = Math.max(1, parseInt(limit) || 12);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit) || 12));
     const skip = (pageNum - 1) * limitNum;
 
     const filters = {
@@ -200,11 +240,22 @@ productsController.getProducts = async (req, res) => {
       });
     });
 
+    const searchText = typeof search === "string" ? search.trim().slice(0, 60) : "";
+    if (searchText) {
+      const regex = { $regex: escapeRegex(searchText), $options: "i" };
+      pipeline.push({ $match: { $or: [{ album: regex }, { artist: regex }, { genre: regex }] } });
+    }
+
     const sortStage = SORT_MAP[sort] || SORT_MAP.az;
     pipeline.push({ $sort: sortStage });
 
     const countPipeline = [...pipeline, { $count: "total" }];
-    const dataPipeline = [...pipeline, { $skip: skip }, { $limit: limitNum }];
+    const dataPipeline = [
+      ...pipeline,
+      { $skip: skip },
+      { $limit: limitNum },
+      ...stockAndRatingStages,
+    ];
 
     const [countResult, data] = await Promise.all([
       TYPE_BUILDERS[firstType].model.aggregate(countPipeline),
@@ -252,8 +303,24 @@ productsController.getProductById = async (req, res) => {
       accessoriesModel.findById(id).lean(),
     ]);
 
+    const [stock, ratingSummary] = await Promise.all([
+      getStock(id),
+      reviewModel.aggregate([
+        { $match: { productId: new mongoose.Types.ObjectId(id) } },
+        { $group: { _id: null, average: { $avg: "$rating" }, count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    // Stock y valoraciones comunes a los cuatro tipos de producto.
+    const extra = {
+      stock,
+      ratingAverage: ratingSummary[0] ? Math.round(ratingSummary[0].average * 10) / 10 : 0,
+      ratingCount: ratingSummary[0]?.count || 0,
+    };
+
     if (vinyl) {
       return res.status(200).json({
+        ...extra,
         id: vinyl._id,
         type: "vinyl",
         album: vinyl.tittle || vinyl.title || "Sin título",
@@ -274,6 +341,7 @@ productsController.getProductById = async (req, res) => {
 
     if (cd) {
       return res.status(200).json({
+        ...extra,
         id: cd._id,
         type: "cd",
         album: cd.title || "Sin título",
@@ -293,6 +361,7 @@ productsController.getProductById = async (req, res) => {
 
     if (turntable) {
       return res.status(200).json({
+        ...extra,
         id: turntable._id,
         type: "turntable",
         album: `${turntable.brand || ""} ${turntable.model || ""}`.trim() || "Sin título",
@@ -311,6 +380,7 @@ productsController.getProductById = async (req, res) => {
 
     if (accessory) {
       return res.status(200).json({
+        ...extra,
         id: accessory._id,
         type: "accessory",
         album: accessory.name || "Sin título",

@@ -1,29 +1,32 @@
 import { useCallback, useEffect, useState } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
 import BackBar from '../../components/BackBar';
 import IconButton from '../../components/IconButton';
 import Pill from '../../components/Pill';
 import QuantityStepper from '../../components/QuantityStepper';
 import AppButton from '../../components/AppButton';
 import StateView from '../../components/StateView';
+import StarRating from '../../components/StarRating';
+import FormBanner from '../../components/FormBanner';
 import TrackList from './components/TrackList';
-import { useCart } from '../../context/CartContext';
+import Reviews from './components/Reviews';
+import { useCart, maxQuantityFor } from '../../context/CartContext';
 import { getProductById } from '../../api/catalog';
-import { formatPrice } from '../../utils/format';
+import { formatPrice, isInStock, stockLabel } from '../../utils/format';
 import { colors, fonts, shadow, spacing } from '../../theme';
 
 // Ficha de un producto con opciones de cantidad y acción de compra.
 export default function ProductDetailScreen({ navigation, route }) {
   const productId = route.params?.productId;
-  const { addItem, count } = useCart();
+  const { addItem, count, quantityOf } = useCart();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [notice, setNotice] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,10 +44,48 @@ export default function ProductDetailScreen({ navigation, route }) {
     load();
   }, [load]);
 
+  const inCart = product ? quantityOf(product.id) : 0;
+  const inStock = isInStock(product);
+  // Unidades que todavía se pueden sumar sin superar el stock.
+  const remaining = product ? Math.max(0, maxQuantityFor(product.stock) - inCart) : 0;
+  const canAdd = inStock && remaining > 0;
+
+  // La cantidad elegida nunca supera lo que queda disponible.
+  useEffect(() => {
+    if (remaining > 0 && quantity > remaining) setQuantity(remaining);
+  }, [remaining, quantity]);
+
+  const updateSummary = useCallback(
+    ({ average, count: total }) =>
+      setProduct((current) =>
+        current ? { ...current, ratingAverage: average, ratingCount: total } : current
+      ),
+    []
+  );
+
   const handleAdd = () => {
-    addItem(product, quantity);
+    setNotice('');
+    if (!canAdd) {
+      setNotice(inStock ? 'Ya tienes en el carrito todo el stock disponible' : 'Producto agotado');
+      return;
+    }
+    const addedUnits = addItem(product, quantity);
+    if (addedUnits === 0) {
+      setNotice('No quedan unidades disponibles para agregar');
+      return;
+    }
+    if (addedUnits < quantity) {
+      setNotice(`Solo se agregaron ${addedUnits} unidades por el stock disponible`);
+    }
+    setQuantity(1);
     setAdded(true);
   };
+
+  const ratingText = product?.ratingCount
+    ? `${product.ratingAverage.toFixed(1)} · ${product.ratingCount} ${
+        product.ratingCount === 1 ? 'valoración' : 'valoraciones'
+      }`
+    : 'Sin valoraciones';
 
   if (loading || error || !product) {
     return (
@@ -86,19 +127,39 @@ export default function ProductDetailScreen({ navigation, route }) {
         {product.subtitle ? <Text style={styles.subtitle}>{product.subtitle}</Text> : null}
         <Text style={styles.title}>{product.title}</Text>
 
+        <View style={styles.ratingRow}>
+          <StarRating value={product.ratingAverage} size={14} />
+          <Text style={styles.ratingText}>{ratingText}</Text>
+        </View>
+
         <View style={styles.pills}>
           {product.genre ? <Pill label={product.genre} tone="neutral" /> : null}
           <Pill
-            label={product.available ? 'Disponible' : 'Agotado'}
-            tone={product.available ? 'success' : 'neutral'}
-            icon={product.available ? 'check' : 'x'}
+            label={stockLabel(product)}
+            tone={inStock ? 'success' : 'neutral'}
+            icon={inStock ? 'check' : 'x'}
           />
         </View>
 
-        <View style={styles.quantityRow}>
-          <Text style={styles.quantityLabel}>Cantidad</Text>
-          <QuantityStepper value={quantity} onChange={setQuantity} />
-        </View>
+        <FormBanner message={notice} />
+
+        {canAdd ? (
+          <View style={styles.quantityRow}>
+            <View>
+              <Text style={styles.quantityLabel}>Cantidad</Text>
+              {inCart ? (
+                <Text style={styles.quantityHint}>Ya tienes {inCart} en el carrito</Text>
+              ) : null}
+            </View>
+            <QuantityStepper value={quantity} onChange={setQuantity} max={remaining} />
+          </View>
+        ) : (
+          <Text style={styles.soldOut}>
+            {inStock
+              ? 'Ya tienes en el carrito todas las unidades disponibles.'
+              : 'Este producto está agotado por ahora.'}
+          </Text>
+        )}
 
         {product.isDisc ? (
           <TrackList tracks={product.trackList} />
@@ -110,6 +171,8 @@ export default function ProductDetailScreen({ navigation, route }) {
             </Text>
           </View>
         )}
+
+        <Reviews productId={product.id} onSummaryChange={updateSummary} />
       </ScrollView>
 
       <View style={styles.bottomBar}>
@@ -126,9 +189,9 @@ export default function ProductDetailScreen({ navigation, route }) {
           />
         ) : (
           <AppButton
-            label="Añadir al carrito"
+            label={inStock ? 'Añadir al carrito' : 'Agotado'}
             onPress={handleAdd}
-            disabled={!product.available}
+            disabled={!canAdd}
             style={styles.addButton}
           />
         )}
@@ -206,8 +269,30 @@ const styles = StyleSheet.create({
   },
   pills: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: -4,
+    marginBottom: spacing.md,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: colors.muted,
+  },
+  quantityHint: {
+    fontSize: 11.5,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  soldOut: {
+    fontSize: 13,
+    color: colors.inkSoft,
+    marginVertical: spacing.lg,
   },
   quantityRow: {
     flexDirection: 'row',

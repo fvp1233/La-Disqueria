@@ -1,5 +1,6 @@
 import customerModel from "../../models/customers/customer.js";
 import bcryptjs from "bcryptjs";
+import { parseBirthdate } from "../../utils/birthdate.js";
 
 const customersController = {};
 
@@ -157,7 +158,7 @@ customersController.getOwnProfile = async (req, res) => {
 // UPDATE - el cliente autenticado edita sus propios datos de contacto.
 customersController.updateOwnProfile = async (req, res) => {
   try {
-    let { name, last_name, phone, addresses } = req.body;
+    let { name, last_name, phone, addresses, birthdate } = req.body;
 
     name = name?.trim();
     last_name = last_name?.trim();
@@ -175,6 +176,15 @@ customersController.updateOwnProfile = async (req, res) => {
       return res.status(400).json({ message: "Invalid phone format" });
     }
 
+    let birthdateValue;
+    if (birthdate) {
+      const parsed = parseBirthdate(birthdate);
+      if (parsed.message) {
+        return res.status(400).json({ message: parsed.message });
+      }
+      birthdateValue = parsed.date;
+    }
+
     if (phone) {
       const duplicate = await customerModel.findOne({
         _id: { $ne: req.user.id },
@@ -186,16 +196,32 @@ customersController.updateOwnProfile = async (req, res) => {
     }
 
     if (Array.isArray(addresses)) {
-      addresses = addresses.map((address) => ({
-        street: address.street?.trim(),
-        city: address.city?.trim(),
-      }));
+      addresses = addresses
+        .map((address) => ({
+          street: address?.street?.trim(),
+          city: address?.city?.trim(),
+        }))
+        .filter((address) => address.street || address.city);
+
+      const invalidAddress = addresses.some(
+        (address) =>
+          !address.street ||
+          !address.city ||
+          address.street.length < 5 ||
+          address.street.length > 150 ||
+          address.city.length < 3 ||
+          address.city.length > 60,
+      );
+      if (invalidAddress) {
+        return res.status(400).json({ message: "La dirección de envío no es válida" });
+      }
     }
 
     const updates = {};
     if (name) updates.name = name;
     if (last_name) updates.last_name = last_name;
     if (phone) updates.phone = phone;
+    if (birthdateValue) updates.birthdate = birthdateValue;
     if (Array.isArray(addresses)) updates.addresses = addresses;
 
     const customer = await customerModel

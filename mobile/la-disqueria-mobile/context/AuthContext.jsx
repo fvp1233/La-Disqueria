@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveToken, readToken, clearToken } from '../api/client';
+import { saveToken, readToken, clearToken, setUnauthorizedHandler } from '../api/client';
 import * as authApi from '../api/auth';
 
 const AuthContext = createContext(null);
@@ -34,11 +34,22 @@ export function AuthProvider({ children }) {
     bootstrap();
   }, []);
 
+  // Si la sesión vence mientras se usa la app, se vuelve al inicio de sesión.
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      clearToken().finally(() => setUser(null));
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
   const signIn = async (email, password) => {
-    const data = await authApi.loginCustomer(email, password);
+    const data = await authApi.loginCustomer(email.trim().toLowerCase(), password);
     await saveToken(data.token);
-    setUser(data.user);
-    return data.user;
+    // El login solo devuelve datos básicos; se carga el perfil completo
+    // (teléfono, DUI, direcciones, fecha de nacimiento) para las pantallas.
+    const profile = await authApi.getProfile().catch(() => data.user);
+    setUser(profile);
+    return profile;
   };
 
   const signOut = async () => {

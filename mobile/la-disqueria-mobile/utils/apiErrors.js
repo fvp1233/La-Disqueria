@@ -30,6 +30,11 @@ const messages = {
   'Email is required': 'Ingresa tu correo',
   'Error sending email': 'No pudimos enviar el correo, intenta de nuevo',
   'El carrito está vacío': 'El carrito está vacío',
+  'Invalid or expired session': 'Tu sesión expiró, inicia sesión de nuevo',
+  'No cookie found, Authorization required': 'Inicia sesión para continuar',
+  'Acces denied': 'No tienes permiso para esta acción',
+  'Internal server error': 'Ocurrió un error en el servidor, intenta de nuevo',
+  'Customer not found.': 'No encontramos tu cuenta',
 };
 
 export const translateApiError = (message) =>

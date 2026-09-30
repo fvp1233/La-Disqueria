@@ -22,3 +22,7 @@ export const checkout = ({ items, shippingAddress, paymentMethod, notes }) =>
 
 // Historial de compras del cliente autenticado.
 export const getOrderHistory = () => request('/cart', { auth: true });
+
+// Cancela un pedido propio que sigue pendiente; el stock vuelve al inventario.
+export const cancelOrder = (orderId) =>
+  request(`/cart/${orderId}/cancel`, { method: 'PATCH', auth: true });

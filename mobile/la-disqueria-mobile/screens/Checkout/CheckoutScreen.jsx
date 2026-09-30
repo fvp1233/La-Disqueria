@@ -7,19 +7,24 @@ import OrderSummary from '../../components/OrderSummary';
 import AppButton from '../../components/AppButton';
 import FormBanner from '../../components/FormBanner';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { checkout } from '../../api/orders';
-import { isNotEmpty } from '../../utils/validators';
+import { addressError, cityError } from '../../utils/validators';
 import { colors, fonts, radii, spacing } from '../../theme';
 
 const paymentMethods = ['Tarjeta de crédito o débito', 'Efectivo contra entrega'];
 
+const notesMax = 250;
+
 // Datos de envío y registro del pedido en el backend.
 export default function CheckoutScreen({ navigation }) {
-  const { items, subtotal, count, clearCart } = useCart();
+  const { items, subtotal, count, hasIssues, clearCart, refreshStock } = useCart();
+  const { user } = useAuth();
+  const savedAddress = user?.addresses?.[0];
 
   const [form, setForm] = useState({
-    address: '',
-    city: '',
+    address: savedAddress?.street || '',
+    city: savedAddress?.city || '',
     notes: '',
     payment: paymentMethods[0],
   });
@@ -32,14 +37,26 @@ export default function CheckoutScreen({ navigation }) {
 
   const validate = () => {
     const next = {};
-    if (!isNotEmpty(form.address)) next.address = 'Ingresa una dirección';
-    if (!isNotEmpty(form.city)) next.city = 'Ingresa una ciudad';
+    const address = addressError(form.address);
+    const city = cityError(form.city);
+    if (address) next.address = address;
+    if (city) next.city = city;
+    if (form.notes.trim().length > notesMax) next.notes = `Máximo ${notesMax} caracteres`;
+    if (!paymentMethods.includes(form.payment)) next.payment = 'Selecciona un método de pago';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
 
   const handleSubmit = async () => {
     setApiError('');
+    if (items.length === 0) {
+      setApiError('El carrito está vacío');
+      return;
+    }
+    if (hasIssues) {
+      setApiError('Hay productos sin stock suficiente. Vuelve al carrito para ajustarlos.');
+      return;
+    }
     if (!validate()) return;
 
     setSubmitting(true);
@@ -66,6 +83,10 @@ export default function CheckoutScreen({ navigation }) {
       });
     } catch (error) {
       setApiError(error.message);
+      // Si el rechazo fue por stock, el carrito se actualiza para mostrarlo.
+      if (error.status === 400 || error.status === 404 || error.status === 409) {
+        refreshStock().catch(() => {});
+      }
     } finally {
       setSubmitting(false);
     }
@@ -85,6 +106,7 @@ export default function CheckoutScreen({ navigation }) {
           value={form.address}
           onChangeText={setField('address')}
           placeholder="Calle, número, colonia"
+          maxLength={150}
           error={errors.address}
         />
         <View style={styles.gap} />
@@ -93,6 +115,7 @@ export default function CheckoutScreen({ navigation }) {
           value={form.city}
           onChangeText={setField('city')}
           placeholder="San Salvador"
+          maxLength={60}
           error={errors.city}
         />
 
@@ -121,7 +144,12 @@ export default function CheckoutScreen({ navigation }) {
           onChangeText={setField('notes')}
           placeholder="Indicaciones para la entrega"
           multiline
+          maxLength={notesMax}
+          error={errors.notes}
         />
+        <Text style={styles.counter}>
+          {form.notes.length}/{notesMax}
+        </Text>
 
         <OrderSummary subtotal={subtotal} itemCount={count} />
       </ScrollView>
@@ -131,7 +159,7 @@ export default function CheckoutScreen({ navigation }) {
           label="Confirmar compra"
           onPress={handleSubmit}
           loading={submitting}
-          disabled={items.length === 0}
+          disabled={items.length === 0 || hasIssues}
           style={styles.confirmButton}
         />
       </View>
@@ -173,6 +201,12 @@ const styles = StyleSheet.create({
   },
   methods: {
     gap: 8,
+  },
+  counter: {
+    alignSelf: 'flex-end',
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 4,
   },
   method: {
     minHeight: 48,

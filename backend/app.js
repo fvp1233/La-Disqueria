@@ -23,6 +23,7 @@ import genresRoutes from "./src/routes/genres/genre.js"
 import cartRoutes from "./src/routes/cart/cart.js"
 import productsRoutes from "./src/routes/products/products.js"
 import dashboardRoutes from "./src/routes/dashboard/dashboard.js"
+import reviewsRoutes from "./src/routes/reviews/reviews.js"
 const app = express();
 
 app.use(cors({
@@ -63,4 +64,5 @@ app.use("/api/genres", genresRoutes)
 app.use("/api/cart", cartRoutes)
 app.use("/api/products", productsRoutes)
 app.use("/api/dashboard", dashboardRoutes)
+app.use("/api/reviews", reviewsRoutes)
 export default app;
