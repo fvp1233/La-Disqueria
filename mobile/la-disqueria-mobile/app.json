@@ -13,7 +13,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#E8602A"
-      }
+      },
+      "package": "com.tatonito02.ladisqueriamobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +30,11 @@
           "backgroundColor": "#f6f1ea"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ccbb8735-caee-4186-8557-3aa9ab1fba49"
+      }
+    }
   }
 }
