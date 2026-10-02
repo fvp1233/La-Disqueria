@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const BASE_URL = "http://localhost:4000/api";
+const BASE_URL = "http://https://la-disqueria.onrender.com/api";
 
 const FALLBACK_IMAGE = "https://placehold.co/600x600?text=La+Disqueria";
 

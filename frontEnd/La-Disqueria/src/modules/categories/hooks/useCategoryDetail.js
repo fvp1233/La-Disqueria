@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const BASE_URL = "http://localhost:4000/api/categories";
+const BASE_URL = "http://https://la-disqueria.onrender.com/api/categories";
 
 const useCategoryDetail = (slug) => {
   const [category, setCategory] = useState(null);

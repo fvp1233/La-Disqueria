@@ -122,7 +122,7 @@ que cambiar ningún archivo aunque cambie la IP del equipo**:
   al reiniciar `npx expo start` y la app la usa automáticamente.
 - **Emulador de Android Studio:** usa `http://10.0.2.2:4000`, que apunta al
   `localhost` del equipo.
-- **Simulador de iOS o web:** usa `http://localhost:4000`.
+- **Simulador de iOS o web:** usa `http://https://la-disqueria.onrender.com`.
 
 Solo si la detección automática falla (túnel, VPN, varias tarjetas de red) se
 crea un archivo `.env` (ver `.env.example`) con la IP fija:

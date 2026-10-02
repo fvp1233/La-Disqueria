@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:4000/api/products";
+const API_URL = "http://https://la-disqueria.onrender.com/api/products";
 const FALLBACK_IMAGE = "https://placehold.co/600x600?text=La+Disqueria";
 
 const normalizeProduct = (item) => ({

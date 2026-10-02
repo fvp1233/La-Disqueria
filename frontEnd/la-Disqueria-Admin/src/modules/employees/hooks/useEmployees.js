@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { notifySuccess, notifyError, confirmDelete } from "@/global/lib/notifications";
 
-const API_URL = "http://localhost:4000/api/employees";
+const API_URL = "http://https://la-disqueria.onrender.com/api/employees";
 
 const useEmployees = () => {
   const [employees, setEmployees] = useState([]);
