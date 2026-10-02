@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API_URL = "http://localhost:4000/api/cart";
+const API_URL = "http://https://la-disqueria.onrender.com/api/cart";
 
 const usePurchase = () => {
   const [submitting, setSubmitting] = useState(false);

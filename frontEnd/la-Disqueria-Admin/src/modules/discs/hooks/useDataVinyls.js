@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { notifySuccess, notifyError, confirmDelete } from "@/global/lib/notifications";
 
-const API_URL = "http://localhost:4000/api/vinyls";
+const API_URL = "http://https://la-disqueria.onrender.com/api/vinyls";
 
 const useDataVinyls = () => {
   const [activeTab, setActiveTab] = useState("list");

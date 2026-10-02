@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { notifyError } from "@/global/lib/notifications";
 
-const BASE_URL = "http://localhost:4000/api";
+const BASE_URL = "http://https://la-disqueria.onrender.com/api";
 
 const useProducts = () => {
   const [allProducts, setAllProducts] = useState([]);

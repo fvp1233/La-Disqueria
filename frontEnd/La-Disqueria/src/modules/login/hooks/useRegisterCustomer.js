@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-const API_URL = "http://localhost:4000/api/registerCustomer";
+const API_URL = "http://https://la-disqueria.onrender.com/api/registerCustomer";
 
 const useRegisterCustomer = () => {
   const [submitting, setSubmitting] = useState(false);

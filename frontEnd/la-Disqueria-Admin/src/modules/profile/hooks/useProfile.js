@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { notifySuccess, notifyError } from "@/global/lib/notifications";
 
-const API_URL = "http://localhost:4000/api/admin";
+const API_URL = "http://https://la-disqueria.onrender.com/api/admin";
 
 const useProfile = () => {
   const [submitting, setSubmitting] = useState(false);

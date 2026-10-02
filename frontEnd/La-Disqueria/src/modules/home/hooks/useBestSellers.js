@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:4000/api/orders/bestsellers";
+const API_URL = "http://https://la-disqueria.onrender.com/api/orders/bestsellers";
 const MIN_ITEMS = 6;
 
 // Combina el ranking real de ventas (colección orders) con el catálogo

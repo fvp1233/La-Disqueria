@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:4000/api/artists";
+const API_URL = "https://la-disqueria.onrender.com";
 
 const slugify = (name) => name.toLowerCase().trim().replace(/\s+/g, "-");
 

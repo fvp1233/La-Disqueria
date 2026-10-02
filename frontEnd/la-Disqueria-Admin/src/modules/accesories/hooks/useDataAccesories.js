@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { notifySuccess, notifyError, confirmDelete } from "@/global/lib/notifications";
 
-const API_URL = "http://localhost:4000/api/accessories";
+const API_URL = "http://https://la-disqueria.onrender.com/api/accessories";
 
 const useDataAccessories = () => {
   const [dataAccessories, setDataAccessories] = useState([]);

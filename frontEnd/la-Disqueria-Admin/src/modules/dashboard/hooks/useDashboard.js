@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { notifyError } from "@/global/lib/notifications";
 
-const API_URL = "http://localhost:4000/api/dashboard";
+const API_URL = "http://https://la-disqueria.onrender.com/api/dashboard";
 
 const useDashboard = () => {
   const [stats, setStats] = useState(null);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const API_URL = "http://localhost:4000/api/categories";
+const API_URL = "http://https://la-disqueria.onrender.com/api/categories";
 
 const useCategories = () => {
   const [categories, setCategories] = useState([]);
