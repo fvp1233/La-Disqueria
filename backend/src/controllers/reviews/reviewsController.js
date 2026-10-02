@@ -107,7 +107,7 @@ reviewsController.upsertReview = async (req, res) => {
         rating,
         comment,
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true },
+      { returnDocument: "after", upsert: true, setDefaultsOnInsert: true },
     );
 
     return res.status(201).json({ message: "Valoración guardada", review });
